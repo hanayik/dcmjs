@@ -1,5 +1,14 @@
 import { Code, CodedConcept } from "./coding.js";
 import {
+    FindingSite,
+    ImageRegion,
+    ImageRegion3D,
+    ReferencedRealWorldValueMap,
+    ReferencedSegmentation,
+    ReferencedSegmentationFrame,
+    VolumeSurface
+} from "./contentItems.js";
+import {
     CodeContentItem,
     ContainerContentItem,
     ContentSequence,
@@ -9,21 +18,8 @@ import {
     TextContentItem,
     UIDRefContentItem
 } from "./valueTypes.js";
-import {
-    FindingSite,
-    ImageRegion,
-    ImageRegion3D,
-    ReferencedSegmentation,
-    ReferencedSegmentationFrame,
-    VolumeSurface,
-    ReferencedRealWorldValueMap
-} from "./contentItems.js";
 
-class Template extends ContentSequence {
-    constructor(...args) {
-        super(...args);
-    }
-}
+class Template extends ContentSequence {}
 
 class Measurement extends Template {
     constructor(options) {
@@ -37,14 +33,10 @@ class Measurement extends Template {
         });
         valueItem.ContentSequence = new ContentSequence();
         if (options.trackingIdentifier === undefined) {
-            throw new Error(
-                "Option 'trackingIdentifier' is required for Measurement."
-            );
+            throw new Error("Option 'trackingIdentifier' is required for Measurement.");
         }
         if (options.trackingIdentifier.constructor === TrackingIdentifier) {
-            throw new Error(
-                "Option 'trackingIdentifier' must have type TrackingIdentifier."
-            );
+            throw new Error("Option 'trackingIdentifier' must have type TrackingIdentifier.");
         }
         valueItem.ContentSequence.push(...options.trackingIdentifier);
         if (options.method !== undefined) {
@@ -72,69 +64,44 @@ class Measurement extends Template {
             valueItem.ContentSequence.push(derivationItem);
         }
         if (options.findingSites !== undefined) {
-            if (
-                !(
-                    typeof options.findingSites === "object" ||
-                    options.findingSites instanceof Array
-                )
-            ) {
+            if (!(typeof options.findingSites === "object" || Array.isArray(options.findingSites))) {
                 throw new Error("Option 'findingSites' must have type Array.");
             }
-            options.findingSites.forEach(site => {
+            options.findingSites.forEach((site) => {
                 if (!site || !(site instanceof FindingSite)) {
-                    throw new Error(
-                        "Items of option 'findingSites' must have type FindingSite."
-                    );
+                    throw new Error("Items of option 'findingSites' must have type FindingSite.");
                 }
                 valueItem.ContentSequence.push(site);
             });
         }
         if (options.properties !== undefined) {
             if (!(options.properties instanceof MeasurementProperties)) {
-                throw new Error(
-                    "Option 'properties' must have type MeasurementProperties."
-                );
+                throw new Error("Option 'properties' must have type MeasurementProperties.");
             }
             valueItem.ContentSequence.push(...options.properties);
         }
         if (options.referencedRegions !== undefined) {
-            if (
-                !(
-                    typeof options.referencedRegions === "object" ||
-                    options.referencedRegions instanceof Array
-                )
-            ) {
-                throw new Error(
-                    "Option 'referencedRegions' must have type Array."
-                );
+            if (!(typeof options.referencedRegions === "object" || Array.isArray(options.referencedRegions))) {
+                throw new Error("Option 'referencedRegions' must have type Array.");
             }
-            options.referencedRegions.forEach(region => {
-                if (
-                    !region ||
-                    (!(region instanceof ImageRegion) &&
-                        !(region instanceof ImageRegion3D))
-                ) {
+            options.referencedRegions.forEach((region) => {
+                if (!region || (!(region instanceof ImageRegion) && !(region instanceof ImageRegion3D))) {
                     throw new Error(
-                        "Items of option 'referencedRegion' must have type " +
-                            "ImageRegion or ImageRegion3D."
+                        "Items of option 'referencedRegion' must have type " + "ImageRegion or ImageRegion3D."
                     );
                 }
                 valueItem.ContentSequence.push(region);
             });
         } else if (options.referencedVolume !== undefined) {
             if (!(options.referencedVolume instanceof VolumeSurface)) {
-                throw new Error(
-                    "Option 'referencedVolume' must have type VolumeSurface."
-                );
+                throw new Error("Option 'referencedVolume' must have type VolumeSurface.");
             }
             valueItem.ContentSequence.push(options.referencedVolume);
         } else if (options.referencedSegmentation !== undefined) {
             if (
                 !(
-                    options.referencedSegmentation instanceof
-                        ReferencedSegmentation ||
-                    options.referencedSegmentation instanceof
-                        ReferencedSegmentationFrame
+                    options.referencedSegmentation instanceof ReferencedSegmentation ||
+                    options.referencedSegmentation instanceof ReferencedSegmentationFrame
                 )
             ) {
                 throw new Error(
@@ -145,24 +112,16 @@ class Measurement extends Template {
             valueItem.ContentSequence.push(options.referencedSegmentation);
         }
         if (options.referencedRealWorldValueMap !== undefined) {
-            if (
-                !(
-                    options.referencedRealWorldValueMap instanceof
-                    ReferencedRealWorldValueMap
-                )
-            ) {
+            if (!(options.referencedRealWorldValueMap instanceof ReferencedRealWorldValueMap)) {
                 throw new Error(
-                    "Option 'referencedRealWorldValueMap' must have type " +
-                        "ReferencedRealWorldValueMap."
+                    "Option 'referencedRealWorldValueMap' must have type " + "ReferencedRealWorldValueMap."
                 );
             }
             valueItem.ContentSequence.push(options.referencedRealWorldValueMap);
         }
         if (options.algorithmId !== undefined) {
             if (!(options.algorithmId instanceof AlgorithmIdentification)) {
-                throw new Error(
-                    "Option 'algorithmId' must have type AlgorithmIdentification."
-                );
+                throw new Error("Option 'algorithmId' must have type AlgorithmIdentification.");
             }
             valueItem.ContentSequence.push(...options.algorithmId);
         }
@@ -186,29 +145,16 @@ class MeasurementProperties extends Template {
             this.push(normalityItem);
         }
         if (options.measurementStatisticalProperties !== undefined) {
-            if (
-                !(
-                    options.measurementStatisticalProperties instanceof
-                    MeasurementStatisticalProperties
-                )
-            ) {
+            if (!(options.measurementStatisticalProperties instanceof MeasurementStatisticalProperties)) {
                 throw new Error(
-                    "Option 'measurmentStatisticalProperties' must have type " +
-                        "MeasurementStatisticalProperties."
+                    "Option 'measurmentStatisticalProperties' must have type " + "MeasurementStatisticalProperties."
                 );
             }
             this.push(...options.measurementStatisticalProperties);
         }
         if (options.normalRangeProperties !== undefined) {
-            if (
-                !(
-                    options.normalRangeProperties instanceof
-                    NormalRangeProperties
-                )
-            ) {
-                throw new Error(
-                    "Option 'normalRangeProperties' must have type NormalRangeProperties."
-                );
+            if (!(options.normalRangeProperties instanceof NormalRangeProperties)) {
+                throw new Error("Option 'normalRangeProperties' must have type NormalRangeProperties.");
             }
             this.push(...options.normalRangeProperties);
         }
@@ -267,26 +213,14 @@ class MeasurementStatisticalProperties extends Template {
     constructor(options) {
         super();
         if (options.values === undefined) {
-            throw new Error(
-                "Option 'values' is required for MeasurementStatisticalProperties."
-            );
+            throw new Error("Option 'values' is required for MeasurementStatisticalProperties.");
         }
-        if (
-            !(
-                typeof options.values === "object" ||
-                options.values instanceof Array
-            )
-        ) {
+        if (!(typeof options.values === "object" || Array.isArray(options.values))) {
             throw new Error("Option 'values' must have type Array.");
         }
-        options.values.forEach(value => {
-            if (
-                !options.concept ||
-                !(options.concept instanceof NumContentItem)
-            ) {
-                throw new Error(
-                    "Items of option 'values' must have type NumContentItem."
-                );
+        options.values.forEach((value) => {
+            if (!options.concept || !(options.concept instanceof NumContentItem)) {
+                throw new Error("Items of option 'values' must have type NumContentItem.");
             }
             this.push(value);
         });
@@ -321,26 +255,14 @@ class NormalRangeProperties extends Template {
     constructor(options) {
         super(options);
         if (options.values === undefined) {
-            throw new Error(
-                "Option 'values' is required for NormalRangeProperties."
-            );
+            throw new Error("Option 'values' is required for NormalRangeProperties.");
         }
-        if (
-            !(
-                typeof options.values === "object" ||
-                options.values instanceof Array
-            )
-        ) {
+        if (!(typeof options.values === "object" || Array.isArray(options.values))) {
             throw new Error("Option 'values' must have type Array.");
         }
-        options.values.forEach(value => {
-            if (
-                !options.concept ||
-                !(options.concept instanceof NumContentItem)
-            ) {
-                throw new Error(
-                    "Items of option 'values' must have type NumContentItem."
-                );
+        options.values.forEach((value) => {
+            if (!options.concept || !(options.concept instanceof NumContentItem)) {
+                throw new Error("Items of option 'values' must have type NumContentItem.");
             }
             this.push(value);
         });
@@ -375,29 +297,21 @@ class ObservationContext extends Template {
     constructor(options) {
         super();
         if (options.observerPersonContext === undefined) {
-            throw new Error(
-                "Option 'observerPersonContext' is required for ObservationContext."
-            );
+            throw new Error("Option 'observerPersonContext' is required for ObservationContext.");
         }
         if (!(options.observerPersonContext instanceof ObserverContext)) {
-            throw new Error(
-                "Option 'observerPersonContext' must have type ObserverContext"
-            );
+            throw new Error("Option 'observerPersonContext' must have type ObserverContext");
         }
         this.push(...options.observerPersonContext);
         if (options.observerDeviceContext !== undefined) {
             if (!(options.observerDeviceContext instanceof ObserverContext)) {
-                throw new Error(
-                    "Option 'observerDeviceContext' must have type ObserverContext"
-                );
+                throw new Error("Option 'observerDeviceContext' must have type ObserverContext");
             }
             this.push(...options.observerDeviceContext);
         }
         if (options.subjectContext !== undefined) {
             if (!(options.subjectContext instanceof SubjectContext)) {
-                throw new Error(
-                    "Option 'subjectContext' must have type SubjectContext"
-                );
+                throw new Error("Option 'subjectContext' must have type SubjectContext");
             }
             this.push(...options.subjectContext);
         }
@@ -408,19 +322,10 @@ class ObserverContext extends Template {
     constructor(options) {
         super();
         if (options.observerType === undefined) {
-            throw new Error(
-                "Option 'observerType' is required for ObserverContext."
-            );
+            throw new Error("Option 'observerType' is required for ObserverContext.");
         } else {
-            if (
-                !(
-                    options.observerType instanceof Code ||
-                    options.observerType instanceof CodedConcept
-                )
-            ) {
-                throw new Error(
-                    "Option 'observerType' must have type Code or CodedConcept."
-                );
+            if (!(options.observerType instanceof Code || options.observerType instanceof CodedConcept)) {
+                throw new Error("Option 'observerType' must have type Code or CodedConcept.");
             }
         }
         const observerTypeItem = new CodeContentItem({
@@ -434,9 +339,7 @@ class ObserverContext extends Template {
         });
         this.push(observerTypeItem);
         if (options.observerIdentifyingAttributes === undefined) {
-            throw new Error(
-                "Option 'observerIdentifyingAttributes' is required for ObserverContext."
-            );
+            throw new Error("Option 'observerIdentifyingAttributes' is required for ObserverContext.");
         }
         // FIXME
         const person = new CodedConcept({
@@ -450,33 +353,21 @@ class ObserverContext extends Template {
             meaning: "Device"
         });
         if (person.equals(options.observerType)) {
-            if (
-                !(
-                    options.observerIdentifyingAttributes instanceof
-                    PersonObserverIdentifyingAttributes
-                )
-            ) {
+            if (!(options.observerIdentifyingAttributes instanceof PersonObserverIdentifyingAttributes)) {
                 throw new Error(
                     "Option 'observerIdentifyingAttributes' must have type " +
                         "PersonObserverIdentifyingAttributes for 'Person' observer type."
                 );
             }
         } else if (device.equals(options.observerType)) {
-            if (
-                !(
-                    options.observerIdentifyingAttributes instanceof
-                    DeviceObserverIdentifyingAttributes
-                )
-            ) {
+            if (!(options.observerIdentifyingAttributes instanceof DeviceObserverIdentifyingAttributes)) {
                 throw new Error(
                     "Option 'observerIdentifyingAttributes' must have type " +
                         "DeviceObserverIdentifyingAttributes for 'Device' observer type."
                 );
             }
         } else {
-            throw new Error(
-                "Option 'oberverType' must be either 'Person' or 'Device'."
-            );
+            throw new Error("Option 'oberverType' must be either 'Person' or 'Device'.");
         }
         this.push(...options.observerIdentifyingAttributes);
     }
@@ -486,9 +377,7 @@ class PersonObserverIdentifyingAttributes extends Template {
     constructor(options) {
         super();
         if (options.name === undefined) {
-            throw new Error(
-                "Option 'name' is required for PersonObserverIdentifyingAttributes."
-            );
+            throw new Error("Option 'name' is required for PersonObserverIdentifyingAttributes.");
         }
         const nameItem = new PNameContentItem({
             name: new CodedConcept({
@@ -555,9 +444,7 @@ class DeviceObserverIdentifyingAttributes extends Template {
     constructor(options) {
         super();
         if (options.uid === undefined) {
-            throw new Error(
-                "Option 'uid' is required for DeviceObserverIdentifyingAttributes."
-            );
+            throw new Error("Option 'uid' is required for DeviceObserverIdentifyingAttributes.");
         }
         const deviceObserverItem = new UIDRefContentItem({
             name: new CodedConcept({
@@ -609,8 +496,7 @@ class DeviceObserverIdentifyingAttributes extends Template {
             const physicalLocationItem = new TextContentItem({
                 name: new CodedConcept({
                     value: "121017",
-                    meaning:
-                        "Device Observer Physical Location During Observation",
+                    meaning: "Device Observer Physical Location During Observation",
                     schemeDesignator: "DCM"
                 }),
                 value: options.physicalLocation,
@@ -637,14 +523,10 @@ class SubjectContext extends Template {
     constructor(options) {
         super();
         if (options.subjectClass === undefined) {
-            throw new Error(
-                "Option 'subjectClass' is required for SubjectContext."
-            );
+            throw new Error("Option 'subjectClass' is required for SubjectContext.");
         }
         if (options.subjectClassSpecificContext === undefined) {
-            throw new Error(
-                "Option 'subjectClassSpecificContext' is required for SubjectContext."
-            );
+            throw new Error("Option 'subjectClassSpecificContext' is required for SubjectContext.");
         }
         const subjectClassItem = new CodeContentItem({
             name: new CodedConcept({
@@ -672,45 +554,25 @@ class SubjectContext extends Template {
             meaning: "Device Subject"
         });
         if (fetus.equals(options.subjectClass)) {
-            if (
-                !(
-                    options.subjectClassSpecificContext instanceof
-                    SubjectContextFetus
-                )
-            ) {
+            if (!(options.subjectClassSpecificContext instanceof SubjectContextFetus)) {
                 throw new Error(
-                    "Option 'subjectClass' must have type " +
-                        "SubjectContextFetus for 'Fetus' subject class."
+                    "Option 'subjectClass' must have type " + "SubjectContextFetus for 'Fetus' subject class."
                 );
             }
         } else if (specimen.equals(options.subjectClass)) {
-            if (
-                !(
-                    options.subjectClassSpecificContext instanceof
-                    SubjectContextSpecimen
-                )
-            ) {
+            if (!(options.subjectClassSpecificContext instanceof SubjectContextSpecimen)) {
                 throw new Error(
-                    "Option 'subjectClass' must have type " +
-                        "SubjectContextSpecimen for 'Specimen' subject class."
+                    "Option 'subjectClass' must have type " + "SubjectContextSpecimen for 'Specimen' subject class."
                 );
             }
         } else if (device.equals(options.subjectClass)) {
-            if (
-                !(
-                    options.subjectClassSpecificContext instanceof
-                    SubjectContextDevice
-                )
-            ) {
+            if (!(options.subjectClassSpecificContext instanceof SubjectContextDevice)) {
                 throw new Error(
-                    "Option 'subjectClass' must have type " +
-                        "SubjectContextDevice for 'Device' subject class."
+                    "Option 'subjectClass' must have type " + "SubjectContextDevice for 'Device' subject class."
                 );
             }
         } else {
-            throw new Error(
-                "Option 'subjectClass' must be either 'Fetus', 'Specimen', or 'Device'."
-            );
+            throw new Error("Option 'subjectClass' must be either 'Fetus', 'Specimen', or 'Device'.");
         }
         this.push(...options.subjectClassSpecificContext);
     }
@@ -720,9 +582,7 @@ class SubjectContextFetus extends Template {
     constructor(options) {
         super();
         if (options.subjectID === undefined) {
-            throw new Error(
-                "Option 'subjectID' is required for SubjectContextFetus."
-            );
+            throw new Error("Option 'subjectID' is required for SubjectContextFetus.");
         }
         const subjectIdItem = new TextContentItem({
             name: new CodedConcept({
@@ -741,9 +601,7 @@ class SubjectContextSpecimen extends Template {
     constructor(options) {
         super();
         if (options.uid === undefined) {
-            throw new Error(
-                "Option 'uid' is required for SubjectContextSpecimen."
-            );
+            throw new Error("Option 'uid' is required for SubjectContextSpecimen.");
         }
         const specimenUidItem = new UIDRefContentItem({
             name: new CodedConcept({
@@ -798,9 +656,7 @@ class SubjectContextDevice extends Template {
     constructor(options) {
         super(options);
         if (options.name === undefined) {
-            throw new Error(
-                "Option 'name' is required for SubjectContextDevice."
-            );
+            throw new Error("Option 'name' is required for SubjectContextDevice.");
         }
         const deviceNameItem = new TextContentItem({
             name: new CodedConcept({
@@ -864,8 +720,7 @@ class SubjectContextDevice extends Template {
             const physicalLocationItem = new TextContentItem({
                 name: new CodedConcept({
                     value: "121197",
-                    meaning:
-                        "Device Subject Physical Location During Observation",
+                    meaning: "Device Subject Physical Location During Observation",
                     schemeDesignator: "DCM"
                 }),
                 value: options.physicalLocation,
@@ -912,20 +767,14 @@ class _MeasurementsAndQualitatitiveEvaluations extends Template {
         });
         groupItem.ContentSequence = new ContentSequence();
         if (options.trackingIdentifier === undefined) {
-            throw new Error(
-                "Option 'trackingIdentifier' is required for measurements group."
-            );
+            throw new Error("Option 'trackingIdentifier' is required for measurements group.");
         }
         if (!(options.trackingIdentifier instanceof TrackingIdentifier)) {
-            throw new Error(
-                "Option 'trackingIdentifier' must have type TrackingIdentifier."
-            );
+            throw new Error("Option 'trackingIdentifier' must have type TrackingIdentifier.");
         }
         if (
             !Array.isArray(options.trackingIdentifier) ||
-            options.trackingIdentifier.filter(
-                item => item instanceof CodedConcept
-            ).length < 2
+            options.trackingIdentifier.filter((item) => item instanceof CodedConcept).length < 2
         ) {
             throw new Error(
                 "Option 'trackingIdentifier' must include a human readable tracking " +
@@ -959,63 +808,38 @@ class _MeasurementsAndQualitatitiveEvaluations extends Template {
         }
         if (options.timePointContext !== undefined) {
             if (!(options.timePointContext instanceof TimePointContext)) {
-                throw new Error(
-                    "Option 'timePointContext' must have type TimePointContext."
-                );
+                throw new Error("Option 'timePointContext' must have type TimePointContext.");
             }
             groupItem.ContentSequence.push(...options.timePointContext);
         }
         if (options.referencedRealWorldValueMap !== undefined) {
-            if (
-                !(
-                    options.referencedRealWorldValueMap instanceof
-                    ReferencedRealWorldValueMap
-                )
-            ) {
+            if (!(options.referencedRealWorldValueMap instanceof ReferencedRealWorldValueMap)) {
                 throw new Error(
-                    "Option 'referencedRealWorldValleMap' must have type " +
-                        "ReferencedRealWorldValueMap."
+                    "Option 'referencedRealWorldValleMap' must have type " + "ReferencedRealWorldValueMap."
                 );
             }
             groupItem.ContentSequence.push(options.referencedRealWorldValueMap);
         }
         if (options.measurements !== undefined) {
-            if (
-                !(
-                    typeof options.measurements === "object" ||
-                    options.measurements instanceof Array
-                )
-            ) {
+            if (!(typeof options.measurements === "object" || Array.isArray(options.measurements))) {
                 throw new Error("Option 'measurements' must have type Array.");
             }
-            options.measurements.forEach(measurement => {
+            options.measurements.forEach((measurement) => {
                 console.log(measurement);
                 if (!measurement || !(measurement instanceof NumContentItem)) {
-                    throw new Error(
-                        "Items of option 'measurement' must have type NumContentItem."
-                    );
+                    throw new Error("Items of option 'measurement' must have type NumContentItem.");
                 }
                 groupItem.ContentSequence.push(measurement);
             });
         }
         if (options.qualitativeEvaluations !== undefined) {
             if (
-                !(
-                    typeof options.qualitativeEvaluations === "object" ||
-                    options.qualitativeEvaluations instanceof Array
-                )
+                !(typeof options.qualitativeEvaluations === "object" || Array.isArray(options.qualitativeEvaluations))
             ) {
-                throw new Error(
-                    "Option 'qualitativeEvaluations' must have type Array."
-                );
+                throw new Error("Option 'qualitativeEvaluations' must have type Array.");
             }
-            options.qualitativeEvaluations.forEach(evaluation => {
-                if (
-                    !(
-                        evaluation instanceof CodeContentItem ||
-                        evaluation instanceof TextContentItem
-                    )
-                ) {
+            options.qualitativeEvaluations.forEach((evaluation) => {
+                if (!(evaluation instanceof CodeContentItem || evaluation instanceof TextContentItem)) {
                     throw new Error(
                         "Items of option 'qualitativeEvaluations' must have type " +
                             "CodeContentItem or TextContentItem."
@@ -1059,48 +883,30 @@ class _ROIMeasurementsAndQualitativeEvaluations extends _MeasurementsAndQualitat
             );
         }
         if (options.referencedRegions !== undefined) {
-            if (
-                !(
-                    typeof options.referencedRegions === "object" ||
-                    options.referencedRegions instanceof Array
-                )
-            ) {
-                throw new Error(
-                    "Option 'referencedRegions' must have type Array."
-                );
+            if (!(typeof options.referencedRegions === "object" || Array.isArray(options.referencedRegions))) {
+                throw new Error("Option 'referencedRegions' must have type Array.");
             }
             if (options.referencedRegions.length === 0) {
-                throw new Error(
-                    "Option 'referencedRegion' must have non-zero length."
-                );
+                throw new Error("Option 'referencedRegion' must have non-zero length.");
             }
-            options.referencedRegions.forEach(region => {
-                if (
-                    !region ||
-                    (!(region instanceof ImageRegion) &&
-                        !(region instanceof ImageRegion3D))
-                ) {
+            options.referencedRegions.forEach((region) => {
+                if (!region || (!(region instanceof ImageRegion) && !(region instanceof ImageRegion3D))) {
                     throw new Error(
-                        "Items of option 'referencedRegion' must have type " +
-                            "ImageRegion or ImageRegion3D."
+                        "Items of option 'referencedRegion' must have type " + "ImageRegion or ImageRegion3D."
                     );
                 }
                 groupItem.ContentSequence.push(region);
             });
         } else if (options.referencedVolume !== undefined) {
             if (!(options.referencedVolume instanceof VolumeSurface)) {
-                throw new Error(
-                    "Items of option 'referencedVolume' must have type VolumeSurface."
-                );
+                throw new Error("Items of option 'referencedVolume' must have type VolumeSurface.");
             }
             groupItem.ContentSequence.push(options.referencedVolume);
         } else if (options.referencedSegmentation !== undefined) {
             if (
                 !(
-                    options.referencedSegmentation instanceof
-                        ReferencedSegmentation ||
-                    options.referencedSegmentation instanceof
-                        ReferencedSegmentationFrame
+                    options.referencedSegmentation instanceof ReferencedSegmentation ||
+                    options.referencedSegmentation instanceof ReferencedSegmentationFrame
                 )
             ) {
                 throw new Error(
@@ -1123,8 +929,7 @@ class PlanarROIMeasurementsAndQualitativeEvaluations extends _ROIMeasurementsAnd
         const numReferences = wereReferencesProvided.reduce((a, b) => a + b);
         if (numReferences === 0) {
             throw new Error(
-                "One of the following options must be provided: " +
-                    "'referencedRegion', 'referencedSegmentation'."
+                "One of the following options must be provided: " + "'referencedRegion', 'referencedSegmentation'."
             );
         } else if (numReferences > 1) {
             throw new Error(
@@ -1166,10 +971,7 @@ class MeasurementsDerivedFromMultipleROIMeasurements extends Template {
     constructor(options) {
         super(options);
         if (options.derivation === undefined) {
-            throw new Error(
-                "Option 'derivation' is required for " +
-                    "MeasurementsDerivedFromMultipleROIMeasurements."
-            );
+            throw new Error("Option 'derivation' is required for " + "MeasurementsDerivedFromMultipleROIMeasurements.");
         }
         // FIXME
         const valueItem = new NumContentItem({
@@ -1178,29 +980,17 @@ class MeasurementsDerivedFromMultipleROIMeasurements extends Template {
         valueItem.ContentSequence = new ContentSequence();
         if (options.measurementGroups === undefined) {
             throw new Error(
-                "Option 'measurementGroups' is required for " +
-                    "MeasurementsDerivedFromMultipleROIMeasurements."
+                "Option 'measurementGroups' is required for " + "MeasurementsDerivedFromMultipleROIMeasurements."
             );
         }
-        if (
-            !(
-                typeof options.measurementGroups === "object" ||
-                options.measurementGroups instanceof Array
-            )
-        ) {
+        if (!(typeof options.measurementGroups === "object" || Array.isArray(options.measurementGroups))) {
             throw new Error("Option 'measurementGroups' must have type Array.");
         }
-        options.measurementGroups.forEach(group => {
+        options.measurementGroups.forEach((group) => {
             if (
                 !group ||
-                (!(
-                    group instanceof
-                    PlanarROIMeasurementsAndQualitativeEvaluations
-                ) &&
-                    !(
-                        group instanceof
-                        VolumetricROIMeasurementsAndQualitativeEvaluations
-                    ))
+                (!(group instanceof PlanarROIMeasurementsAndQualitativeEvaluations) &&
+                    !(group instanceof VolumetricROIMeasurementsAndQualitativeEvaluations))
             ) {
                 throw new Error(
                     "Items of option 'measurementGroups' must have type " +
@@ -1212,15 +1002,8 @@ class MeasurementsDerivedFromMultipleROIMeasurements extends Template {
             valueItem.ContentSequence.push(...group);
         });
         if (options.measurementProperties !== undefined) {
-            if (
-                !(
-                    options.measurementProperties instanceof
-                    MeasurementProperties
-                )
-            ) {
-                throw new Error(
-                    "Option 'measurementProperties' must have type MeasurementProperties."
-                );
+            if (!(options.measurementProperties instanceof MeasurementProperties)) {
+                throw new Error("Option 'measurementProperties' must have type MeasurementProperties.");
             }
             valueItem.ContentSequence.push(...options.measurementProperties);
         }
@@ -1258,44 +1041,28 @@ class ROIMeasurements extends Template {
             this.push(methodItem);
         }
         if (options.findingSites !== undefined) {
-            if (
-                !(
-                    typeof options.findingSites === "object" ||
-                    options.findingSites instanceof Array
-                )
-            ) {
+            if (!(typeof options.findingSites === "object" || Array.isArray(options.findingSites))) {
                 throw new Error("Option 'findingSites' must have type Array.");
             }
-            options.findingSites.forEach(site => {
+            options.findingSites.forEach((site) => {
                 if (!site || !(site instanceof FindingSite)) {
-                    throw new Error(
-                        "Items of option 'findingSites' must have type FindingSite."
-                    );
+                    throw new Error("Items of option 'findingSites' must have type FindingSite.");
                 }
                 this.push(site);
             });
         }
         if (options.measurements === undefined) {
-            throw new Error(
-                "Options 'measurements' is required ROIMeasurements."
-            );
+            throw new Error("Options 'measurements' is required ROIMeasurements.");
         }
-        if (
-            !(
-                typeof options.measurements === "object" ||
-                options.measurements instanceof Array
-            )
-        ) {
+        if (!(typeof options.measurements === "object" || Array.isArray(options.measurements))) {
             throw new Error("Option 'measurements' must have type Array.");
         }
         if (options.measurements.length === 0) {
             throw new Error("Option 'measurements' must have non-zero length.");
         }
-        options.measurements.forEach(measurement => {
+        options.measurements.forEach((measurement) => {
             if (!measurement || !(measurement instanceof Measurement)) {
-                throw new Error(
-                    "Items of option 'measurements' must have type Measurement."
-                );
+                throw new Error("Items of option 'measurements' must have type Measurement.");
             }
             this.push(measurement);
         });
@@ -1306,14 +1073,10 @@ class MeasurementReport extends Template {
     constructor(options) {
         super();
         if (options.observationContext === undefined) {
-            throw new Error(
-                "Option 'observationContext' is required for MeasurementReport."
-            );
+            throw new Error("Option 'observationContext' is required for MeasurementReport.");
         }
         if (options.procedureReported === undefined) {
-            throw new Error(
-                "Option 'procedureReported' is required for MeasurementReport."
-            );
+            throw new Error("Option 'procedureReported' is required for MeasurementReport.");
         }
         const item = new ContainerContentItem({
             name: new CodedConcept({
@@ -1325,41 +1088,22 @@ class MeasurementReport extends Template {
         });
         item.ContentSequence = new ContentSequence();
         if (options.languageOfContentItemAndDescendants === undefined) {
+            throw new Error("Option 'languageOfContentItemAndDescendants' is required for " + "MeasurementReport.");
+        }
+        if (!(options.languageOfContentItemAndDescendants instanceof LanguageOfContentItemAndDescendants)) {
             throw new Error(
-                "Option 'languageOfContentItemAndDescendants' is required for " +
-                    "MeasurementReport."
+                "Option 'languageOfContentItemAndDescendants' must have type " + "LanguageOfContentItemAndDescendants."
             );
         }
-        if (
-            !(
-                options.languageOfContentItemAndDescendants instanceof
-                LanguageOfContentItemAndDescendants
-            )
-        ) {
-            throw new Error(
-                "Option 'languageOfContentItemAndDescendants' must have type " +
-                    "LanguageOfContentItemAndDescendants."
-            );
-        }
-        item.ContentSequence.push(
-            ...options.languageOfContentItemAndDescendants
-        );
+        item.ContentSequence.push(...options.languageOfContentItemAndDescendants);
         item.ContentSequence.push(...options.observationContext);
-        if (
-            options.procedureReported.constructor === CodedConcept ||
-            options.procedureReported.constructor === Code
-        ) {
+        if (options.procedureReported.constructor === CodedConcept || options.procedureReported.constructor === Code) {
             options.procedureReported = [options.procedureReported];
         }
-        if (
-            !(
-                typeof options.procedureReported === "object" ||
-                options.procedureReported instanceof Array
-            )
-        ) {
+        if (!(typeof options.procedureReported === "object" || Array.isArray(options.procedureReported))) {
             throw new Error("Option 'procedureReported' must have type Array.");
         }
-        options.procedureReported.forEach(procedure => {
+        options.procedureReported.forEach((procedure) => {
             const procedureItem = new CodeContentItem({
                 name: new CodedConcept({
                     value: "121058",
@@ -1396,9 +1140,7 @@ class MeasurementReport extends Template {
                 }),
                 relationshipType: RelationshipTypes.CONTAINS
             });
-            containerItem.ContentSequence = new ContentSequence(
-                ...options.imagingMeasurements
-            );
+            containerItem.ContentSequence = new ContentSequence(...options.imagingMeasurements);
             item.ContentSequence.push(containerItem);
         } else if (options.derivedImagingMeasurements !== undefined) {
             const containerItem = new ContainerContentItem({
@@ -1409,9 +1151,7 @@ class MeasurementReport extends Template {
                 }),
                 relationshipType: RelationshipTypes.CONTAINS
             });
-            containerItem.ContentSequence = new ContentSequence(
-                ...options.derivedImagingMeasurements
-            );
+            containerItem.ContentSequence = new ContentSequence(...options.derivedImagingMeasurements);
             item.ContentSequence.push(containerItem);
         } else if (options.qualitativeEvaluations !== undefined) {
             const containerItem = new ContainerContentItem({
@@ -1422,9 +1162,7 @@ class MeasurementReport extends Template {
                 }),
                 relationshipType: RelationshipTypes.CONTAINS
             });
-            containerItem.ContentSequence = new ContentSequence(
-                ...options.qualitativeEvaluations
-            );
+            containerItem.ContentSequence = new ContentSequence(...options.qualitativeEvaluations);
             item.ContentSequence.push(containerItem);
         }
         this.push(item);
@@ -1435,9 +1173,7 @@ class TimePointContext extends Template {
     constructor(options) {
         super(options);
         if (options.timePoint === undefined) {
-            throw new Error(
-                "Option 'timePoint' is required for TimePointContext."
-            );
+            throw new Error("Option 'timePoint' is required for TimePointContext.");
         }
         const timePointItem = new TextContentItem({
             name: new CodedConcept({
@@ -1532,14 +1268,10 @@ class AlgorithmIdentification extends Template {
     constructor(options) {
         super();
         if (options.name === undefined) {
-            throw new Error(
-                "Option 'name' is required for AlgorithmIdentification."
-            );
+            throw new Error("Option 'name' is required for AlgorithmIdentification.");
         }
         if (options.version === undefined) {
-            throw new Error(
-                "Option 'version' is required for AlgorithmIdentification."
-            );
+            throw new Error("Option 'version' is required for AlgorithmIdentification.");
         }
         const nameItem = new TextContentItem({
             name: new CodedConcept({
@@ -1562,15 +1294,10 @@ class AlgorithmIdentification extends Template {
         });
         this.push(versionItem);
         if (options.parameters !== undefined) {
-            if (
-                !(
-                    typeof options.parameters === "object" ||
-                    options.parameters instanceof Array
-                )
-            ) {
+            if (!(typeof options.parameters === "object" || Array.isArray(options.parameters))) {
                 throw new Error("Option 'parameters' must have type Array.");
             }
-            options.parameters.forEach(parameter => {
+            options.parameters.forEach((parameter) => {
                 const parameterItem = new TextContentItem({
                     name: new CodedConcept({
                         value: "111002",

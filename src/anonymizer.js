@@ -239,21 +239,14 @@ export function getTagsNameToEmpty() {
     return [...tagNamesToEmpty];
 }
 
-export function cleanTags(
-    dict,
-    tagNamesToReplace = undefined,
-    customTagNamesToEmpty = undefined
-) {
+export function cleanTags(dict, tagNamesToReplace = undefined, customTagNamesToEmpty = undefined) {
     if (tagNamesToReplace == undefined) {
         tagNamesToReplace = {
             "00100010": "ANON^PATIENT",
             "00100020": "ANON^ID"
         };
     }
-    var tags =
-        customTagNamesToEmpty != undefined
-            ? customTagNamesToEmpty
-            : tagNamesToEmpty;
+    var tags = customTagNamesToEmpty != undefined ? customTagNamesToEmpty : tagNamesToEmpty;
     tags.forEach(function (tag) {
         var tagInfo = DicomMetaDictionary.nameMap[tag];
         if (tagInfo && tagInfo.version != "PrivateTag") {
@@ -266,9 +259,7 @@ export function cleanTags(
                 } else {
                     newValue = [];
                 }
-                dict[tagString] = ValueRepresentation.addTagAccessors(
-                    dict[tagString]
-                );
+                dict[tagString] = ValueRepresentation.addTagAccessors(dict[tagString]);
                 dict[tagString].Value = newValue;
             }
         }

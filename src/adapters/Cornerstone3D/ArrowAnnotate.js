@@ -1,7 +1,7 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Point from "../../utilities/TID300/Point.js";
-import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
 import CodingScheme from "./CodingScheme";
+import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
+import MeasurementReport from "./MeasurementReport.js";
 
 const ARROW_ANNOTATE = "ArrowAnnotate";
 const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${ARROW_ANNOTATE}`;
@@ -11,22 +11,15 @@ const { codeValues, CodingSchemeDesignator } = CodingScheme;
 class ArrowAnnotate {
     constructor() {}
 
-    static getMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata
-    ) {
-        const { defaultState, SCOORDGroup, ReferencedFrameNumber } =
-            MeasurementReport.getSetupMeasurementData(
-                MeasurementGroup,
-                sopInstanceUIDToImageIdMap,
-                metadata,
-                ArrowAnnotate.toolType
-            );
+    static getMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata) {
+        const { defaultState, SCOORDGroup, ReferencedFrameNumber } = MeasurementReport.getSetupMeasurementData(
+            MeasurementGroup,
+            sopInstanceUIDToImageIdMap,
+            metadata,
+            ArrowAnnotate.toolType
+        );
 
-        const referencedImageId =
-            defaultState.annotation.metadata.referencedImageId;
+        const referencedImageId = defaultState.annotation.metadata.referencedImageId;
 
         const text = defaultState.annotation.metadata.label;
 
@@ -34,20 +27,14 @@ class ArrowAnnotate {
 
         const worldCoords = [];
         for (let i = 0; i < GraphicData.length; i += 2) {
-            const point = imageToWorldCoords(referencedImageId, [
-                GraphicData[i],
-                GraphicData[i + 1]
-            ]);
+            const point = imageToWorldCoords(referencedImageId, [GraphicData[i], GraphicData[i + 1]]);
             worldCoords.push(point);
         }
 
         // Since the arrowAnnotate measurement is just a point, to generate the tool state
         // we derive the second point based on the image size relative to the first point.
         if (worldCoords.length === 1) {
-            const imagePixelModule = metadata.get(
-                "imagePixelModule",
-                referencedImageId
-            );
+            const imagePixelModule = metadata.get("imagePixelModule", referencedImageId);
 
             let xOffset = 10;
             let yOffset = 10;
@@ -90,9 +77,7 @@ class ArrowAnnotate {
         const { referencedImageId } = metadata;
 
         if (!referencedImageId) {
-            throw new Error(
-                "ArrowAnnotate.getTID300RepresentationArguments: referencedImageId is not defined"
-            );
+            throw new Error("ArrowAnnotate.getTID300RepresentationArguments: referencedImageId is not defined");
         }
 
         const { points, arrowFirst } = data.handles;
@@ -136,7 +121,7 @@ class ArrowAnnotate {
 ArrowAnnotate.toolType = ARROW_ANNOTATE;
 ArrowAnnotate.utilityToolType = ARROW_ANNOTATE;
 ArrowAnnotate.TID300Representation = TID300Point;
-ArrowAnnotate.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+ArrowAnnotate.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

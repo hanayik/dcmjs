@@ -2,7 +2,7 @@ import { DicomMetaDictionary } from "../../DicomMetaDictionary.js";
 import { StructuredReport } from "../../derivations/";
 import TID1500MeasurementReport from "../../utilities/TID1500/TID1500MeasurementReport.js";
 import TID1501MeasurementGroup from "../../utilities/TID1500/TID1501MeasurementGroup.js";
-import { toArray, codeMeaningEquals, graphicTypeEquals } from "../helpers.js";
+import { codeMeaningEquals, graphicTypeEquals, toArray } from "../helpers.js";
 
 function getTID300ContentItem(tool, toolClass) {
     const args = toolClass.getTID300RepresentationArguments(tool);
@@ -11,12 +11,11 @@ function getTID300ContentItem(tool, toolClass) {
 }
 
 function getMeasurementGroup(graphicType, measurements) {
-    const toolClass =
-        MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_TOOL_TYPE[graphicType];
+    const toolClass = MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_TOOL_TYPE[graphicType];
 
     // Loop through the array of tool instances
     // for this tool
-    const Measurements = measurements.map(tool => {
+    const Measurements = measurements.map((tool) => {
         return getTID300ContentItem(tool, toolClass);
     });
 
@@ -32,12 +31,12 @@ export default class MeasurementReport {
 
         // Sort and split into arrays by scoord3d.graphicType
         const measurementsByGraphicType = {};
-        rois.forEach(roi => {
+        rois.forEach((roi) => {
             const graphicType = roi.scoord3d.graphicType;
 
             if (graphicType !== "POINT") {
                 // adding z coord as 0
-                roi.scoord3d.graphicData.map(coord => coord.push(0));
+                roi.scoord3d.graphicData.map((coord) => coord.push(0));
             }
 
             if (!measurementsByGraphicType[graphicType]) {
@@ -54,7 +53,7 @@ export default class MeasurementReport {
 
         let allMeasurementGroups = [];
         const measurementGroups = [];
-        Object.keys(measurementsByGraphicType).forEach(graphicType => {
+        Object.keys(measurementsByGraphicType).forEach((graphicType) => {
             const measurements = measurementsByGraphicType[graphicType];
 
             const group = getMeasurementGroup(graphicType, measurements);
@@ -62,8 +61,7 @@ export default class MeasurementReport {
                 measurementGroups.push(group);
             }
 
-            allMeasurementGroups =
-                allMeasurementGroups.concat(measurementGroups);
+            allMeasurementGroups = allMeasurementGroups.concat(measurementGroups);
         });
 
         const MeasurementReport = new TID1500MeasurementReport(
@@ -117,9 +115,7 @@ export default class MeasurementReport {
         derivationSourceDataset._vrMap = _vrMap;
 
         const report = new StructuredReport([derivationSourceDataset]);
-        const contentItem = MeasurementReport.contentItem(
-            derivationSourceDataset
-        );
+        const contentItem = MeasurementReport.contentItem(derivationSourceDataset);
 
         // Merge the derived dataset with the content from the Measurement Report
         report.dataset = Object.assign(report.dataset, contentItem);
@@ -132,52 +128,37 @@ export default class MeasurementReport {
     static generateToolState(dataset) {
         // For now, bail out if the dataset is not a TID1500 SR with length measurements
         if (dataset.ContentTemplateSequence.TemplateIdentifier !== "1500") {
-            throw new Error(
-                "This package can currently only interpret DICOM SR TID 1500"
-            );
+            throw new Error("This package can currently only interpret DICOM SR TID 1500");
         }
 
         const REPORT = "Imaging Measurements";
         const GROUP = "Measurement Group";
 
         // Split the imagingMeasurementContent into measurement groups by their code meaning
-        const imagingMeasurementContent = toArray(dataset.ContentSequence).find(
-            codeMeaningEquals(REPORT)
-        );
+        const imagingMeasurementContent = toArray(dataset.ContentSequence).find(codeMeaningEquals(REPORT));
 
         // Retrieve the Measurements themselves
-        const measurementGroups = toArray(
-            imagingMeasurementContent.ContentSequence
-        ).filter(codeMeaningEquals(GROUP));
+        const measurementGroups = toArray(imagingMeasurementContent.ContentSequence).filter(codeMeaningEquals(GROUP));
 
         // // For each of the supported measurement types, compute the measurement data
         const measurementData = {};
 
-        measurementGroups.forEach(mg => {
-            Object.keys(
-                MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_UTILITY_TYPE
-            ).forEach(measurementType => {
+        measurementGroups.forEach((mg) => {
+            Object.keys(MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_UTILITY_TYPE).forEach((measurementType) => {
                 // Find supported measurement types in the Structured Report
-                const measurementGroupContentSequence = toArray(
-                    mg.ContentSequence
-                );
-                let measurementContent = measurementGroupContentSequence.filter(
+                const measurementGroupContentSequence = toArray(mg.ContentSequence);
+                const measurementContent = measurementGroupContentSequence.filter(
                     graphicTypeEquals(measurementType.toUpperCase())
                 );
                 if (!measurementContent || measurementContent.length === 0) {
                     return;
                 }
 
-                const toolClass =
-                    MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_UTILITY_TYPE[
-                        measurementType
-                    ];
+                const toolClass = MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_UTILITY_TYPE[measurementType];
                 const toolType = toolClass.toolType;
 
                 if (!toolClass.getMeasurementData) {
-                    throw new Error(
-                        "MICROSCOPY Tool Adapters must define a getMeasurementData static method."
-                    );
+                    throw new Error("MICROSCOPY Tool Adapters must define a getMeasurementData static method.");
                 }
 
                 if (!measurementData[toolType]) {
@@ -194,14 +175,9 @@ export default class MeasurementReport {
     }
 
     static registerTool(toolClass) {
-        MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_UTILITY_TYPE[
-            toolClass.utilityToolType
-        ] = toolClass;
-        MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_TOOL_TYPE[
-            toolClass.graphicType
-        ] = toolClass;
-        MeasurementReport.MEASUREMENT_BY_TOOLTYPE[toolClass.graphicType] =
-            toolClass.utilityToolType;
+        MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_UTILITY_TYPE[toolClass.utilityToolType] = toolClass;
+        MeasurementReport.MICROSCOPY_TOOL_CLASSES_BY_TOOL_TYPE[toolClass.graphicType] = toolClass;
+        MeasurementReport.MEASUREMENT_BY_TOOLTYPE[toolClass.graphicType] = toolClass.utilityToolType;
     }
 }
 

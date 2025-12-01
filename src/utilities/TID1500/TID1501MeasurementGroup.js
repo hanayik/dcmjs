@@ -9,10 +9,8 @@ export default class TID1501MeasurementGroup {
         // TODO: Is there nothing else in this group?
         let measurementGroups = [];
 
-        TID300Measurements.forEach(TID300Measurement => {
-            measurementGroups.push(
-                this.getMeasurementGroup(TID300Measurement.contentItem())
-            );
+        TID300Measurements.forEach((TID300Measurement) => {
+            measurementGroups.push(this.getMeasurementGroup(TID300Measurement.contentItem()));
         });
 
         return measurementGroups;

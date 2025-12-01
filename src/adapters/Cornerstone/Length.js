@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Length from "../../utilities/TID300/Length.js";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport.js";
 
 const LENGTH = "Length";
 
@@ -9,8 +9,7 @@ class Length {
 
     // TODO: this function is required for all Cornerstone Tool Adapters, since it is called by MeasurementReport.
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, NUMGroup, SCOORDGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, NUMGroup, SCOORDGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const state = {
             ...defaultState,
@@ -29,12 +28,8 @@ class Length {
             }
         };
 
-        [
-            state.handles.start.x,
-            state.handles.start.y,
-            state.handles.end.x,
-            state.handles.end.y
-        ] = SCOORDGroup.GraphicData;
+        [state.handles.start.x, state.handles.start.y, state.handles.end.x, state.handles.end.y] =
+            SCOORDGroup.GraphicData;
 
         return state;
     }
@@ -61,7 +56,7 @@ class Length {
 Length.toolType = LENGTH;
 Length.utilityToolType = LENGTH;
 Length.TID300Representation = TID300Length;
-Length.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+Length.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

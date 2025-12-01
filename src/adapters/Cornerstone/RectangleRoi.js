@@ -1,13 +1,12 @@
-import MeasurementReport from "./MeasurementReport";
 import TID300Polyline from "../../utilities/TID300/Polyline";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport";
 
 class RectangleRoi {
     constructor() {}
 
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, SCOORDGroup, NUMGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, SCOORDGroup, NUMGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const state = {
             ...defaultState,
@@ -49,17 +48,11 @@ class RectangleRoi {
         const { finding, findingSites, cachedStats = {}, handles } = tool;
         console.log("getTID300 Rectangle", tool, cachedStats, handles);
         const { start, end } = handles;
-        const points = [
-            start,
-            { x: start.x, y: end.y },
-            end,
-            { x: end.x, y: start.y }
-        ];
+        const points = [start, { x: start.x, y: end.y }, end, { x: end.x, y: start.y }];
         const { area, perimeter } = cachedStats;
 
         console.log("Point=", points, "cachedStats=", cachedStats);
-        const trackingIdentifierTextValue =
-            "cornerstoneTools@^4.0.0:RectangleRoi";
+        const trackingIdentifierTextValue = "cornerstoneTools@^4.0.0:RectangleRoi";
 
         return {
             points,
@@ -75,7 +68,7 @@ class RectangleRoi {
 RectangleRoi.toolType = "RectangleRoi";
 RectangleRoi.utilityToolType = "RectangleRoi";
 RectangleRoi.TID300Representation = TID300Polyline;
-RectangleRoi.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+RectangleRoi.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

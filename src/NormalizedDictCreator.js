@@ -37,14 +37,8 @@ export class NormalizedDictCreator extends DictCreator {
         }
 
         if (tag.isPrivateValue()) {
-            const valueKey =
-                cleanTagString.substring(0, 4) +
-                "00" +
-                cleanTagString.substring(4, 6);
-            const key =
-                cleanTagString.substring(0, 4) +
-                "00" +
-                cleanTagString.substring(6, 8);
+            const valueKey = cleanTagString.substring(0, 4) + "00" + cleanTagString.substring(4, 6);
+            const key = cleanTagString.substring(0, 4) + "00" + cleanTagString.substring(6, 8);
             const privateValue = dict[valueKey];
             if (!privateValue) {
                 console.warn("Private value with no creator tag:", tag);

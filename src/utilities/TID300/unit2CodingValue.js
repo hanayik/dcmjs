@@ -35,7 +35,7 @@ const measurementMap = {
  * specified coding values.
  * Has .measurementMap on the function specifying global units for measurements.
  */
-const unit2CodingValue = units => {
+const unit2CodingValue = (units) => {
     if (!units) return NO_UNIT;
     const space = units.indexOf(" ");
     const baseUnit = space === -1 ? units : units.substring(0, space);

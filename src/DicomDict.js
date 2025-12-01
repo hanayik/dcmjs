@@ -35,14 +35,7 @@ class DicomDict {
             };
         }
         DicomMessage.write(this.meta, metaStream, metaSyntax, writeOptions);
-        DicomMessage.writeTagObject(
-            fileStream,
-            "00020000",
-            "UL",
-            metaStream.size,
-            metaSyntax,
-            writeOptions
-        );
+        DicomMessage.writeTagObject(fileStream, "00020000", "UL", metaStream.size, metaSyntax, writeOptions);
         fileStream.concat(metaStream);
 
         var useSyntax = this.meta["00020010"].Value[0];

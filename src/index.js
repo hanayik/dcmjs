@@ -1,52 +1,47 @@
 // Data
+
+import { DeflatedReadBufferStream, ReadBufferStream, WriteBufferStream } from "./BufferStream.js";
 import { BitArray } from "./bitArray.js";
-import { ReadBufferStream } from "./BufferStream.js";
-import { DeflatedReadBufferStream } from "./BufferStream.js";
-import { WriteBufferStream } from "./BufferStream.js";
+import { Colors } from "./colors.js";
 import { DicomDict } from "./DicomDict.js";
 import { DicomMessage } from "./DicomMessage.js";
 import { DicomMetaDictionary } from "./DicomMetaDictionary.js";
 import { DictCreator } from "./DictCreator.js";
-import { NormalizedDictCreator } from "./NormalizedDictCreator.js";
-import { DICOMWEB } from "./dicomweb.js";
-import { Tag } from "./Tag.js";
-import { ValueRepresentation } from "./ValueRepresentation.js";
-import { Colors } from "./colors.js";
-import log from "./log.js";
-
-import {
-    datasetToDict,
-    datasetToBuffer,
-    datasetToBlob
-} from "./datasetToBlob.js";
+import { datasetToBlob, datasetToBuffer, datasetToDict } from "./datasetToBlob.js";
 // Derivations
 import {
     DerivedDataset,
-    DerivedPixels,
     DerivedImage,
+    DerivedPixels,
+    ParametricMap,
     Segmentation,
-    StructuredReport,
-    ParametricMap
+    StructuredReport
 } from "./derivations/index.js";
+import { DICOMWEB } from "./dicomweb.js";
+import log from "./log.js";
+import { NormalizedDictCreator } from "./NormalizedDictCreator.js";
+import { Tag } from "./Tag.js";
+import { ValueRepresentation } from "./ValueRepresentation.js";
+
 // Normalizers
 
-import { Normalizer } from "./normalizers.js";
-import { ImageNormalizer } from "./normalizers.js";
-import { MRImageNormalizer } from "./normalizers.js";
-import { EnhancedMRImageNormalizer } from "./normalizers.js";
-import { EnhancedUSVolumeNormalizer } from "./normalizers.js";
-import { CTImageNormalizer } from "./normalizers.js";
-import { PETImageNormalizer } from "./normalizers.js";
-import { SEGImageNormalizer } from "./normalizers.js";
-import { DSRNormalizer } from "./normalizers.js";
-
 import adapters from "./adapters/index.js";
-import utilities from "./utilities/index.js";
-import sr from "./sr/index.js";
-
 import { cleanTags, getTagsNameToEmpty } from "./anonymizer.js";
+import {
+    CTImageNormalizer,
+    DSRNormalizer,
+    EnhancedMRImageNormalizer,
+    EnhancedUSVolumeNormalizer,
+    ImageNormalizer,
+    MRImageNormalizer,
+    Normalizer,
+    PETImageNormalizer,
+    SEGImageNormalizer
+} from "./normalizers.js";
+import sr from "./sr/index.js";
+import utilities from "./utilities/index.js";
 
-let data = {
+const data = {
     BitArray,
     ReadBufferStream,
     DeflatedReadBufferStream,
@@ -64,7 +59,7 @@ let data = {
     NormalizedDictCreator
 };
 
-let derivations = {
+const derivations = {
     DerivedDataset,
     DerivedPixels,
     DerivedImage,
@@ -73,7 +68,7 @@ let derivations = {
     ParametricMap
 };
 
-let normalizers = {
+const normalizers = {
     Normalizer,
     ImageNormalizer,
     MRImageNormalizer,
@@ -85,7 +80,7 @@ let normalizers = {
     DSRNormalizer
 };
 
-let anonymizer = {
+const anonymizer = {
     cleanTags,
     getTagsNameToEmpty
 };
@@ -107,16 +102,6 @@ ValueRepresentation.setDicomMessageClass(DicomMessage);
 ValueRepresentation.setTagClass(Tag);
 Tag.setDicomMessageClass(DicomMessage);
 
-export {
-    DICOMWEB,
-    adapters,
-    data,
-    derivations,
-    normalizers,
-    sr,
-    utilities,
-    log,
-    anonymizer
-};
+export { DICOMWEB, adapters, data, derivations, normalizers, sr, utilities, log, anonymizer };
 
 export { dcmjs as default };

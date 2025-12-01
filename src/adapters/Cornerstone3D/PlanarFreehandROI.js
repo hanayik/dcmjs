@@ -1,7 +1,7 @@
-import MeasurementReport from "./MeasurementReport";
+import { vec3 } from "gl-matrix";
 import TID300Polyline from "../../utilities/TID300/Polyline";
 import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
-import { vec3 } from "gl-matrix";
+import MeasurementReport from "./MeasurementReport";
 
 const PLANARFREEHANDROI = "PlanarFreehandROI";
 const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${PLANARFREEHANDROI}`;
@@ -10,39 +10,26 @@ const closedContourThreshold = 1e-5;
 class PlanarFreehandROI {
     constructor() {}
 
-    static getMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata
-    ) {
-        const { defaultState, SCOORDGroup, ReferencedFrameNumber } =
-            MeasurementReport.getSetupMeasurementData(
-                MeasurementGroup,
-                sopInstanceUIDToImageIdMap,
-                metadata,
-                PlanarFreehandROI.toolType
-            );
+    static getMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata) {
+        const { defaultState, SCOORDGroup, ReferencedFrameNumber } = MeasurementReport.getSetupMeasurementData(
+            MeasurementGroup,
+            sopInstanceUIDToImageIdMap,
+            metadata,
+            PlanarFreehandROI.toolType
+        );
 
-        const referencedImageId =
-            defaultState.annotation.metadata.referencedImageId;
+        const referencedImageId = defaultState.annotation.metadata.referencedImageId;
         const { GraphicData } = SCOORDGroup;
 
         const worldCoords = [];
 
         for (let i = 0; i < GraphicData.length; i += 2) {
-            const point = imageToWorldCoords(referencedImageId, [
-                GraphicData[i],
-                GraphicData[i + 1]
-            ]);
+            const point = imageToWorldCoords(referencedImageId, [GraphicData[i], GraphicData[i + 1]]);
 
             worldCoords.push(point);
         }
 
-        const distanceBetweenFirstAndLastPoint = vec3.distance(
-            worldCoords[worldCoords.length - 1],
-            worldCoords[0]
-        );
+        const distanceBetweenFirstAndLastPoint = vec3.distance(worldCoords[worldCoords.length - 1], worldCoords[0]);
 
         let isOpenContour = true;
 
@@ -53,7 +40,7 @@ class PlanarFreehandROI {
             isOpenContour = false;
         }
 
-        let points = [];
+        const points = [];
 
         if (isOpenContour) {
             points.push(worldCoords[0], worldCoords[worldCoords.length - 1]);
@@ -84,14 +71,10 @@ class PlanarFreehandROI {
         const { referencedImageId } = metadata;
 
         if (!referencedImageId) {
-            throw new Error(
-                "PlanarFreehandROI.getTID300RepresentationArguments: referencedImageId is not defined"
-            );
+            throw new Error("PlanarFreehandROI.getTID300RepresentationArguments: referencedImageId is not defined");
         }
 
-        const points = polyline.map(worldPos =>
-            worldToImageCoords(referencedImageId, worldPos)
-        );
+        const points = polyline.map((worldPos) => worldToImageCoords(referencedImageId, worldPos));
 
         if (!isOpenContour) {
             // Need to repeat the first point at the end of to have an explicitly closed contour.
@@ -118,7 +101,7 @@ class PlanarFreehandROI {
 PlanarFreehandROI.toolType = PLANARFREEHANDROI;
 PlanarFreehandROI.utilityToolType = PLANARFREEHANDROI;
 PlanarFreehandROI.TID300Representation = TID300Polyline;
-PlanarFreehandROI.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+PlanarFreehandROI.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

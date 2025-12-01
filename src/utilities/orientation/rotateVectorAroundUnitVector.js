@@ -18,10 +18,7 @@ export default function (v, k, theta) {
     const kxv = crossProduct3D(k, v);
 
     for (let i = 0; i <= 2; i++) {
-        vRot[i] =
-            v[i] * cosTheta +
-            kxv[i] * sinTheta +
-            k[i] * kdotv * oneMinusCosTheta;
+        vRot[i] = v[i] * cosTheta + kxv[i] * sinTheta + k[i] * kdotv * oneMinusCosTheta;
 
         vRot[i] *= -1;
     }

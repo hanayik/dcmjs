@@ -45,9 +45,7 @@ export const rawTags = {
     "00081090": { vr: "LO", Value: ["Vivid S70"] },
     "00082111": {
         vr: "ST",
-        Value: [
-            "Lossy compression with JPEG baseline, IJG quality factor 90, compression ratio 13.52"
-        ]
+        Value: ["Lossy compression with JPEG baseline, IJG quality factor 90, compression ratio 13.52"]
     },
     "00082112": {
         vr: "SQ",

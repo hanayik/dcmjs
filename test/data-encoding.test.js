@@ -22,37 +22,22 @@ const expectedPatientNames = {
 };
 
 it("test_encodings", async () => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/dclunie-charsets/dclunie-charsets.zip";
-    const unzipPath = await getZippedTestDataset(
-        url,
-        "dclunie-charsets.zip",
-        "dclunie-charsets"
-    );
+    const url = "https://github.com/dcmjs-org/data/releases/download/dclunie-charsets/dclunie-charsets.zip";
+    const unzipPath = await getZippedTestDataset(url, "dclunie-charsets.zip", "dclunie-charsets");
     const filesPath = unzipPath + "/charsettests";
     const fileNames = await fsPromises.readdir(filesPath);
 
-    fileNames.forEach(fileName => {
+    fileNames.forEach((fileName) => {
         if (fileName in expectedPatientNames) {
-            const arrayBuffer = fs.readFileSync(
-                path.join(filesPath, fileName)
-            ).buffer;
+            const arrayBuffer = fs.readFileSync(path.join(filesPath, fileName)).buffer;
             const dicomDict = DicomMessage.readFile(arrayBuffer);
-            const dataset = DicomMetaDictionary.naturalizeDataset(
-                dicomDict.dict
-            );
-            expect(String(dataset.PatientName)).toEqual(
-                expectedPatientNames[fileName]
-            );
+            const dataset = DicomMetaDictionary.naturalizeDataset(dicomDict.dict);
+            expect(String(dataset.PatientName)).toEqual(expectedPatientNames[fileName]);
 
             // write to memory and expect correctly loaded utf-8 DICOM
             const newDicomDict = DicomMessage.readFile(dicomDict.write());
-            const newDataset = DicomMetaDictionary.naturalizeDataset(
-                newDicomDict.dict
-            );
-            expect(String(newDataset.PatientName)).toEqual(
-                expectedPatientNames[fileName]
-            );
+            const newDataset = DicomMetaDictionary.naturalizeDataset(newDicomDict.dict);
+            expect(String(newDataset.PatientName)).toEqual(expectedPatientNames[fileName]);
             expect(newDataset.SpecificCharacterSet).toEqual("ISO_IR 192");
         }
     });

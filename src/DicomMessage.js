@@ -77,13 +77,7 @@ const encapsulatedSyntaxes = [
 ];
 
 class DicomMessage {
-    static read(
-        bufferStream,
-        syntax,
-        ignoreErrors,
-        untilTag = null,
-        includeUntilTagValue = false
-    ) {
+    static read(bufferStream, syntax, ignoreErrors, untilTag = null, includeUntilTagValue = false) {
         log.warn("DicomMessage.read to be deprecated after dcmjs 0.24.x");
         return this._read(bufferStream, syntax, {
             ignoreErrors: ignoreErrors,
@@ -92,12 +86,7 @@ class DicomMessage {
         });
     }
 
-    static readTag(
-        bufferStream,
-        syntax,
-        untilTag = null,
-        includeUntilTagValue = false
-    ) {
+    static readTag(bufferStream, syntax, untilTag = null, includeUntilTagValue = false) {
         log.warn("DicomMessage.readTag to be deprecated after dcmjs 0.24.x");
         return this._readTag(bufferStream, syntax, {
             untilTag: untilTag,
@@ -121,8 +110,7 @@ class DicomMessage {
                 dictCreator: new DictCreator(this, options)
             };
         }
-        const { ignoreErrors, untilTag, stopOnGreaterTag, dictCreator } =
-            options;
+        const { ignoreErrors, untilTag, stopOnGreaterTag, dictCreator } = options;
         try {
             let previousTagOffset;
             while (!bufferStream.end()) {
@@ -130,25 +118,13 @@ class DicomMessage {
                     continue;
                 }
                 previousTagOffset = bufferStream.offset;
-                const header = this._readTagHeader(
-                    bufferStream,
-                    syntax,
-                    options
-                );
+                const header = this._readTagHeader(bufferStream, syntax, options);
                 const handledByCreator =
-                    !header.untilTag &&
-                    dictCreator.handleTagBody(
-                        header,
-                        bufferStream,
-                        syntax,
-                        options
-                    );
+                    !header.untilTag && dictCreator.handleTagBody(header, bufferStream, syntax, options);
                 if (handledByCreator) {
                     continue;
                 }
-                const readInfo = header.untilTag
-                    ? header
-                    : this._readTagBody(header, bufferStream, syntax, options);
+                const readInfo = header.untilTag ? header : this._readTagBody(header, bufferStream, syntax, options);
 
                 const cleanTagString = readInfo.tag.toCleanString();
                 if (untilTag && stopOnGreaterTag && cleanTagString > untilTag) {
@@ -164,9 +140,7 @@ class DicomMessage {
                             coding = encodingMapping[coding];
                             bufferStream.setDecoder(new TextDecoder(coding));
                         } else if (ignoreErrors) {
-                            log.warn(
-                                `Unsupported character set: ${coding}, using default character set`
-                            );
+                            log.warn(`Unsupported character set: ${coding}, using default character set`);
                         } else {
                             throw Error(`Unsupported character set: ${coding}`);
                         }
@@ -178,9 +152,7 @@ class DicomMessage {
                                 readInfo.values
                             );
                         } else {
-                            throw Error(
-                                `Using multiple character sets is not supported: ${readInfo.values}`
-                            );
+                            throw Error(`Using multiple character sets is not supported: ${readInfo.values}`);
                         }
                     }
                     readInfo.values = ["ISO_IR 192"]; // change SpecificCharacterSet to UTF-8
@@ -202,11 +174,7 @@ class DicomMessage {
     }
 
     static _normalizeSyntax(syntax) {
-        if (
-            syntax == IMPLICIT_LITTLE_ENDIAN ||
-            syntax == EXPLICIT_LITTLE_ENDIAN ||
-            syntax == EXPLICIT_BIG_ENDIAN
-        ) {
+        if (syntax == IMPLICIT_LITTLE_ENDIAN || syntax == EXPLICIT_LITTLE_ENDIAN || syntax == EXPLICIT_BIG_ENDIAN) {
             return syntax;
         } else {
             return EXPLICIT_LITTLE_ENDIAN;
@@ -253,9 +221,7 @@ class DicomMessage {
         if (el.tag.toCleanString() !== "00020000") {
             // meta length tag is missing
             if (!options.ignoreErrors) {
-                throw new Error(
-                    "Invalid DICOM file, meta length tag is malformed or not present."
-                );
+                throw new Error("Invalid DICOM file, meta length tag is malformed or not present.");
             }
 
             // reset stream to the position where we started reading tags
@@ -312,13 +278,7 @@ class DicomMessage {
 
             var values = DicomMessage._getTagWriteValues(vrType, tagObject);
 
-            written += tag.write(
-                useStream,
-                vrType,
-                values,
-                syntax,
-                writeOptions
-            );
+            written += tag.write(useStream, vrType, values, syntax, writeOptions);
         });
 
         return written;
@@ -334,9 +294,7 @@ class DicomMessage {
 
         let originalValue;
         if (Array.isArray(tagObject._rawValue)) {
-            originalValue = tagObject._rawValue.map(val =>
-                vr.applyFormatting(val)
-            );
+            originalValue = tagObject._rawValue.map((val) => vr.applyFormatting(val));
         } else {
             originalValue = vr.applyFormatting(tagObject._rawValue);
         }
@@ -384,11 +342,7 @@ class DicomMessage {
     ) {
         const { untilTag, includeUntilTagValue } = options;
         var implicit = syntax == IMPLICIT_LITTLE_ENDIAN ? true : false,
-            isLittleEndian =
-                syntax == IMPLICIT_LITTLE_ENDIAN ||
-                syntax == EXPLICIT_LITTLE_ENDIAN
-                    ? true
-                    : false;
+            isLittleEndian = syntax == IMPLICIT_LITTLE_ENDIAN || syntax == EXPLICIT_LITTLE_ENDIAN ? true : false;
 
         var oldEndian = stream.isLittleEndian;
         stream.setEndian(isLittleEndian);
@@ -430,11 +384,7 @@ class DicomMessage {
         } else {
             vrType = stream.readVR();
 
-            if (
-                vrType === "UN" &&
-                DicomMessage.lookupTag(tag) &&
-                DicomMessage.lookupTag(tag).vr
-            ) {
+            if (vrType === "UN" && DicomMessage.lookupTag(tag) && DicomMessage.lookupTag(tag).vr) {
                 vrType = DicomMessage.lookupTag(tag).vr;
 
                 vr = ValueRepresentation.parseUnknownVr(vrType);
@@ -480,18 +430,12 @@ class DicomMessage {
             var times = length / vr.maxLength,
                 i = 0;
             while (i++ < times) {
-                const { rawValue, value } = vr.read(
-                    stream,
-                    vr.maxLength,
-                    syntax,
-                    options
-                );
+                const { rawValue, value } = vr.read(stream, vr.maxLength, syntax, options);
                 rawValues.push(rawValue);
                 values.push(value);
             }
         } else {
-            const { rawValue, value } =
-                vr.read(stream, length, syntax, options) || {};
+            const { rawValue, value } = vr.read(stream, length, syntax, options) || {};
             if (!vr.isBinary() && singleVRs.indexOf(vr.type) == -1) {
                 rawValues = rawValue;
                 values = value;
@@ -508,9 +452,7 @@ class DicomMessage {
                 values = value;
             } else {
                 Array.isArray(value) ? (values = value) : values.push(value);
-                Array.isArray(rawValue)
-                    ? (rawValues = rawValue)
-                    : rawValues.push(rawValue);
+                Array.isArray(rawValue) ? (rawValues = rawValue) : rawValues.push(rawValue);
             }
         }
         stream.setEndian(oldEndian);

@@ -1,9 +1,9 @@
-import MeasurementReport from "./MeasurementReport.js";
-import Polyline from "./Polyline.js";
-import Polygon from "./Polygon.js";
-import Point from "./Point.js";
 import Circle from "./Circle.js";
 import Ellipse from "./Ellipse.js";
+import MeasurementReport from "./MeasurementReport.js";
+import Point from "./Point.js";
+import Polygon from "./Polygon.js";
+import Polyline from "./Polyline.js";
 
 const DICOMMicroscopyViewer = {
     Polyline,

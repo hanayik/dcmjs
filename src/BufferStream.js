@@ -2,15 +2,15 @@ import pako from "pako";
 import SplitDataView from "./SplitDataView";
 
 function toInt(val) {
-    if (isNaN(val)) {
-        throw new Error("Not a number: " + val);
-    } else if (typeof val == "string") {
-        return parseInt(val);
+    if (Number.isNaN(val)) {
+        throw new Error(`Not a number: ${val}`);
+    } else if (typeof val === "string") {
+        return parseInt(val, 10);
     } else return val;
 }
 
 function toFloat(val) {
-    if (typeof val == "string") {
+    if (typeof val === "string") {
         return parseFloat(val);
     } else return val;
 }
@@ -86,11 +86,7 @@ class BufferStream {
         const first = value >> 16;
         const second = value & 0xffff;
         this.view.setUint16(this.offset, toInt(first), this.isLittleEndian);
-        this.view.setUint16(
-            this.offset + 2,
-            toInt(second),
-            this.isLittleEndian
-        );
+        this.view.setUint16(this.offset + 2, toInt(second), this.isLittleEndian);
         return this.increment(4);
     }
 
@@ -166,9 +162,7 @@ class BufferStream {
     }
 
     readUint8Array(length) {
-        const arr = new Uint8Array(
-            this.view.slice(this.offset, this.offset + length)
-        );
+        const arr = new Uint8Array(this.view.slice(this.offset, this.offset + length));
         this.increment(length);
         return arr;
     }
@@ -240,9 +234,7 @@ class BufferStream {
         if (this.offset + length >= this.view.byteLength) {
             length = this.view.byteLength - this.offset;
         }
-        const view = new DataView(
-            this.slice(this.offset, this.offset + length)
-        );
+        const view = new DataView(this.slice(this.offset, this.offset + length));
         const result = this.decoder.decode(view);
         this.increment(length);
         return result;
@@ -250,7 +242,7 @@ class BufferStream {
 
     readHex(length) {
         var hexString = "";
-        for (var i = 0; i < length; i++) {
+        for (let i = 0; i < length; i++) {
             hexString += this.readUint8().toString(16);
         }
         return hexString;
@@ -266,10 +258,7 @@ class BufferStream {
      */
     concat(stream) {
         this.view.checkSize(this.size + stream.size - stream.startOffset);
-        this.view.writeBuffer(
-            new Uint8Array(stream.slice(stream.startOffset, stream.size)),
-            this.offset
-        );
+        this.view.writeBuffer(new Uint8Array(stream.slice(stream.startOffset, stream.size)), this.offset);
         this.offset += stream.size;
         this.size = this.offset;
         return this.view.availableSize;
@@ -309,9 +298,7 @@ class BufferStream {
         //   start: this.offset,
         //   stop: this.offset + length
         // });
-        const newBuf = new ReadBufferStream(
-            this.slice(this.offset, this.offset + length)
-        );
+        const newBuf = new ReadBufferStream(this.slice(this.offset, this.offset + length));
         this.increment(length);
 
         return newBuf;
@@ -379,9 +366,7 @@ class ReadBufferStream extends BufferStream {
     }
 
     writeUint8Repeat(value, count) {
-        throw new Error(
-            `writeUint8Repeat not implemented (value: ${value}, count: ${count})`
-        );
+        throw new Error(`writeUint8Repeat not implemented (value: ${value}, count: ${count})`);
     }
 
     writeInt8(value) {
@@ -435,9 +420,7 @@ class ReadBufferStream extends BufferStream {
 
 class DeflatedReadBufferStream extends ReadBufferStream {
     constructor(stream, options) {
-        const inflatedBuffer = pako.inflateRaw(
-            stream.getBuffer(stream.offset, stream.size)
-        );
+        const inflatedBuffer = pako.inflateRaw(stream.getBuffer(stream.offset, stream.size));
         super(inflatedBuffer.buffer, stream.littleEndian, options);
     }
 }

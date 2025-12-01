@@ -105,11 +105,7 @@ function findToken(message, token, offset = 0, maxSearchLength) {
  * @param {String} [boundary] Optional string to define a boundary between each part of the multipart body. If this is not specified, a random GUID will be generated.
  * @return {MultipartEncodedData} The Multipart encoded data returned as an Object. This contains both the data itself, and the boundary string used to divide it.
  */
-function multipartEncode(
-    datasets,
-    boundary = guid(),
-    contentType = "application/dicom"
-) {
+function multipartEncode(datasets, boundary = guid(), contentType = "application/dicom") {
     const contentTypeString = `Content-Type: ${contentType}`;
     const header = `\r\n--${boundary}\r\n${contentTypeString}\r\n\r\n`;
     const footer = `\r\n--${boundary}--`;
@@ -121,7 +117,7 @@ function multipartEncode(
     let length = 0;
 
     // Calculate the total length for the final array
-    const contentArrays = datasets.map(datasetBuffer => {
+    const contentArrays = datasets.map((datasetBuffer) => {
         const contentArray = new Uint8Array(datasetBuffer);
         const contentLength = contentArray.length;
 
@@ -138,7 +134,7 @@ function multipartEncode(
 
     // Write each dataset into the multipart array
     let position = 0;
-    contentArrays.forEach(contentArray => {
+    contentArrays.forEach((contentArray) => {
         multipartArray.set(headerArray, position);
         multipartArray.set(contentArray, position + headerLength);
 
@@ -207,12 +203,7 @@ function multipartDecode(response) {
         components.push(data);
 
         // find the end of the boundary
-        var boundaryEnd = findToken(
-            message,
-            separator,
-            boundaryIndex + 1,
-            maxSearchLength
-        );
+        var boundaryEnd = findToken(message, separator, boundaryIndex + 1, maxSearchLength);
         if (boundaryEnd === -1) break;
         // Move the offset to the end of the identified boundary
         offset = boundaryEnd + separator.length;
@@ -232,20 +223,7 @@ function guid() {
             .toString(16)
             .substring(1);
     }
-    return (
-        s4() +
-        s4() +
-        "-" +
-        s4() +
-        "-" +
-        s4() +
-        "-" +
-        s4() +
-        "-" +
-        s4() +
-        s4() +
-        s4()
-    );
+    return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
 }
 
 const message = {

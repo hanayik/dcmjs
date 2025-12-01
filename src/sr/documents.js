@@ -1,5 +1,6 @@
 import { DicomMetaDictionary } from "../DicomMetaDictionary.js";
 import { ContentSequence } from "./valueTypes.js";
+
 const _attributesToInclude = [
     // Patient
     "00080054",
@@ -206,55 +207,34 @@ const _attributesToInclude = [
 class Comprehensive3DSR {
     constructor(options) {
         if (options.evidence === undefined) {
-            throw new Error(
-                "Option 'evidence' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'evidence' is required for Comprehensive3DSR.");
         }
-        if (
-            !(
-                typeof options.evidence === "object" ||
-                options.evidence instanceof Array
-            )
-        ) {
+        if (!(typeof options.evidence === "object" || Array.isArray(options.evidence))) {
             throw new Error("Option 'evidence' must have type Array.");
         }
         if (options.evidence.length === 0) {
             throw new Error("Option 'evidence' must have non-zero length.");
         }
         if (options.content === undefined) {
-            throw new Error(
-                "Option 'content' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'content' is required for Comprehensive3DSR.");
         }
         if (options.seriesInstanceUID === undefined) {
-            throw new Error(
-                "Option 'seriesInstanceUID' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'seriesInstanceUID' is required for Comprehensive3DSR.");
         }
         if (options.seriesNumber === undefined) {
-            throw new Error(
-                "Option 'seriesNumber' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'seriesNumber' is required for Comprehensive3DSR.");
         }
         if (options.seriesDescription === undefined) {
-            throw new Error(
-                "Option 'seriesDescription' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'seriesDescription' is required for Comprehensive3DSR.");
         }
         if (options.sopInstanceUID === undefined) {
-            throw new Error(
-                "Option 'sopInstanceUID' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'sopInstanceUID' is required for Comprehensive3DSR.");
         }
         if (options.instanceNumber === undefined) {
-            throw new Error(
-                "Option 'instanceNumber' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'instanceNumber' is required for Comprehensive3DSR.");
         }
         if (options.manufacturer === undefined) {
-            throw new Error(
-                "Option 'manufacturer' is required for Comprehensive3DSR."
-            );
+            throw new Error("Option 'manufacturer' is required for Comprehensive3DSR.");
         }
 
         this.SOPClassUID = "1.2.840.10008.5.1.4.1.1.88.34";
@@ -269,8 +249,7 @@ class Comprehensive3DSR {
         if (options.institutionName !== undefined) {
             this.InstitutionName = options.institutionName;
             if (options.institutionalDepartmentName !== undefined) {
-                this.InstitutionalDepartmentName =
-                    options.institutionDepartmentName;
+                this.InstitutionalDepartmentName = options.institutionDepartmentName;
             }
         }
 
@@ -281,16 +260,10 @@ class Comprehensive3DSR {
         }
         if (options.isVerified) {
             if (options.verifyingObserverName === undefined) {
-                throw new Error(
-                    "Verifying Observer Name must be specified if SR document " +
-                        "has been verified."
-                );
+                throw new Error("Verifying Observer Name must be specified if SR document " + "has been verified.");
             }
             if (options.verifyingOrganization === undefined) {
-                throw new Error(
-                    "Verifying Organization must be specified if SR document " +
-                        "has been verified."
-                );
+                throw new Error("Verifying Organization must be specified if SR document " + "has been verified.");
             }
             this.VerificationFlag = "VERIFIED";
             const ovserver_item = {};
@@ -310,19 +283,14 @@ class Comprehensive3DSR {
         this.ContentDate = DicomMetaDictionary.date();
         this.ContentTime = DicomMetaDictionary.time();
 
-        Object.keys(options.content).forEach(keyword => {
+        Object.keys(options.content).forEach((keyword) => {
             this[keyword] = options.content[keyword];
         });
 
         const evidenceCollection = {};
-        options.evidence.forEach(evidence => {
-            if (
-                evidence.StudyInstanceUID !==
-                options.evidence[0].StudyInstanceUID
-            ) {
-                throw new Error(
-                    "Referenced data sets must all belong to the same study."
-                );
+        options.evidence.forEach((evidence) => {
+            if (evidence.StudyInstanceUID !== options.evidence[0].StudyInstanceUID) {
+                throw new Error("Referenced data sets must all belong to the same study.");
             }
             if (!(evidence.SeriesInstanceUID in evidenceCollection)) {
                 evidenceCollection[evidence.SeriesInstanceUID] = [];
@@ -333,48 +301,30 @@ class Comprehensive3DSR {
             evidenceCollection[evidence.SeriesInstanceUID].push(instanceItem);
         });
         const evidenceStudyItem = {};
-        evidenceStudyItem.StudyInstanceUID =
-            options.evidence[0].StudyInstanceUID;
+        evidenceStudyItem.StudyInstanceUID = options.evidence[0].StudyInstanceUID;
         evidenceStudyItem.ReferencedSeriesSequence = [];
-        Object.keys(evidenceCollection).forEach(seriesInstanceUID => {
+        Object.keys(evidenceCollection).forEach((seriesInstanceUID) => {
             const seriesItem = {};
             seriesItem.SeriesInstanceUID = seriesInstanceUID;
-            seriesItem.ReferencedSOPSequence =
-                evidenceCollection[seriesInstanceUID];
+            seriesItem.ReferencedSOPSequence = evidenceCollection[seriesInstanceUID];
             evidenceStudyItem.ReferencedSeriesSequence.push(seriesItem);
         });
 
         if (options.requestedProcedures !== undefined) {
-            if (
-                !(
-                    typeof options.requestedProcedures === "object" ||
-                    options.requestedProcedures instanceof Array
-                )
-            ) {
-                throw new Error(
-                    "Option 'requestedProcedures' must have type Array."
-                );
+            if (!(typeof options.requestedProcedures === "object" || Array.isArray(options.requestedProcedures))) {
+                throw new Error("Option 'requestedProcedures' must have type Array.");
             }
-            this.ReferencedRequestSequence = new ContentSequence(
-                ...options.requestedProcedures
-            );
-            this.CurrentRequestedProcedureEvidenceSequence = [
-                evidenceStudyItem
-            ];
+            this.ReferencedRequestSequence = new ContentSequence(...options.requestedProcedures);
+            this.CurrentRequestedProcedureEvidenceSequence = [evidenceStudyItem];
         } else {
             this.PertinentOtherEvidenceSequence = [evidenceStudyItem];
         }
 
         if (options.previousVersions !== undefined) {
             const preCollection = {};
-            options.previousVersions.forEach(version => {
-                if (
-                    version.StudyInstanceUID !=
-                    options.evidence[0].StudyInstanceUID
-                ) {
-                    throw new Error(
-                        "Previous version data sets must belong to the same study."
-                    );
+            options.previousVersions.forEach((version) => {
+                if (version.StudyInstanceUID !== options.evidence[0].StudyInstanceUID) {
+                    throw new Error("Previous version data sets must belong to the same study.");
                 }
                 const instanceItem = {};
                 instanceItem.ReferencedSOPClassUID = version.SOPClassUID;
@@ -382,14 +332,12 @@ class Comprehensive3DSR {
                 preCollection[version.SeriesInstanceUID].push(instanceItem);
             });
             const preStudyItem = {};
-            preStudyItem.StudyInstanceUID =
-                options.previousVersions[0].StudyInstanceUID;
+            preStudyItem.StudyInstanceUID = options.previousVersions[0].StudyInstanceUID;
             preStudyItem.ReferencedSeriesSequence = [];
-            Object.keys(preCollection).forEach(seriesInstanceUID => {
+            Object.keys(preCollection).forEach((seriesInstanceUID) => {
                 const seriesItem = {};
                 seriesItem.SeriesInstanceUID = seriesInstanceUID;
-                seriesItem.ReferencedSOPSequence =
-                    preCollection[seriesInstanceUID];
+                seriesItem.ReferencedSOPSequence = preCollection[seriesInstanceUID];
                 preStudyItem.ReferencedSeriesSequence.push(seriesItem);
             });
             this.PredecessorDocumentsSequence = [preStudyItem];
@@ -397,25 +345,18 @@ class Comprehensive3DSR {
 
         if (options.performedProcedureCodes !== undefined) {
             if (
-                !(
-                    typeof options.performedProcedureCodes === "object" ||
-                    options.performedProcedureCodes instanceof Array
-                )
+                !(typeof options.performedProcedureCodes === "object" || Array.isArray(options.performedProcedureCodes))
             ) {
-                throw new Error(
-                    "Option 'performedProcedureCodes' must have type Array."
-                );
+                throw new Error("Option 'performedProcedureCodes' must have type Array.");
             }
-            this.PerformedProcedureCodeSequence = new ContentSequence(
-                ...options.performedProcedureCodes
-            );
+            this.PerformedProcedureCodeSequence = new ContentSequence(...options.performedProcedureCodes);
         } else {
             this.PerformedProcedureCodeSequence = [];
         }
 
         this.ReferencedPerformedProcedureStepSequence = [];
 
-        _attributesToInclude.forEach(tag => {
+        _attributesToInclude.forEach((tag) => {
             const key = DicomMetaDictionary.punctuateTag(tag);
             const element = DicomMetaDictionary.dictionary[key];
             if (element !== undefined) {

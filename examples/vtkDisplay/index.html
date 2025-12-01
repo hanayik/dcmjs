@@ -43,12 +43,11 @@
 <script src="https://unpkg.com/dicomweb-client"></script>
 <script src="https://unpkg.com/dcmjs"></script>
 
-<script type="text/javascript" src="https://unpkg.com/@babel/polyfill@7.0.0/dist/polyfill.js"></script>
 <script type="text/javascript" src="https://unpkg.com/vtk.js@8.3.1"></script>
 
 <script>
 // custom slice interactor
-const CustomSliceInteractorStyle = (function() {
+const CustomSliceInteractorStyle = (() => {
 
 const States = vtk.Rendering.Core.vtkInteractorStyle.States;
 
@@ -61,7 +60,7 @@ const SlicingMode = {
 // from gl-matrix
 function transformMat3(a, m) {
   const out = [0, 0, 0];
-  let x = a[0], y = a[1], z = a[2];
+  const x = a[0], y = a[1], z = a[2];
   out[0] = x * m[0] + y * m[3] + z * m[6];
   out[1] = x * m[1] + y * m[4] + z * m[7];
   out[2] = x * m[2] + y * m[5] + z * m[8];
@@ -370,15 +369,15 @@ return Object.freeze({ newInstance, extend, SlicingMode });
 <script>
   let volumeViewer;
   let vtkVolumeActors = [];
-  let vtkImageSliceActors = [];
-  let controllerWidgets = [];
-  let segments = {};
+  const vtkImageSliceActors = [];
+  const controllerWidgets = [];
+  const segments = {};
 
   function status (text) {
     $('p#statusLine').text(text);
   }
 
-  $(document).ready(function() {
+  $(document).ready(() => {
 
     Array.from(document.getElementsByClassName('styleOption')).forEach(element => {
       element.setAttribute("disabled", "disabled");
@@ -391,7 +390,7 @@ return Object.freeze({ newInstance, extend, SlicingMode });
     //
     // set up the volume viewer
     //
-    let volumeElement = document.getElementById('volumeViewer');
+    const volumeElement = document.getElementById('volumeViewer');
 
     volumeViewer = vtk.Rendering.Misc.vtkGenericRenderWindow.newInstance({
         background: [0, 0, 0],
@@ -406,9 +405,9 @@ return Object.freeze({ newInstance, extend, SlicingMode });
     // (for multiple segments)
     function geometryFromFunctionalGroups(dataset, perFrame) {
       const vtkMath = vtk.Common.Core.vtkMath;
-      let pixelMeasures = dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
-      let planeOrientation = dataset.SharedFunctionalGroupsSequence.PlaneOrientationSequence;
-      let planePosition = perFrame[0].PlanePositionSequence; // TODO: assume sorted frames!
+      const pixelMeasures = dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
+      const planeOrientation = dataset.SharedFunctionalGroupsSequence.PlaneOrientationSequence;
+      const planePosition = perFrame[0].PlanePositionSequence; // TODO: assume sorted frames!
 
       const geometry = {};
 
@@ -429,14 +428,14 @@ return Object.freeze({ newInstance, extend, SlicingMode });
                              dataset.Rows,
                              perFrame.length].map(Number);
 
-      let orientation = planeOrientation.ImageOrientationPatient.map(Number);
+      const orientation = planeOrientation.ImageOrientationPatient.map(Number);
       const columnStepToPatient = orientation.slice(0,3);
       const rowStepToPatient = orientation.slice(3,6);
       geometry.planeNormal = [];
       vtkMath.cross(columnStepToPatient, rowStepToPatient, geometry.planeNormal);
 
-      let firstPosition = perFrame[0].PlanePositionSequence.ImagePositionPatient.map(Number);
-      let lastPosition = perFrame[perFrame.length-1].PlanePositionSequence.ImagePositionPatient.map(Number);
+      const firstPosition = perFrame[0].PlanePositionSequence.ImagePositionPatient.map(Number);
+      const lastPosition = perFrame[perFrame.length-1].PlanePositionSequence.ImagePositionPatient.map(Number);
       geometry.sliceStep = [];
       vtkMath.subtract(lastPosition, firstPosition, geometry.sliceStep);
       vtkMath.normalize(geometry.sliceStep);
@@ -506,14 +505,14 @@ return Object.freeze({ newInstance, extend, SlicingMode });
 
       // make a list of functional groups per segment
       dataset.PerFrameFunctionalGroupsSequence.forEach(functionalGroup => {
-        let segmentNumber = functionalGroup.SegmentIdentificationSequence.ReferencedSegmentNumber;
+        const segmentNumber = functionalGroup.SegmentIdentificationSequence.ReferencedSegmentNumber;
         segments[segmentNumber].functionalGroups.push(functionalGroup);
       });
 
       // determine per-segment index into the pixel data
       // TODO: only handles one-bit-per pixel
       const actors = [];
-      let frameSize = Math.ceil(dataset.Rows * dataset.Columns / 8);
+      const frameSize = Math.ceil(dataset.Rows * dataset.Columns / 8);
       let nextOffset = 0;
       Object.keys(segments).forEach(segmentKey => {
         const segment = segments[segmentKey];
@@ -563,7 +562,7 @@ return Object.freeze({ newInstance, extend, SlicingMode });
       //segURL = 'https://s3.amazonaws.com/IsomicsPublic/SampleData/MRHead/MRHead-segmentation.dcm';
       segURL = 'https://s3.amazonaws.com/IsomicsPublic/SampleData/MRHead/aseg-t1space.dcm';
 
-      let downloadProgress = (label, event) => {
+      const downloadProgress = (label, event) => {
         status(`Downloading... ${label} ${Number(100 * event.loaded / event.total).toFixed(2)}%`);
       };
 
@@ -592,11 +591,11 @@ return Object.freeze({ newInstance, extend, SlicingMode });
 
           volumeRenderer.resetCamera();
           volumeRenderer.getActiveCamera().setViewUp(0, 0, 1);
-          let bounds = vtkVolumeActors[0].getBounds();
-          let center = [ (bounds[0] + bounds[1]) / 2.,
+          const bounds = vtkVolumeActors[0].getBounds();
+          const center = [ (bounds[0] + bounds[1]) / 2.,
                          (bounds[2] + bounds[3]) / 2.,
                          (bounds[4] + bounds[5]) / 2.];
-          let position = center.slice();
+          const position = center.slice();
           position[1] -= 4.25 * (-bounds[2] - center[1]);
           volumeRenderer.getActiveCamera().setPosition(...position);
           volumeRenderer.getActiveCamera().setFocalPoint(...center);
@@ -617,7 +616,7 @@ return Object.freeze({ newInstance, extend, SlicingMode });
       });
     }
 
-    window.addEventListener('resize', function() {
+    window.addEventListener('resize', () => {
       console.log('need to resize the vtk window');
     });
     window.dispatchEvent(new Event('resize'));
@@ -633,8 +632,8 @@ return Object.freeze({ newInstance, extend, SlicingMode });
       volume.getMapper().setMaximumSamplesPerRay(2000);
       volume.getProperty().setUseGradientOpacity(0, false);
 
-      let backgroundProperty = volume.getProperty().get();
-      let backgroundComponent = backgroundProperty.componentData[0];
+      const backgroundProperty = volume.getProperty().get();
+      const backgroundComponent = backgroundProperty.componentData[0];
 
       sotf = backgroundComponent.scalarOpacity;
       sotf.removeAllPoints();
@@ -659,7 +658,7 @@ return Object.freeze({ newInstance, extend, SlicingMode });
 
     // segment colors
     Object.keys(segments).forEach(segmentIndex => {
-      let vtkColor = segments[segmentIndex].color.slice(0,3).map(e => e / 255.);
+      const vtkColor = segments[segmentIndex].color.slice(0,3).map(e => e / 255.);
       vtkVolumeActors[segmentIndex].getProperty().getRGBTransferFunction(0).setNodeValue(1, [1, ...vtkColor, .5, 0]);
     });
   }
@@ -678,11 +677,11 @@ return Object.freeze({ newInstance, extend, SlicingMode });
       const volumeRenderer = volumeViewer.getRenderer();
       volumeRenderer.resetCamera();
       volumeRenderer.getActiveCamera().setViewUp(0, 0, 1);
-      let bounds = vtkVolumeActors[0].getBounds();
-      let center = [ (bounds[0] + bounds[1]) / 2.,
+      const bounds = vtkVolumeActors[0].getBounds();
+      const center = [ (bounds[0] + bounds[1]) / 2.,
                      (bounds[2] + bounds[3]) / 2.,
                      (bounds[4] + bounds[5]) / 2.];
-      let position = center.slice();
+      const position = center.slice();
       position[1] -= 4.25 * (-bounds[2] - center[1]);
       volumeRenderer.getActiveCamera().setPosition(...position);
       volumeRenderer.getActiveCamera().setFocalPoint(...center);

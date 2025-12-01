@@ -41,9 +41,7 @@ export default class CobbAngle extends TID300Measurement {
                     ValueType: use3DSpatialCoordinates ? "SCOORD3D" : "SCOORD",
                     GraphicType: "POLYLINE",
                     GraphicData,
-                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates
-                        ? ReferencedFrameOfReferenceUID
-                        : undefined,
+                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates ? ReferencedFrameOfReferenceUID : undefined,
                     ContentSequence: use3DSpatialCoordinates
                         ? undefined
                         : {

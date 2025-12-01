@@ -9,10 +9,7 @@ validationLog.setLevel(5);
 const { DicomMessage } = dcmjs.data;
 
 describe("test parsing of sample-dicom.dcm file", () => {
-    const dicomTestFilesDataPath = path.join(
-        __dirname,
-        "./../sample-dicom.dcm"
-    );
+    const dicomTestFilesDataPath = path.join(__dirname, "./../sample-dicom.dcm");
 
     const arrayBuffer = fs.readFileSync(dicomTestFilesDataPath).buffer;
     const dicomDict = DicomMessage.readFile(arrayBuffer);
@@ -30,10 +27,7 @@ describe("test parsing of sample-dicom.dcm file", () => {
         });
         // testing nested sequence parsing
         it("has the  RequestAttributesSequence -> ScheduledProtocolCodeSequence -> CodeValue", () => {
-            expect(dictTags).toHaveProperty(
-                "00400275.Value[0].00400008.Value[0].00080100.Value[0]",
-                "6310"
-            );
+            expect(dictTags).toHaveProperty("00400275.Value[0].00400008.Value[0].00080100.Value[0]", "6310");
         });
     });
 
@@ -41,10 +35,7 @@ describe("test parsing of sample-dicom.dcm file", () => {
         const metaTags = dicomDict["meta"];
 
         it("has the TransferSyntaxUID", () => {
-            expect(metaTags).toHaveProperty(
-                "00020010.Value[0]",
-                "1.2.840.10008.1.2"
-            );
+            expect(metaTags).toHaveProperty("00020010.Value[0]", "1.2.840.10008.1.2");
         });
     });
 });

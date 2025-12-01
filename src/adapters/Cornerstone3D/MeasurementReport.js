@@ -1,12 +1,11 @@
-import { Normalizer } from "../../normalizers.js";
 import { DicomMetaDictionary } from "../../DicomMetaDictionary.js";
 import { StructuredReport } from "../../derivations/index.js";
+import { Normalizer } from "../../normalizers.js";
+import addAccessors from "../../utilities/addAccessors.js";
 import TID1500MeasurementReport from "../../utilities/TID1500/TID1500MeasurementReport.js";
 import TID1501MeasurementGroup from "../../utilities/TID1500/TID1501MeasurementGroup.js";
+import { codeMeaningEquals, toArray } from "../helpers.js";
 import Cornerstone3DCodingScheme from "./CodingScheme";
-import addAccessors from "../../utilities/addAccessors.js";
-
-import { toArray, codeMeaningEquals } from "../helpers.js";
 
 const FINDING = { CodingSchemeDesignator: "DCM", CodeValue: "121071" };
 const FINDING_SITE = { CodingSchemeDesignator: "SCT", CodeValue: "363698007" };
@@ -17,25 +16,13 @@ const codeValueMatch = (group, code, oldCode) => {
     if (!ConceptNameCodeSequence) return;
     const { CodingSchemeDesignator, CodeValue } = ConceptNameCodeSequence;
     return (
-        (CodingSchemeDesignator == code.CodingSchemeDesignator &&
-            CodeValue == code.CodeValue) ||
-        (oldCode &&
-            CodingSchemeDesignator == oldCode.CodingSchemeDesignator &&
-            CodeValue == oldCode.CodeValue)
+        (CodingSchemeDesignator === code.CodingSchemeDesignator && CodeValue === code.CodeValue) ||
+        (oldCode && CodingSchemeDesignator === oldCode.CodingSchemeDesignator && CodeValue === oldCode.CodeValue)
     );
 };
 
-function getTID300ContentItem(
-    tool,
-    toolType,
-    ReferencedSOPSequence,
-    toolClass,
-    worldToImageCoords
-) {
-    const args = toolClass.getTID300RepresentationArguments(
-        tool,
-        worldToImageCoords
-    );
+function getTID300ContentItem(tool, toolType, ReferencedSOPSequence, toolClass, worldToImageCoords) {
+    const args = toolClass.getTID300RepresentationArguments(tool, worldToImageCoords);
     args.ReferencedSOPSequence = ReferencedSOPSequence;
 
     const TID300Measurement = new toolClass.TID300Representation(args);
@@ -43,34 +30,17 @@ function getTID300ContentItem(
     return TID300Measurement;
 }
 
-function getMeasurementGroup(
-    toolType,
-    toolData,
-    ReferencedSOPSequence,
-    worldToImageCoords
-) {
+function getMeasurementGroup(toolType, toolData, ReferencedSOPSequence, worldToImageCoords) {
     const toolTypeData = toolData[toolType];
-    const toolClass =
-        MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_TOOL_TYPE[toolType];
-    if (
-        !toolTypeData ||
-        !toolTypeData.data ||
-        !toolTypeData.data.length ||
-        !toolClass
-    ) {
+    const toolClass = MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_TOOL_TYPE[toolType];
+    if (!toolTypeData || !toolTypeData.data || !toolTypeData.data.length || !toolClass) {
         return;
     }
 
     // Loop through the array of tool instances
     // for this tool
-    const Measurements = toolTypeData.data.map(tool => {
-        return getTID300ContentItem(
-            tool,
-            toolType,
-            ReferencedSOPSequence,
-            toolClass,
-            worldToImageCoords
-        );
+    const Measurements = toolTypeData.data.map((tool) => {
+        return getTID300ContentItem(tool, toolType, ReferencedSOPSequence, toolClass, worldToImageCoords);
     });
 
     return new TID1501MeasurementGroup(Measurements);
@@ -82,12 +52,9 @@ export default class MeasurementReport {
     static getCornerstoneLabelFromDefaultState(defaultState) {
         const { findingSites = [], finding } = defaultState;
 
-        const cornersoneFreeTextCodingValue =
-            Cornerstone3DCodingScheme.codeValues.CORNERSTONEFREETEXT;
+        const cornersoneFreeTextCodingValue = Cornerstone3DCodingScheme.codeValues.CORNERSTONEFREETEXT;
 
-        let freeTextLabel = findingSites.find(
-            fs => fs.CodeValue === cornersoneFreeTextCodingValue
-        );
+        const freeTextLabel = findingSites.find((fs) => fs.CodeValue === cornersoneFreeTextCodingValue);
 
         if (freeTextLabel) {
             return freeTextLabel.CodeMeaning;
@@ -129,10 +96,7 @@ export default class MeasurementReport {
         return _meta;
     }
 
-    static generateDerivationSourceDataset(
-        StudyInstanceUID,
-        SeriesInstanceUID
-    ) {
+    static generateDerivationSourceDataset(StudyInstanceUID, SeriesInstanceUID) {
         const _vrMap = {
             PixelData: "OW"
         };
@@ -149,43 +113,23 @@ export default class MeasurementReport {
         return derivationSourceDataset;
     }
 
-    static getSetupMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        metadata,
-        toolType
-    ) {
+    static getSetupMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, metadata, toolType) {
         const { ContentSequence } = MeasurementGroup;
 
         const contentSequenceArr = toArray(ContentSequence);
-        const findingGroup = contentSequenceArr.find(group =>
-            codeValueMatch(group, FINDING)
-        );
+        const findingGroup = contentSequenceArr.find((group) => codeValueMatch(group, FINDING));
         const findingSiteGroups =
-            contentSequenceArr.filter(group =>
-                codeValueMatch(group, FINDING_SITE, FINDING_SITE_OLD)
-            ) || [];
-        const NUMGroup = contentSequenceArr.find(
-            group => group.ValueType === "NUM"
-        );
-        const SCOORDGroup = toArray(NUMGroup.ContentSequence).find(
-            group => group.ValueType === "SCOORD"
-        );
+            contentSequenceArr.filter((group) => codeValueMatch(group, FINDING_SITE, FINDING_SITE_OLD)) || [];
+        const NUMGroup = contentSequenceArr.find((group) => group.ValueType === "NUM");
+        const SCOORDGroup = toArray(NUMGroup.ContentSequence).find((group) => group.ValueType === "SCOORD");
         const { ReferencedSOPSequence } = SCOORDGroup.ContentSequence;
-        const { ReferencedSOPInstanceUID, ReferencedFrameNumber } =
-            ReferencedSOPSequence;
+        const { ReferencedSOPInstanceUID, ReferencedFrameNumber } = ReferencedSOPSequence;
 
-        const referencedImageId =
-            sopInstanceUIDToImageIdMap[ReferencedSOPInstanceUID];
-        const imagePlaneModule = metadata.get(
-            "imagePlaneModule",
-            referencedImageId
-        );
+        const referencedImageId = sopInstanceUIDToImageIdMap[ReferencedSOPInstanceUID];
+        const imagePlaneModule = metadata.get("imagePlaneModule", referencedImageId);
 
-        const finding = findingGroup
-            ? addAccessors(findingGroup.ConceptCodeSequence)
-            : undefined;
-        const findingSites = findingSiteGroups.map(fsg => {
+        const finding = findingGroup ? addAccessors(findingGroup.ConceptCodeSequence) : undefined;
+        const findingSites = findingSiteGroups.map((fsg) => {
             return addAccessors(fsg.ConceptCodeSequence);
         });
 
@@ -207,8 +151,7 @@ export default class MeasurementReport {
             defaultState.description = defaultState.finding.CodeMeaning;
         }
 
-        defaultState.annotation.metadata.label =
-            MeasurementReport.getCornerstoneLabelFromDefaultState(defaultState);
+        defaultState.annotation.metadata.label = MeasurementReport.getCornerstoneLabelFromDefaultState(defaultState);
 
         return {
             defaultState,
@@ -220,12 +163,7 @@ export default class MeasurementReport {
         };
     }
 
-    static generateReport(
-        toolState,
-        metadataProvider,
-        worldToImageCoords,
-        options
-    ) {
+    static generateReport(toolState, metadataProvider, worldToImageCoords, options) {
         // ToolState for array of imageIDs to a Report
         // Assume Cornerstone metadata provider has access to Study / Series / Sop Instance UID
         let allMeasurementGroups = [];
@@ -243,33 +181,21 @@ export default class MeasurementReport {
         const _meta = MeasurementReport.generateDatasetMeta();
 
         // Loop through each image in the toolData
-        Object.keys(toolState).forEach(imageId => {
-            const sopCommonModule = metadataProvider.get(
-                "sopCommonModule",
-                imageId
-            );
-            const generalSeriesModule = metadataProvider.get(
-                "generalSeriesModule",
-                imageId
-            );
+        Object.keys(toolState).forEach((imageId) => {
+            const sopCommonModule = metadataProvider.get("sopCommonModule", imageId);
+            const generalSeriesModule = metadataProvider.get("generalSeriesModule", imageId);
 
             const { sopInstanceUID, sopClassUID } = sopCommonModule;
             const { studyInstanceUID, seriesInstanceUID } = generalSeriesModule;
 
-            sopInstanceUIDsToSeriesInstanceUIDMap[sopInstanceUID] =
-                seriesInstanceUID;
+            sopInstanceUIDsToSeriesInstanceUIDMap[sopInstanceUID] = seriesInstanceUID;
 
-            if (
-                !derivationSourceDatasets.find(
-                    dsd => dsd.SeriesInstanceUID === seriesInstanceUID
-                )
-            ) {
+            if (!derivationSourceDatasets.find((dsd) => dsd.SeriesInstanceUID === seriesInstanceUID)) {
                 // Entry not present for series, create one.
-                const derivationSourceDataset =
-                    MeasurementReport.generateDerivationSourceDataset(
-                        studyInstanceUID,
-                        seriesInstanceUID
-                    );
+                const derivationSourceDataset = MeasurementReport.generateDerivationSourceDataset(
+                    studyInstanceUID,
+                    seriesInstanceUID
+                );
 
                 derivationSourceDatasets.push(derivationSourceDataset);
             }
@@ -285,9 +211,7 @@ export default class MeasurementReport {
 
             const instance = metadataProvider.get("instance", imageId);
             if (
-                (instance &&
-                    instance.NumberOfFrames &&
-                    instance.NumberOfFrames > 1) ||
+                (instance?.NumberOfFrames && instance.NumberOfFrames > 1) ||
                 Normalizer.isMultiframeSOPClassUID(sopClassUID)
             ) {
                 ReferencedSOPSequence.ReferencedFrameNumber = frameNumber;
@@ -296,20 +220,14 @@ export default class MeasurementReport {
             // Loop through each tool type for the image
             const measurementGroups = [];
 
-            toolTypes.forEach(toolType => {
-                const group = getMeasurementGroup(
-                    toolType,
-                    toolData,
-                    ReferencedSOPSequence,
-                    worldToImageCoords
-                );
+            toolTypes.forEach((toolType) => {
+                const group = getMeasurementGroup(toolType, toolData, ReferencedSOPSequence, worldToImageCoords);
                 if (group) {
                     measurementGroups.push(group);
                 }
             });
 
-            allMeasurementGroups =
-                allMeasurementGroups.concat(measurementGroups);
+            allMeasurementGroups = allMeasurementGroups.concat(measurementGroups);
         });
 
         const tid1500MeasurementReport = new TID1500MeasurementReport(
@@ -319,10 +237,9 @@ export default class MeasurementReport {
 
         const report = new StructuredReport(derivationSourceDatasets);
 
-        const contentItem = tid1500MeasurementReport.contentItem(
-            derivationSourceDatasets,
-            { sopInstanceUIDsToSeriesInstanceUIDMap }
-        );
+        const contentItem = tid1500MeasurementReport.contentItem(derivationSourceDatasets, {
+            sopInstanceUIDsToSeriesInstanceUIDMap
+        });
 
         // Merge the derived dataset with the content from the Measurement Report
         report.dataset = Object.assign(report.dataset, contentItem);
@@ -338,18 +255,10 @@ export default class MeasurementReport {
      * @param {function} hooks.getToolClass Function to map dataset to a tool class
      * @returns
      */
-    static generateToolState(
-        dataset,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata,
-        hooks = {}
-    ) {
+    static generateToolState(dataset, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata, hooks = {}) {
         // For now, bail out if the dataset is not a TID1500 SR with length measurements
         if (dataset.ContentTemplateSequence.TemplateIdentifier !== "1500") {
-            throw new Error(
-                "This package can currently only interpret DICOM SR TID 1500"
-            );
+            throw new Error("This package can currently only interpret DICOM SR TID 1500");
         }
 
         const REPORT = "Imaging Measurements";
@@ -357,53 +266,35 @@ export default class MeasurementReport {
         const TRACKING_IDENTIFIER = "Tracking Identifier";
 
         // Identify the Imaging Measurements
-        const imagingMeasurementContent = toArray(dataset.ContentSequence).find(
-            codeMeaningEquals(REPORT)
-        );
+        const imagingMeasurementContent = toArray(dataset.ContentSequence).find(codeMeaningEquals(REPORT));
 
         // Retrieve the Measurements themselves
-        const measurementGroups = toArray(
-            imagingMeasurementContent.ContentSequence
-        ).filter(codeMeaningEquals(GROUP));
+        const measurementGroups = toArray(imagingMeasurementContent.ContentSequence).filter(codeMeaningEquals(GROUP));
 
         // For each of the supported measurement types, compute the measurement data
         const measurementData = {};
 
-        const cornerstoneToolClasses =
-            MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_UTILITY_TYPE;
+        const cornerstoneToolClasses = MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_UTILITY_TYPE;
 
         const registeredToolClasses = [];
 
-        Object.keys(cornerstoneToolClasses).forEach(key => {
+        Object.keys(cornerstoneToolClasses).forEach((key) => {
             registeredToolClasses.push(cornerstoneToolClasses[key]);
             measurementData[key] = [];
         });
 
-        measurementGroups.forEach(measurementGroup => {
-            const measurementGroupContentSequence = toArray(
-                measurementGroup.ContentSequence
-            );
+        measurementGroups.forEach((measurementGroup) => {
+            const measurementGroupContentSequence = toArray(measurementGroup.ContentSequence);
 
-            const TrackingIdentifierGroup =
-                measurementGroupContentSequence.find(
-                    contentItem =>
-                        contentItem.ConceptNameCodeSequence.CodeMeaning ===
-                        TRACKING_IDENTIFIER
-                );
+            const TrackingIdentifierGroup = measurementGroupContentSequence.find(
+                (contentItem) => contentItem.ConceptNameCodeSequence.CodeMeaning === TRACKING_IDENTIFIER
+            );
 
             const TrackingIdentifierValue = TrackingIdentifierGroup.TextValue;
 
             const toolClass = hooks.getToolClass
-                ? hooks.getToolClass(
-                      measurementGroup,
-                      dataset,
-                      registeredToolClasses
-                  )
-                : registeredToolClasses.find(tc =>
-                      tc.isValidCornerstoneTrackingIdentifier(
-                          TrackingIdentifierValue
-                      )
-                  );
+                ? hooks.getToolClass(measurementGroup, dataset, registeredToolClasses)
+                : registeredToolClasses.find((tc) => tc.isValidCornerstoneTrackingIdentifier(TrackingIdentifierValue));
 
             if (toolClass) {
                 const measurement = toolClass.getMeasurementData(
@@ -426,14 +317,9 @@ export default class MeasurementReport {
     }
 
     static registerTool(toolClass) {
-        MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_UTILITY_TYPE[
-            toolClass.utilityToolType
-        ] = toolClass;
-        MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_TOOL_TYPE[
-            toolClass.toolType
-        ] = toolClass;
-        MeasurementReport.MEASUREMENT_BY_TOOLTYPE[toolClass.toolType] =
-            toolClass.utilityToolType;
+        MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_UTILITY_TYPE[toolClass.utilityToolType] = toolClass;
+        MeasurementReport.CORNERSTONE_TOOL_CLASSES_BY_TOOL_TYPE[toolClass.toolType] = toolClass;
+        MeasurementReport.MEASUREMENT_BY_TOOLTYPE[toolClass.toolType] = toolClass.utilityToolType;
     }
 }
 

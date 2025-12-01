@@ -1,7 +1,4 @@
-import {
-    IMPLICIT_LITTLE_ENDIAN,
-    UNDEFINED_LENGTH
-} from "../src/constants/dicom";
+import { IMPLICIT_LITTLE_ENDIAN, UNDEFINED_LENGTH } from "../src/constants/dicom";
 import "../src/index.js";
 import { ValueRepresentation } from "../src/ValueRepresentation";
 import { DicomMessage } from "../src/DicomMessage";
@@ -19,11 +16,7 @@ describe("SequenceOfItems extends ValueRepresentation", () => {
             const streamBuilder = new DicomDataReadBufferStreamBuilder();
             const stream = streamBuilder.build();
 
-            const elements = sequenceOfItems.readBytes(
-                stream,
-                sqLength,
-                syntax
-            );
+            const elements = sequenceOfItems.readBytes(stream, sqLength, syntax);
 
             expect(elements.length).toBe(0);
         });
@@ -37,11 +30,7 @@ describe("SequenceOfItems extends ValueRepresentation", () => {
             streamBuilder.addSequenceDelimitationTagAndValue();
             const stream = streamBuilder.build();
 
-            const elements = sequenceOfItems.readBytes(
-                stream,
-                sqLength,
-                syntax
-            );
+            const elements = sequenceOfItems.readBytes(stream, sqLength, syntax);
 
             expect(elements.length).toBe(0);
         });
@@ -54,11 +43,7 @@ describe("SequenceOfItems extends ValueRepresentation", () => {
             streamBuilder.addSequenceDelimitationTagAndValue();
             const stream = streamBuilder.build();
 
-            const elements = sequenceOfItems.readBytes(
-                stream,
-                sqLength,
-                syntax
-            );
+            const elements = sequenceOfItems.readBytes(stream, sqLength, syntax);
 
             expect(elements.length).toBe(0);
         });
@@ -72,11 +57,7 @@ describe("SequenceOfItems extends ValueRepresentation", () => {
             streamBuilder.addSequenceDelimitationTagAndValue();
             const stream = streamBuilder.build();
 
-            const elements = sequenceOfItems.readBytes(
-                stream,
-                sqLength,
-                syntax
-            );
+            const elements = sequenceOfItems.readBytes(stream, sqLength, syntax);
 
             expect(elements.length).toBe(1);
             expect(elements[0]["00020000"].vr).toBe("UL");

@@ -13,25 +13,20 @@ it("test_normalizer_op", async () => {
     const dicomDict = DicomMessage.readFile(file.buffer);
 
     const dataset = DicomMetaDictionary.naturalizeDataset(dicomDict.dict);
-    const multiframe = dcmjs.normalizers.Normalizer.normalizeToDataset([
-        dataset
-    ]);
+    const multiframe = dcmjs.normalizers.Normalizer.normalizeToDataset([dataset]);
 
     expect(dataset.NumberOfFrames).toEqual(1);
     expect(multiframe.NumberOfFrames).toEqual(1);
 });
 
 it("test_normalizer_oct", async () => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/oct/oct.dcm";
+    const url = "https://github.com/dcmjs-org/data/releases/download/oct/oct.dcm";
     const dcmPath = await getTestDataset(url, "oct.dcm");
     const file = fs.readFileSync(dcmPath);
     const dicomDict = DicomMessage.readFile(file.buffer);
 
     const dataset = DicomMetaDictionary.naturalizeDataset(dicomDict.dict);
-    const multiframe = dcmjs.normalizers.Normalizer.normalizeToDataset([
-        dataset
-    ]);
+    const multiframe = dcmjs.normalizers.Normalizer.normalizeToDataset([dataset]);
 
     expect(dataset.NumberOfFrames).toEqual(97);
     expect(multiframe.NumberOfFrames).toEqual(97);

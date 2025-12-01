@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport";
 import TID300Circle from "../../utilities/TID300/Circle";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport";
 
 const CIRCLEROI = "CircleRoi";
 
@@ -9,8 +9,7 @@ class CircleRoi {
 
     /** Gets the measurement data for cornerstone, given DICOM SR measurement data. */
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, NUMGroup, SCOORDGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, NUMGroup, SCOORDGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const { GraphicData } = SCOORDGroup;
 
@@ -22,9 +21,7 @@ class CircleRoi {
             toolType: CircleRoi.toolType,
             active: false,
             cachedStats: {
-                area: NUMGroup
-                    ? NUMGroup.MeasuredValueSequence.NumericValue
-                    : 0,
+                area: NUMGroup ? NUMGroup.MeasuredValueSequence.NumericValue : 0,
                 // Dummy values to be updated by cornerstone
                 radius: 0,
                 perimeter: 0
@@ -92,7 +89,7 @@ class CircleRoi {
 CircleRoi.toolType = CIRCLEROI;
 CircleRoi.utilityToolType = CIRCLEROI;
 CircleRoi.TID300Representation = TID300Circle;
-CircleRoi.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+CircleRoi.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

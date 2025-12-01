@@ -5,7 +5,7 @@ const handler = {
      * Also, return true of proxy.__isProxy in order to distinguish proxies and not double proxy them.
      */
     get: (target, prop) => {
-        if (prop == "__isProxy") return true;
+        if (prop === "__isProxy") return true;
         if (prop in target) return target[prop];
         return target[0][prop];
     },

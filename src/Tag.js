@@ -41,7 +41,7 @@ class Tag {
     }
 
     is(t) {
-        return this.value == t;
+        return this.value === t;
     }
 
     /**
@@ -106,13 +106,10 @@ class Tag {
      * as a buffer, and returning null on sequence delimiter tag.
      */
     static getNextSequenceItemData(stream) {
-        const nextTag = this.readTag(stream);
+        const nextTag = Tag.readTag(stream);
         if (nextTag.is(SEQUENCE_ITEM_TAG)) {
             const itemLength = stream.readUint32();
-            const buffer = stream.getBuffer(
-                stream.offset,
-                stream.offset + itemLength
-            );
+            const buffer = stream.getBuffer(stream.offset, stream.offset + itemLength);
             stream.increment(itemLength);
             return buffer;
         } else if (nextTag.is(SEQUENCE_DELIMITER_TAG)) {
@@ -130,14 +127,9 @@ class Tag {
         const vr = ValueRepresentation.createByTypeString(vrType);
         const useSyntax = DicomMessage._normalizeSyntax(syntax);
 
-        const implicit = useSyntax == IMPLICIT_LITTLE_ENDIAN ? true : false;
-        const isLittleEndian =
-            useSyntax == IMPLICIT_LITTLE_ENDIAN ||
-            useSyntax == EXPLICIT_LITTLE_ENDIAN
-                ? true
-                : false;
-        const isEncapsulated =
-            this.isPixelDataTag() && DicomMessage.isEncapsulated(syntax);
+        const implicit = useSyntax === IMPLICIT_LITTLE_ENDIAN;
+        const isLittleEndian = useSyntax === IMPLICIT_LITTLE_ENDIAN || useSyntax === EXPLICIT_LITTLE_ENDIAN;
+        const isEncapsulated = this.isPixelDataTag() && DicomMessage.isEncapsulated(syntax);
 
         const oldEndian = stream.isLittleEndian;
         stream.setEndian(isLittleEndian);
@@ -149,26 +141,15 @@ class Tag {
             valueLength;
         tagStream.setEndian(isLittleEndian);
 
-        if (vrType == "OW" || vrType == "OB" || vrType == "UN") {
-            valueLength = vr.writeBytes(
-                tagStream,
-                values,
-                useSyntax,
-                isEncapsulated,
-                writeOptions
-            );
-        } else if (vrType == "SQ") {
-            valueLength = vr.writeBytes(
-                tagStream,
-                values,
-                useSyntax,
-                writeOptions
-            );
+        if (vrType === "OW" || vrType === "OB" || vrType === "UN") {
+            valueLength = vr.writeBytes(tagStream, values, useSyntax, isEncapsulated, writeOptions);
+        } else if (vrType === "SQ") {
+            valueLength = vr.writeBytes(tagStream, values, useSyntax, writeOptions);
         } else {
             valueLength = vr.writeBytes(tagStream, values, writeOptions);
         }
 
-        if (vrType == "SQ") {
+        if (vrType === "SQ") {
             valueLength = 0xffffffff;
         }
         var written = tagStream.size + 4;
@@ -180,10 +161,7 @@ class Tag {
             // Big 16 length objects are encodings for values larger than
             // 16 bit lengths which would normally use a 16 bit length field.
             // This uses a VR=UN instead of the original VR, and a 32 bit length
-            const isBig16Length =
-                !vr.isLength32() &&
-                valueLength >= 0x10000 &&
-                valueLength !== 0xffffffff;
+            const isBig16Length = !vr.isLength32() && valueLength >= 0x10000 && valueLength !== 0xffffffff;
             if (vr.isLength32() || isBig16Length) {
                 // Write as vr UN for big values
                 stream.writeAsciiString(isBig16Length ? "UN" : vr.type);

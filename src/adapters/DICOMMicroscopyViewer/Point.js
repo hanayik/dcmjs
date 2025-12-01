@@ -1,15 +1,15 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Point from "../../utilities/TID300/Point";
+import MeasurementReport from "./MeasurementReport.js";
 
 class Point {
     constructor() {}
 
     static getMeasurementData(measurementContent) {
-        const measurement = measurementContent.map(item => item.GraphicData);
+        const measurement = measurementContent.map((item) => item.GraphicData);
         return measurement.filter(
             (
-                s => a =>
-                    (j => !s.has(j) && s.add(j))(JSON.stringify(a))
+                (s) => (a) =>
+                    ((j) => !s.has(j) && s.add(j))(JSON.stringify(a))
             )(new Set())
         );
     }

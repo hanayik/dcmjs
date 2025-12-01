@@ -31,9 +31,7 @@ class DICOMWEB {
         const services = {
             wado: ""
         };
-        return Object.keys(services).indexOf(endpoint) != -1
-            ? services[endpoint]
-            : "rs/";
+        return Object.keys(services).indexOf(endpoint) != -1 ? services[endpoint] : "rs/";
     }
 
     static randomEntry(array) {
@@ -45,7 +43,7 @@ class DICOMWEB {
         let service = DICOMWEB.endpointService(endpoint);
         let url = this.rootURL + "/" + service + endpoint;
         let firstParameter = true;
-        Object.keys(parameters).forEach(parameter => {
+        Object.keys(parameters).forEach((parameter) => {
             if (firstParameter) {
                 url += "?";
                 firstParameter = false;
@@ -62,7 +60,7 @@ class DICOMWEB {
                 resolve(request.response);
             };
             request.onprogress = this.progressCallback;
-            request.onerror = error => {
+            request.onerror = (error) => {
                 log.error(request.response);
                 reject(error);
             };
@@ -102,12 +100,11 @@ class DICOMWEB {
     }
 
     tests() {
-        let testingServerURL =
-            "http://quantome.org:4242/dcm4chee-arc/aets/DCM4CHEE";
+        let testingServerURL = "http://quantome.org:4242/dcm4chee-arc/aets/DCM4CHEE";
         let testOptions = { rootURL: testingServerURL };
 
-        new DICOMWEB(testOptions).patients().then(responses => {
-            responses.forEach(patient => {
+        new DICOMWEB(testOptions).patients().then((responses) => {
+            responses.forEach((patient) => {
                 log.info(patient);
             });
         });

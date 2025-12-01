@@ -39,9 +39,7 @@ describe("lossless-read-write", () => {
             },
             "0020000D": {
                 vr: "UI",
-                Value: [
-                    "1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.3.0"
-                ]
+                Value: ["1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.3.0"]
             },
             "00400254": {
                 vr: "LO",
@@ -102,15 +100,8 @@ describe("lossless-read-write", () => {
         const outputDicomDict = DicomMessage.readFile(dicomDict.write());
 
         // expect raw value to be unchanged, and Value parsed as Number to lose precision
-        expect(outputDicomDict.dict["00181041"]._rawValue).toEqual([
-            " +1.4000  ",
-            "-0.00",
-            "1.2345e2",
-            "1E34"
-        ]);
-        expect(outputDicomDict.dict["00181041"].Value).toEqual([
-            1.4, -0, 123.45, 1e34
-        ]);
+        expect(outputDicomDict.dict["00181041"]._rawValue).toEqual([" +1.4000  ", "-0.00", "1.2345e2", "1E34"]);
+        expect(outputDicomDict.dict["00181041"].Value).toEqual([1.4, -0, 123.45, 1e34]);
     });
 
     test("test DS value that exceeds Number.MAX_SAFE_INTEGER is written to file", () => {
@@ -129,12 +120,8 @@ describe("lossless-read-write", () => {
         const outputDicomDict = DicomMessage.readFile(dicomDict.write());
 
         // expect raw value to be unchanged, and Value parsed as Number to lose precision
-        expect(outputDicomDict.dict["00181041"]._rawValue).toEqual([
-            "9007199254740993"
-        ]);
-        expect(outputDicomDict.dict["00181041"].Value).toEqual([
-            9007199254740992
-        ]);
+        expect(outputDicomDict.dict["00181041"]._rawValue).toEqual(["9007199254740993"]);
+        expect(outputDicomDict.dict["00181041"].Value).toEqual([9007199254740992]);
     });
 
     test("test DS with multiplicity > 1 and added space for even padding is read and written correctly", () => {
@@ -142,8 +129,8 @@ describe("lossless-read-write", () => {
             "00200037": {
                 vr: "DS",
                 Value: [
-                    0.99924236548978, -0.0322633220972, -0.0217663285287,
-                    0.02949870928067, 0.99267261121054, -0.1171789789306
+                    0.99924236548978, -0.0322633220972, -0.0217663285287, 0.02949870928067, 0.99267261121054,
+                    -0.1171789789306
                 ]
             }
         };
@@ -159,8 +146,8 @@ describe("lossless-read-write", () => {
             "00200037": {
                 vr: "DS",
                 Value: [
-                    0.99924236548978, -0.0322633220972, -0.0217663285287,
-                    0.02949870928067, 0.99267261121054, -0.1171789789306
+                    0.99924236548978, -0.0322633220972, -0.0217663285287, 0.02949870928067, 0.99267261121054,
+                    -0.1171789789306
                 ],
                 _rawValue: [
                     "0.99924236548978",
@@ -176,29 +163,18 @@ describe("lossless-read-write", () => {
         expect(deepEqual(expectedDataset, outputDicomDict.dict)).toBeTruthy();
 
         // re-write should succeeed
-        const outputDicomDictPass2 = DicomMessage.readFile(
-            outputDicomDict.write()
-        );
+        const outputDicomDictPass2 = DicomMessage.readFile(outputDicomDict.write());
 
         // dataset should still be equal
-        expect(
-            deepEqual(expectedDataset, outputDicomDictPass2.dict)
-        ).toBeTruthy();
+        expect(deepEqual(expectedDataset, outputDicomDictPass2.dict)).toBeTruthy();
     });
 
     test("test DS with multiplicity > 1 with padding byte on last element within VR max length is losslessly read", () => {
         const dataset = {
             "00200037": {
                 vr: "DS",
-                Value: [
-                    0.99924236548978, -0.0322633220972, -0.0217663285287, 0
-                ],
-                _rawValue: [
-                    "0.99924236548978",
-                    "-0.0322633220972",
-                    "-0.0217663285287",
-                    " +0.00 "
-                ]
+                Value: [0.99924236548978, -0.0322633220972, -0.0217663285287, 0],
+                _rawValue: ["0.99924236548978", "-0.0322633220972", "-0.0217663285287", " +0.00 "]
             }
         };
 
@@ -212,24 +188,15 @@ describe("lossless-read-write", () => {
         const expectedDataset = {
             "00200037": {
                 vr: "DS",
-                Value: [
-                    0.99924236548978, -0.0322633220972, -0.0217663285287, 0
-                ],
-                _rawValue: [
-                    "0.99924236548978",
-                    "-0.0322633220972",
-                    "-0.0217663285287",
-                    " +0.00"
-                ]
+                Value: [0.99924236548978, -0.0322633220972, -0.0217663285287, 0],
+                _rawValue: ["0.99924236548978", "-0.0322633220972", "-0.0217663285287", " +0.00"]
             }
         };
 
         expect(outputDicomDict.dict).toEqual(expectedDataset);
 
         // re-write should succeeed
-        const outputDicomDictPass2 = DicomMessage.readFile(
-            outputDicomDict.write()
-        );
+        const outputDicomDictPass2 = DicomMessage.readFile(outputDicomDict.write());
 
         // dataset should still be equal
         expect(outputDicomDictPass2.dict).toEqual(expectedDataset);
@@ -261,9 +228,7 @@ describe("lossless-read-write", () => {
         expect(outputDicomDict.dict).toEqual(expectedDataset);
 
         // re-write should succeeed
-        const outputDicomDictPass2 = DicomMessage.readFile(
-            outputDicomDict.write()
-        );
+        const outputDicomDictPass2 = DicomMessage.readFile(outputDicomDict.write());
 
         // dataset should still be equal
         expect(outputDicomDictPass2.dict).toEqual(expectedDataset);
@@ -303,14 +268,8 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "DT",
-                Value: [
-                    "20230826123045.123456+0100",
-                    "20230826123045.123456+0100"
-                ],
-                _rawValue: [
-                    "20230826123045.123456+0100",
-                    "20230826123045.123456+0100"
-                ]
+                Value: ["20230826123045.123456+0100", "20230826123045.123456+0100"],
+                _rawValue: ["20230826123045.123456+0100", "20230826123045.123456+0100"]
             },
             {
                 vr: "IS",
@@ -351,42 +310,37 @@ describe("lossless-read-write", () => {
             }
         ];
 
-        test.each(maxLengthCases)(
-            `Test multiple values with VR max length handle pad byte correctly during read and write - $vr`,
-            dataElement => {
-                const dataset = {
-                    "00081160": {
-                        vr: dataElement.vr,
-                        Value: dataElement.Value
-                    }
-                };
+        test.each(
+            maxLengthCases
+        )(`Test multiple values with VR max length handle pad byte correctly during read and write - $vr`, (dataElement) => {
+            const dataset = {
+                "00081160": {
+                    vr: dataElement.vr,
+                    Value: dataElement.Value
+                }
+            };
 
-                const dicomDict = new DicomDict({});
-                dicomDict.dict = dataset;
+            const dicomDict = new DicomDict({});
+            dicomDict.dict = dataset;
 
-                // write and re-read
-                const outputDicomDict = DicomMessage.readFile(
-                    dicomDict.write()
-                );
+            // write and re-read
+            const outputDicomDict = DicomMessage.readFile(dicomDict.write());
 
-                // expect full _rawValue to match following read
-                const expectedDataset = {
-                    "00081160": {
-                        ...dataElement
-                    }
-                };
+            // expect full _rawValue to match following read
+            const expectedDataset = {
+                "00081160": {
+                    ...dataElement
+                }
+            };
 
-                expect(outputDicomDict.dict).toEqual(expectedDataset);
+            expect(outputDicomDict.dict).toEqual(expectedDataset);
 
-                // re-write should succeed without max length issues
-                const outputDicomDictPass2 = DicomMessage.readFile(
-                    outputDicomDict.write()
-                );
+            // re-write should succeed without max length issues
+            const outputDicomDictPass2 = DicomMessage.readFile(outputDicomDict.write());
 
-                // dataset should still be equal
-                expect(expectedDataset).toEqual(outputDicomDictPass2.dict);
-            }
-        );
+            // dataset should still be equal
+            expect(expectedDataset).toEqual(outputDicomDictPass2.dict);
+        });
     });
 
     describe("Individual VR comparisons", () => {
@@ -457,44 +411,20 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "OB",
-                _rawValue: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88
-                    ]).buffer
-                ],
-                Value: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88
-                    ]).buffer
-                ]
+                _rawValue: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88]).buffer],
+                Value: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88]).buffer]
             },
             {
                 vr: "OD",
-                _rawValue: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x00, 0x54, 0x34, 0x6f, 0x9d, 0x41
-                    ]).buffer
-                ],
-                Value: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x00, 0x54, 0x34, 0x6f, 0x9d, 0x41
-                    ]).buffer
-                ]
+                _rawValue: [new Uint8Array([0x00, 0x00, 0x00, 0x54, 0x34, 0x6f, 0x9d, 0x41]).buffer],
+                Value: [new Uint8Array([0x00, 0x00, 0x00, 0x54, 0x34, 0x6f, 0x9d, 0x41]).buffer]
             },
             {
                 vr: "OF",
                 _rawValue: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00,
-                        0x00, 0xf6, 0x42
-                    ]).buffer
+                    new Uint8Array([0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00, 0x00, 0xf6, 0x42]).buffer
                 ],
-                Value: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00,
-                        0x00, 0xf6, 0x42
-                    ]).buffer
-                ]
+                Value: [new Uint8Array([0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00, 0x00, 0xf6, 0x42]).buffer]
             },
             // TODO: VRs currently unimplemented
             // {
@@ -509,16 +439,8 @@ describe("lossless-read-write", () => {
             // },
             {
                 vr: "OW",
-                _rawValue: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88
-                    ]).buffer
-                ],
-                Value: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88
-                    ]).buffer
-                ]
+                _rawValue: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88]).buffer],
+                Value: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88]).buffer]
             },
             {
                 vr: "PN",
@@ -542,9 +464,7 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "ST",
-                _rawValue: [
-                    "Patient complains of headaches over the last week.    "
-                ], // trailing spaces allowed
+                _rawValue: ["Patient complains of headaches over the last week.    "], // trailing spaces allowed
                 Value: ["Patient complains of headaches over the last week."]
             },
             // TODO: VR currently unimplemented
@@ -560,12 +480,8 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "UC",
-                _rawValue: [
-                    "Detailed description of procedure or clinical notes that could be very long.  "
-                ], // trailing spaces allowed
-                Value: [
-                    "Detailed description of procedure or clinical notes that could be very long."
-                ]
+                _rawValue: ["Detailed description of procedure or clinical notes that could be very long.  "], // trailing spaces allowed
+                Value: ["Detailed description of procedure or clinical notes that could be very long."]
             },
             {
                 vr: "UI",
@@ -603,33 +519,25 @@ describe("lossless-read-write", () => {
             //     Value: [18446744073709551616],
             // },
         ];
-        test.each(unchangedTestCases)(
-            `Test unchanged value is retained following read and write - $vr`,
-            dataElement => {
-                const dataset = {
-                    "00181041": {
-                        ...dataElement
-                    }
-                };
+        test.each(
+            unchangedTestCases
+        )(`Test unchanged value is retained following read and write - $vr`, (dataElement) => {
+            const dataset = {
+                "00181041": {
+                    ...dataElement
+                }
+            };
 
-                const dicomDict = new DicomDict({});
-                dicomDict.dict = dataset;
+            const dicomDict = new DicomDict({});
+            dicomDict.dict = dataset;
 
-                // write and re-read
-                const outputDicomDict = DicomMessage.readFile(
-                    dicomDict.write(),
-                    { forceStoreRaw: true }
-                );
+            // write and re-read
+            const outputDicomDict = DicomMessage.readFile(dicomDict.write(), { forceStoreRaw: true });
 
-                // expect raw value to be unchanged, and Value parsed as Number to lose precision
-                expect(outputDicomDict.dict["00181041"]._rawValue).toEqual(
-                    dataElement._rawValue
-                );
-                expect(outputDicomDict.dict["00181041"].Value).toEqual(
-                    dataElement.Value
-                );
-            }
-        );
+            // expect raw value to be unchanged, and Value parsed as Number to lose precision
+            expect(outputDicomDict.dict["00181041"]._rawValue).toEqual(dataElement._rawValue);
+            expect(outputDicomDict.dict["00181041"].Value).toEqual(dataElement.Value);
+        });
 
         const changedTestCases = [
             {
@@ -698,40 +606,20 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "OB",
-                _rawValue: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88
-                    ]).buffer
-                ],
+                _rawValue: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88]).buffer],
                 Value: [new Uint8Array([0x01, 0x02]).buffer]
             },
             {
                 vr: "OD",
-                _rawValue: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x00, 0x54, 0x34, 0x6f, 0x9d, 0x41
-                    ]).buffer
-                ],
-                Value: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x00, 0x54, 0x35, 0x6e, 0x9e, 0x42
-                    ]).buffer
-                ]
+                _rawValue: [new Uint8Array([0x00, 0x00, 0x00, 0x54, 0x34, 0x6f, 0x9d, 0x41]).buffer],
+                Value: [new Uint8Array([0x00, 0x00, 0x00, 0x54, 0x35, 0x6e, 0x9e, 0x42]).buffer]
             },
             {
                 vr: "OF",
                 _rawValue: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00,
-                        0x00, 0xf6, 0x42
-                    ]).buffer
+                    new Uint8Array([0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00, 0x00, 0xf6, 0x42]).buffer
                 ],
-                Value: [
-                    new Uint8Array([
-                        0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00,
-                        0x00, 0xf6, 0x43
-                    ]).buffer
-                ]
+                Value: [new Uint8Array([0x00, 0x00, 0x28, 0x41, 0x00, 0x00, 0x30, 0xc0, 0x00, 0x00, 0xf6, 0x43]).buffer]
             },
             // TODO: VRs currently unimplemented
             // {
@@ -744,16 +632,8 @@ describe("lossless-read-write", () => {
             // },
             {
                 vr: "OW",
-                _rawValue: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x89, 0x91, 0x89, 0x89
-                    ]).buffer
-                ],
-                Value: [
-                    new Uint8Array([
-                        0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88
-                    ]).buffer
-                ]
+                _rawValue: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x89, 0x91, 0x89, 0x89]).buffer],
+                Value: [new Uint8Array([0x13, 0x40, 0x80, 0x88, 0x88, 0x90, 0x88, 0x88]).buffer]
             },
             {
                 vr: "PN",
@@ -778,9 +658,7 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "ST",
-                _rawValue: [
-                    "Patient complains of headaches over the last week.    "
-                ], // trailing spaces allowed
+                _rawValue: ["Patient complains of headaches over the last week.    "], // trailing spaces allowed
                 Value: ["Patient complains of headaches"]
             },
             // TODO: VR currently unimplemented
@@ -796,9 +674,7 @@ describe("lossless-read-write", () => {
             },
             {
                 vr: "UC",
-                _rawValue: [
-                    "Detailed description of procedure or clinical notes that could be very long.  "
-                ], // trailing spaces allowed
+                _rawValue: ["Detailed description of procedure or clinical notes that could be very long.  "], // trailing spaces allowed
                 Value: ["Detailed description of procedure and other things"]
             },
             {
@@ -835,33 +711,25 @@ describe("lossless-read-write", () => {
             // },
         ];
 
-        test.each(changedTestCases)(
-            `Test changed value overwrites original value following read and write - $vr`,
-            dataElement => {
-                const dataset = {
-                    "00181041": {
-                        ...dataElement
-                    }
-                };
+        test.each(
+            changedTestCases
+        )(`Test changed value overwrites original value following read and write - $vr`, (dataElement) => {
+            const dataset = {
+                "00181041": {
+                    ...dataElement
+                }
+            };
 
-                const dicomDict = new DicomDict({});
-                dicomDict.dict = dataset;
+            const dicomDict = new DicomDict({});
+            dicomDict.dict = dataset;
 
-                // write and re-read
-                const outputDicomDict = DicomMessage.readFile(
-                    dicomDict.write(),
-                    { forceStoreRaw: true }
-                );
+            // write and re-read
+            const outputDicomDict = DicomMessage.readFile(dicomDict.write(), { forceStoreRaw: true });
 
-                // expect raw value to be updated to match new Value parsed as Number to lose precision
-                expect(outputDicomDict.dict["00181041"]._rawValue).toEqual(
-                    dataElement.newRawValue ?? dataElement.Value
-                );
-                expect(outputDicomDict.dict["00181041"].Value).toEqual(
-                    dataElement.Value
-                );
-            }
-        );
+            // expect raw value to be updated to match new Value parsed as Number to lose precision
+            expect(outputDicomDict.dict["00181041"]._rawValue).toEqual(dataElement.newRawValue ?? dataElement.Value);
+            expect(outputDicomDict.dict["00181041"].Value).toEqual(dataElement.Value);
+        });
     });
 
     describe("sequences", () => {
@@ -873,9 +741,7 @@ describe("lossless-read-write", () => {
                         {
                             "0020000E": {
                                 vr: "UI",
-                                Value: [
-                                    "1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.1.1"
-                                ]
+                                Value: ["1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.1.1"]
                             },
                             "00089123": {
                                 vr: "SQ",
@@ -910,9 +776,7 @@ describe("lossless-read-write", () => {
                         {
                             "0020000E": {
                                 vr: "UI",
-                                Value: [
-                                    "1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.1.2"
-                                ]
+                                Value: ["1.3.6.1.4.1.5962.99.1.2280943358.716200484.1363785608958.1.2"]
                             },
                             "00089123": {
                                 vr: "SQ",
@@ -948,18 +812,12 @@ describe("lossless-read-write", () => {
     });
 
     test("File dataset should be equal after read and write", async () => {
-        const inputBuffer = await getDcmjsDataFile(
-            "unknown-VR",
-            "sample-dicom-with-un-vr.dcm"
-        );
+        const inputBuffer = await getDcmjsDataFile("unknown-VR", "sample-dicom-with-un-vr.dcm");
         const dicomDict = DicomMessage.readFile(inputBuffer);
 
         // confirm raw string representation of DS contains extra additional metadata
         // represented by bytes [30 2E 31 34 30 5C 30 2E 31 34 30 20]
-        expect(dicomDict.dict["00280030"]._rawValue).toEqual([
-            "0.140",
-            "0.140 "
-        ]);
+        expect(dicomDict.dict["00280030"]._rawValue).toEqual(["0.140", "0.140 "]);
         expect(dicomDict.dict["00280030"].Value).toEqual([0.14, 0.14]);
 
         // confirm after write raw values are re-encoded
@@ -967,10 +825,7 @@ describe("lossless-read-write", () => {
         const outputDicomDict = DicomMessage.readFile(outputBuffer);
 
         // explicitly verify for DS for clarity
-        expect(outputDicomDict.dict["00280030"]._rawValue).toEqual([
-            "0.140",
-            "0.140 "
-        ]);
+        expect(outputDicomDict.dict["00280030"]._rawValue).toEqual(["0.140", "0.140 "]);
         expect(outputDicomDict.dict["00280030"].Value).toEqual([0.14, 0.14]);
 
         // lossless read/write should match entire data set
@@ -978,28 +833,19 @@ describe("lossless-read-write", () => {
     });
 
     test("0 length PN tag should be retained following naturalize and de-naturalize", async () => {
-        const inputBuffer = await getDcmjsDataFile(
-            "empty-tag-round-trip",
-            "empty-person-name.dcm"
-        );
+        const inputBuffer = await getDcmjsDataFile("empty-tag-round-trip", "empty-person-name.dcm");
         const origDicomDict = DicomMessage.readFile(inputBuffer);
-        const origNaturalizedDataset = DicomMetaDictionary.naturalizeDataset(
-            origDicomDict.dict
-        );
+        const origNaturalizedDataset = DicomMetaDictionary.naturalizeDataset(origDicomDict.dict);
 
         // confirm starting dataset contains empty tag value for referring physician person name
         expect(origDicomDict.dict["00080090"]._rawValue).toEqual("");
         expect(origNaturalizedDataset.ReferringPhysicianName).toEqual([]);
 
         // re-encode the unnaturalized object
-        origDicomDict.dict = DicomMetaDictionary.denaturalizeDataset(
-            origNaturalizedDataset
-        );
+        origDicomDict.dict = DicomMetaDictionary.denaturalizeDataset(origNaturalizedDataset);
         const outputBuffer = origDicomDict.write();
         const newDicomDict = DicomMessage.readFile(outputBuffer);
-        const newNaturalizedDataset = DicomMetaDictionary.naturalizeDataset(
-            origDicomDict.dict
-        );
+        const newNaturalizedDataset = DicomMetaDictionary.naturalizeDataset(origDicomDict.dict);
 
         // confirm output referring physician name remains the same
         expect(newDicomDict.dict["00080090"]._rawValue).toEqual("");
@@ -1010,10 +856,7 @@ describe("lossless-read-write", () => {
     });
 
     test("0 length US should use default value for both Value and rawValue", async () => {
-        const inputBuffer = await getDcmjsDataFile(
-            "empty-tag-round-trip",
-            "zero-length-US.dcm"
-        );
+        const inputBuffer = await getDcmjsDataFile("empty-tag-round-trip", "zero-length-US.dcm");
         const origDicomDict = DicomMessage.readFile(inputBuffer);
 
         // expect sequence to be in file
@@ -1030,11 +873,7 @@ describe("lossless-read-write", () => {
 });
 
 const getDcmjsDataFile = async (release, fileName) => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/" +
-        release +
-        "/" +
-        fileName;
+    const url = "https://github.com/dcmjs-org/data/releases/download/" + release + "/" + fileName;
     const dcmPath = await getTestDataset(url, fileName);
 
     return fs.readFileSync(dcmPath).buffer;

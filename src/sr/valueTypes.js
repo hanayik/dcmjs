@@ -120,16 +120,8 @@ class ContentItem {
         }
         this.ValueType = options.valueType;
         if (options.relationshipType !== undefined) {
-            if (
-                !(
-                    Object.values(RelationshipTypes).indexOf(
-                        options.relationshipType
-                    ) !== -1
-                )
-            ) {
-                throw new Error(
-                    `Invalid relationship type ${options.relationshipTypes}`
-                );
+            if (!(Object.values(RelationshipTypes).indexOf(options.relationshipType) !== -1)) {
+                throw new Error(`Invalid relationship type ${options.relationshipTypes}`);
             }
             this.RelationshipType = options.relationshipType;
         }
@@ -169,12 +161,7 @@ class TextContentItem extends ContentItem {
         if (options.value === undefined) {
             throw new Error("Option 'value' is required for TextContentItem.");
         }
-        if (
-            !(
-                typeof options.value === "string" ||
-                options.value instanceof String
-            )
-        ) {
+        if (!(typeof options.value === "string" || options.value instanceof String)) {
             throw new Error("Option 'value' must have type String.");
         }
         this.TextValue = options.value;
@@ -191,12 +178,7 @@ class PNameContentItem extends ContentItem {
         if (options.value === undefined) {
             throw new Error("Option 'value' is required for PNameContentItem.");
         }
-        if (
-            !(
-                typeof options.value === "string" ||
-                options.value instanceof String
-            )
-        ) {
+        if (!(typeof options.value === "string" || options.value instanceof String)) {
             throw new Error("Option 'value' must have type String.");
         }
         this.PersonName = options.value;
@@ -213,12 +195,7 @@ class TimeContentItem extends ContentItem {
         if (options.value === undefined) {
             throw new Error("Option 'value' is required for TimeContentItem.");
         }
-        if (
-            !(
-                typeof options.value === "object" ||
-                options.value instanceof Date
-            )
-        ) {
+        if (!(typeof options.value === "object" || options.value instanceof Date)) {
             throw new Error("Option 'value' must have type Date.");
         }
         this.Time = TM(options.value);
@@ -235,12 +212,7 @@ class DateContentItem extends ContentItem {
         if (options.value === undefined) {
             throw new Error("Option 'value' is required for DateContentItem.");
         }
-        if (
-            !(
-                typeof options.value === "object" ||
-                options.value instanceof Date
-            )
-        ) {
+        if (!(typeof options.value === "object" || options.value instanceof Date)) {
             throw new Error("Option 'value' must have type Date.");
         }
         this.Date = DA(options.value);
@@ -255,16 +227,9 @@ class DateTimeContentItem extends ContentItem {
             valueType: ValueTypes.DATETIME
         });
         if (options.value === undefined) {
-            throw new Error(
-                "Option 'value' is required for DateTimeContentItem."
-            );
+            throw new Error("Option 'value' is required for DateTimeContentItem.");
         }
-        if (
-            !(
-                typeof options.value === "object" ||
-                options.value instanceof Date
-            )
-        ) {
+        if (!(typeof options.value === "object" || options.value instanceof Date)) {
             throw new Error("Option 'value' must have type Date.");
         }
         this.DateTime = DT(options.value);
@@ -279,16 +244,9 @@ class UIDRefContentItem extends ContentItem {
             valueType: ValueTypes.UIDREF
         });
         if (options.value === undefined) {
-            throw new Error(
-                "Option 'value' is required for UIDRefContentItem."
-            );
+            throw new Error("Option 'value' is required for UIDRefContentItem.");
         }
-        if (
-            !(
-                typeof options.value === "string" ||
-                options.value instanceof String
-            )
-        ) {
+        if (!(typeof options.value === "string" || options.value instanceof String)) {
             throw new Error("Option 'value' must have type String.");
         }
         this.UID = options.value;
@@ -303,18 +261,11 @@ class NumContentItem extends ContentItem {
             valueType: ValueTypes.NUM
         });
         if (options.value !== undefined) {
-            if (
-                !(
-                    typeof options.value === "number" ||
-                    options.value instanceof Number
-                )
-            ) {
+            if (!(typeof options.value === "number" || options.value instanceof Number)) {
                 throw new Error("Option 'value' must have type Number.");
             }
             if (options.unit === undefined) {
-                throw new Error(
-                    "Option 'unit' is required for NumContentItem with 'value'."
-                );
+                throw new Error("Option 'unit' is required for NumContentItem with 'value'.");
             }
             if (!(options.unit instanceof CodedConcept)) {
                 throw new Error("Option 'unit' must have type CodedConcept.");
@@ -328,15 +279,11 @@ class NumContentItem extends ContentItem {
             this.MeasuredValueSequence = [item];
         } else if (options.qualifier !== undefined) {
             if (!(options.qualifier instanceof CodedConcept)) {
-                throw new Error(
-                    "Option 'qualifier' must have type CodedConcept."
-                );
+                throw new Error("Option 'qualifier' must have type CodedConcept.");
             }
             this.NumericValueQualifierCodeSequence = [options.qualifier];
         } else {
-            throw new Error(
-                "Either option 'value' or 'qualifier' is required for NumContentItem."
-            );
+            throw new Error("Either option 'value' or 'qualifier' is required for NumContentItem.");
         }
     }
 }
@@ -354,12 +301,7 @@ class ContainerContentItem extends ContentItem {
             this.ContinuityOfContent = "SEPARATE";
         }
         if (options.templateID !== undefined) {
-            if (
-                !(
-                    typeof options.templateID === "string" ||
-                    options.templateID instanceof String
-                )
-            ) {
+            if (!(typeof options.templateID === "string" || options.templateID instanceof String)) {
                 throw new Error("Option 'templateID' must have type String.");
             }
             const item = {};
@@ -378,24 +320,13 @@ class CompositeContentItem extends ContentItem {
             valueType: ValueTypes.COMPOSITE
         });
         if (options.referencedSOPClassUID === undefined) {
-            throw new Error(
-                "Option 'referencedSOPClassUID' is required for CompositeContentItem."
-            );
+            throw new Error("Option 'referencedSOPClassUID' is required for CompositeContentItem.");
         }
         if (options.referencedSOPInstanceUID === undefined) {
-            throw new Error(
-                "Option 'referencedSOPInstanceUID' is required for CompositeContentItem."
-            );
+            throw new Error("Option 'referencedSOPInstanceUID' is required for CompositeContentItem.");
         }
-        if (
-            !(
-                typeof options.referencedSOPClassUID === "string" ||
-                options.referencedSOPClassUID instanceof String
-            )
-        ) {
-            throw new Error(
-                "Option 'referencedSOPClassUID' must have type String."
-            );
+        if (!(typeof options.referencedSOPClassUID === "string" || options.referencedSOPClassUID instanceof String)) {
+            throw new Error("Option 'referencedSOPClassUID' must have type String.");
         }
         if (
             !(
@@ -403,9 +334,7 @@ class CompositeContentItem extends ContentItem {
                 options.referencedSOPInstanceUID instanceof String
             )
         ) {
-            throw new Error(
-                "Option 'referencedSOPInstanceUID' must have type String."
-            );
+            throw new Error("Option 'referencedSOPInstanceUID' must have type String.");
         }
         const item = {};
         item.ReferencedSOPClassUID = options.referencedSOPClassUID;
@@ -422,24 +351,13 @@ class ImageContentItem extends ContentItem {
             valueType: ValueTypes.IMAGE
         });
         if (options.referencedSOPClassUID === undefined) {
-            throw new Error(
-                "Option 'referencedSOPClassUID' is required for ImageContentItem."
-            );
+            throw new Error("Option 'referencedSOPClassUID' is required for ImageContentItem.");
         }
         if (options.referencedSOPInstanceUID === undefined) {
-            throw new Error(
-                "Option 'referencedSOPInstanceUID' is required for ImageContentItem."
-            );
+            throw new Error("Option 'referencedSOPInstanceUID' is required for ImageContentItem.");
         }
-        if (
-            !(
-                typeof options.referencedSOPClassUID === "string" ||
-                options.referencedSOPClassUID instanceof String
-            )
-        ) {
-            throw new Error(
-                "Option 'referencedSOPClassUID' must have type String."
-            );
+        if (!(typeof options.referencedSOPClassUID === "string" || options.referencedSOPClassUID instanceof String)) {
+            throw new Error("Option 'referencedSOPClassUID' must have type String.");
         }
         if (
             !(
@@ -447,23 +365,16 @@ class ImageContentItem extends ContentItem {
                 options.referencedSOPInstanceUID instanceof String
             )
         ) {
-            throw new Error(
-                "Option 'referencedSOPInstanceUID' must have type String."
-            );
+            throw new Error("Option 'referencedSOPInstanceUID' must have type String.");
         }
         const item = {};
         item.ReferencedSOPClassUID = options.referencedSOPClassUID;
         item.ReferencedSOPInstanceUID = options.referencedSOPInstanceUID;
         if (options.referencedFrameNumbers !== undefined) {
             if (
-                !(
-                    typeof options.referencedFrameNumbers === "object" ||
-                    options.referencedFrameNumbers instanceof Array
-                )
+                !(typeof options.referencedFrameNumbers === "object" || options.referencedFrameNumbers instanceof Array)
             ) {
-                throw new Error(
-                    "Option 'referencedFrameNumbers' must have type Array."
-                );
+                throw new Error("Option 'referencedFrameNumbers' must have type Array.");
             }
             // FIXME: value multiplicity
             item.ReferencedFrameNumber = options.referencedFrameNumbers;
@@ -475,9 +386,7 @@ class ImageContentItem extends ContentItem {
                     options.referencedSegmentNumbers instanceof Array
                 )
             ) {
-                throw new Error(
-                    "Option 'referencedSegmentNumbers' must have type Array."
-                );
+                throw new Error("Option 'referencedSegmentNumbers' must have type Array.");
             }
             // FIXME: value multiplicity
             item.ReferencedSegmentNumber = options.referencedSegmentNumbers;
@@ -494,34 +403,16 @@ class ScoordContentItem extends ContentItem {
             valueType: ValueTypes.SCOORD
         });
         if (options.graphicType === undefined) {
-            throw new Error(
-                "Option 'graphicType' is required for ScoordContentItem."
-            );
+            throw new Error("Option 'graphicType' is required for ScoordContentItem.");
         }
-        if (
-            !(
-                typeof options.graphicType === "string" ||
-                options.graphicType instanceof String
-            )
-        ) {
-            throw new Error(
-                "Option 'graphicType' of ScoordContentItem must have type String."
-            );
+        if (!(typeof options.graphicType === "string" || options.graphicType instanceof String)) {
+            throw new Error("Option 'graphicType' of ScoordContentItem must have type String.");
         }
         if (options.graphicData === undefined) {
-            throw new Error(
-                "Option 'graphicData' is required for ScoordContentItem."
-            );
+            throw new Error("Option 'graphicData' is required for ScoordContentItem.");
         }
-        if (
-            !(
-                typeof options.graphicData === "object" ||
-                options.graphicData instanceof Array
-            )
-        ) {
-            throw new Error(
-                "Option 'graphicData' of ScoordContentItem must have type Array."
-            );
+        if (!(typeof options.graphicData === "object" || options.graphicData instanceof Array)) {
+            throw new Error("Option 'graphicData' of ScoordContentItem must have type Array.");
         }
         if (Object.values(GraphicTypes).indexOf(options.graphicType) === -1) {
             throw new Error(`Invalid graphic type '${options.graphicType}'.`);
@@ -530,35 +421,20 @@ class ScoordContentItem extends ContentItem {
             options.graphicData = [].concat.apply([], options.graphicData);
         }
         this.GraphicData = options.graphicData;
-        options.pixelOriginInterpretation =
-            options.pixelOriginInterpretation ||
-            PixelOriginInterpretations.VOLUME;
+        options.pixelOriginInterpretation = options.pixelOriginInterpretation || PixelOriginInterpretations.VOLUME;
         if (
             !(
                 typeof options.pixelOriginInterpretation === "string" ||
                 options.pixelOriginInterpretation instanceof String
             )
         ) {
-            throw new Error(
-                "Option 'pixelOriginInterpretation' must have type String."
-            );
+            throw new Error("Option 'pixelOriginInterpretation' must have type String.");
         }
-        if (
-            Object.values(PixelOriginInterpretations).indexOf(
-                options.pixelOriginInterpretation
-            ) === -1
-        ) {
-            throw new Error(
-                `Invalid pixel origin interpretation '${options.pixelOriginInterpretation}'.`
-            );
+        if (Object.values(PixelOriginInterpretations).indexOf(options.pixelOriginInterpretation) === -1) {
+            throw new Error(`Invalid pixel origin interpretation '${options.pixelOriginInterpretation}'.`);
         }
         if (options.fiducialUID !== undefined) {
-            if (
-                !(
-                    typeof options.fiducialUID === "string" ||
-                    options.fiducialUID instanceof String
-                )
-            ) {
+            if (!(typeof options.fiducialUID === "string" || options.fiducialUID instanceof String)) {
                 throw new Error("Option 'fiducialUID' must have type String.");
             }
             this.FiducialUID = options.fiducialUID;
@@ -574,29 +450,15 @@ class Scoord3DContentItem extends ContentItem {
             valueType: ValueTypes.SCOORD3D
         });
         if (options.graphicType === undefined) {
-            throw new Error(
-                "Option 'graphicType' is required for Scoord3DContentItem."
-            );
+            throw new Error("Option 'graphicType' is required for Scoord3DContentItem.");
         }
-        if (
-            !(
-                typeof options.graphicType === "string" ||
-                options.graphicType instanceof String
-            )
-        ) {
+        if (!(typeof options.graphicType === "string" || options.graphicType instanceof String)) {
             throw new Error("Option 'graphicType' must have type String.");
         }
         if (options.graphicData === undefined) {
-            throw new Error(
-                "Option 'graphicData' is required for Scoord3DContentItem."
-            );
+            throw new Error("Option 'graphicData' is required for Scoord3DContentItem.");
         }
-        if (
-            !(
-                typeof options.graphicData === "object" ||
-                options.graphicData instanceof Array
-            )
-        ) {
+        if (!(typeof options.graphicData === "object" || options.graphicData instanceof Array)) {
             throw new Error("Option 'graphicData' must have type Array.");
         }
         if (Object.values(GraphicTypes3D).indexOf(options.graphicType) === -1) {
@@ -608,28 +470,14 @@ class Scoord3DContentItem extends ContentItem {
         this.GraphicType = options.graphicType;
         this.GraphicData = options.graphicData;
         if (options.frameOfReferenceUID === undefined) {
-            throw new Error(
-                "Option 'frameOfReferenceUID' is required for Scoord3DContentItem."
-            );
+            throw new Error("Option 'frameOfReferenceUID' is required for Scoord3DContentItem.");
         }
-        if (
-            !(
-                typeof options.frameOfReferenceUID === "string" ||
-                options.frameOfReferenceUID instanceof String
-            )
-        ) {
-            throw new Error(
-                "Option 'frameOfReferenceUID' must have type String."
-            );
+        if (!(typeof options.frameOfReferenceUID === "string" || options.frameOfReferenceUID instanceof String)) {
+            throw new Error("Option 'frameOfReferenceUID' must have type String.");
         }
         this.ReferencedFrameOfReferenceUID = options.frameOfReferenceUID;
         if ("fiducialUID" in options) {
-            if (
-                !(
-                    typeof options.fiducialUID === "string" ||
-                    options.fiducialUID instanceof String
-                )
-            ) {
+            if (!(typeof options.fiducialUID === "string" || options.fiducialUID instanceof String)) {
                 throw new Error("Option 'fiducialUID' must have type String.");
             }
             this.FiducialUID = options.fiducialUID;
@@ -645,18 +493,10 @@ class TcoordContentItem extends ContentItem {
             valueType: ValueTypes.TCOORD
         });
         if (options.temporalRangeType === undefined) {
-            throw new Error(
-                "Option 'temporalRangeType' is required for TcoordContentItem."
-            );
+            throw new Error("Option 'temporalRangeType' is required for TcoordContentItem.");
         }
-        if (
-            Object.values(TemporalRangeTypes).indexOf(
-                options.temporalRangeType
-            ) === -1
-        ) {
-            throw new Error(
-                `Invalid temporal range type '${options.temporalRangeType}'.`
-            );
+        if (Object.values(TemporalRangeTypes).indexOf(options.temporalRangeType) === -1) {
+            throw new Error(`Invalid temporal range type '${options.temporalRangeType}'.`);
         }
         if (options.referencedSamplePositions === undefined) {
             if (
@@ -665,35 +505,21 @@ class TcoordContentItem extends ContentItem {
                     options.referencedSamplePositions instanceof Array
                 )
             ) {
-                throw new Error(
-                    "Option 'referencedSamplePositions' must have type Array."
-                );
+                throw new Error("Option 'referencedSamplePositions' must have type Array.");
             }
             // TODO: ensure values are integers
             this.ReferencedSamplePositions = options.referencedSamplePositions;
         } else if (options.referencedTimeOffsets === undefined) {
             if (
-                !(
-                    typeof options.referencedTimeOffsets === "object" ||
-                    options.referencedTimeOffsets instanceof Array
-                )
+                !(typeof options.referencedTimeOffsets === "object" || options.referencedTimeOffsets instanceof Array)
             ) {
-                throw new Error(
-                    "Option 'referencedTimeOffsets' must have type Array."
-                );
+                throw new Error("Option 'referencedTimeOffsets' must have type Array.");
             }
             // TODO: ensure values are floats
             this.ReferencedTimeOffsets = options.referencedTimeOffsets;
         } else if (options.referencedDateTime === undefined) {
-            if (
-                !(
-                    typeof options.referencedDateTime === "object" ||
-                    options.referencedDateTime instanceof Array
-                )
-            ) {
-                throw new Error(
-                    "Option 'referencedDateTime' must have type Array."
-                );
+            if (!(typeof options.referencedDateTime === "object" || options.referencedDateTime instanceof Array)) {
+                throw new Error("Option 'referencedDateTime' must have type Array.");
             }
             this.ReferencedDateTime = options.referencedDateTime;
         } else {

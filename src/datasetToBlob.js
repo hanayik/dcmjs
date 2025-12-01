@@ -1,5 +1,5 @@
-import { DicomMetaDictionary } from "./DicomMetaDictionary.js";
 import { DicomDict } from "./DicomDict.js";
+import { DicomMetaDictionary } from "./DicomMetaDictionary.js";
 
 function datasetToDict(dataset) {
     const fileMetaInformationVersionArray = new Uint8Array(2);
@@ -17,14 +17,11 @@ function datasetToDict(dataset) {
         MediaStorageSOPInstanceUID: dataset.SOPInstanceUID,
         ImplementationVersionName: "dcmjs-0.0",
         TransferSyntaxUID,
-        ImplementationClassUID:
-            "2.25.80302813137786398554742050926734630921603366648225212145404",
+        ImplementationClassUID: "2.25.80302813137786398554742050926734630921603366648225212145404",
         FileMetaInformationVersion: fileMetaInformationVersionArray.buffer
     };
 
-    const denaturalized = DicomMetaDictionary.denaturalizeDataset(
-        dataset._meta
-    );
+    const denaturalized = DicomMetaDictionary.denaturalizeDataset(dataset._meta);
     const dicomDict = new DicomDict(denaturalized);
     dicomDict.dict = DicomMetaDictionary.denaturalizeDataset(dataset);
     return dicomDict;

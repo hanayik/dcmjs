@@ -95,10 +95,7 @@ export class DictCreator {
         const { vr, tag } = header;
         const cleanTag = tag.toCleanString();
 
-        const handler =
-            this.handlers[cleanTag] ||
-            this.handlers[vr.type] ||
-            this.handlers.bulkdata;
+        const handler = this.handlers[cleanTag] || this.handlers[vr.type] || this.handlers.bulkdata;
 
         // Item tag - means add to current header and continue parsing
         return handler?.call(this, header, stream, tsuid, options);
@@ -144,7 +141,7 @@ export class DictCreator {
             length,
             cleanTagString: parent.dict.length,
             level: parent.level + 1,
-            pop: _cur => null
+            pop: (_cur) => null
         };
         parent.values.push(dict);
         if (parent.rawValues) {
@@ -252,17 +249,11 @@ export class DictCreator {
         current.values.push(bytes);
         if (current.offsets?.length) {
             const { nextFrameIndex } = current;
-            const nextOffset =
-                current.offsets[nextFrameIndex] ?? Number.MAX_VALUE;
+            const nextOffset = current.offsets[nextFrameIndex] ?? Number.MAX_VALUE;
             const pixelOffset = stream.offset - current.offsetStart;
-            if (
-                pixelOffset <= nextOffset &&
-                current.values.length > nextFrameIndex
-            ) {
+            if (pixelOffset <= nextOffset && current.values.length > nextFrameIndex) {
                 if (!Array.isArray(current.values[nextFrameIndex - 1])) {
-                    current.values[nextFrameIndex - 1] = [
-                        current.values[nextFrameIndex - 1]
-                    ];
+                    current.values[nextFrameIndex - 1] = [current.values[nextFrameIndex - 1]];
                 }
                 current.values[nextFrameIndex - 1].push(current.values.pop());
             }
@@ -281,14 +272,8 @@ export class DictCreator {
     handlePixelDefined(header, stream, _tsuid, options) {
         const { length } = header;
         const numberOfFrames = this.getSingle("00280008") || 1;
-        if (
-            numberOfFrames === 1 ||
-            options.separateUncompressedFrames !== true
-        ) {
-            const bytes = stream.getBuffer(
-                stream.offset,
-                stream.offset + length
-            );
+        if (numberOfFrames === 1 || options.separateUncompressedFrames !== true) {
+            const bytes = stream.getBuffer(stream.offset, stream.offset + length);
             stream.increment(length);
             // TODO - split this up into frames
             const values = [bytes];
@@ -313,10 +298,7 @@ export class DictCreator {
             // End is exclusive, so add one to it
             // Use ceiling to ensure all the bits required are included
             const end = 1 + Math.ceil((bitSize * frameIndex + bitSize - 1) / 8);
-            const bytes = stream.getBuffer(
-                stream.offset + start,
-                stream.offset + end
-            );
+            const bytes = stream.getBuffer(stream.offset + start, stream.offset + end);
             values.push(bytes);
         }
         stream.increment(length);
@@ -358,9 +340,7 @@ export class DictCreator {
         if (length === UNDEFINED_LENGTH || tag.isPrivateCreator()) {
             return;
         }
-        const compareSize = tag.isPrivateValue()
-            ? this.privateTagBulkdataSize
-            : this.publicTagBulkdataSize;
+        const compareSize = tag.isPrivateValue() ? this.privateTagBulkdataSize : this.publicTagBulkdataSize;
 
         return length > compareSize;
     }
@@ -373,13 +353,7 @@ export class DictCreator {
             return;
         }
         const { length } = header;
-        const readInfo = options.writeBulkdata.call(
-            this,
-            header,
-            stream,
-            tsuid,
-            options
-        );
+        const readInfo = options.writeBulkdata.call(this, header, stream, tsuid, options);
         this.setValue(header.tag.toCleanString(), readInfo);
         stream.increment(length);
         return true;

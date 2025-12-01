@@ -1,8 +1,8 @@
-import { DicomMetaDictionary } from "../DicomMetaDictionary.js";
-import DerivedPixels from "./DerivedPixels";
-import DerivedDataset from "./DerivedDataset";
-import { Normalizer } from "../normalizers.js";
 import { BitArray } from "../bitArray.js";
+import { DicomMetaDictionary } from "../DicomMetaDictionary.js";
+import { Normalizer } from "../normalizers.js";
+import DerivedDataset from "./DerivedDataset";
+import DerivedPixels from "./DerivedPixels";
 
 export default class Segmentation extends DerivedPixels {
     constructor(datasets, options = { includeSliceSpacing: true }) {
@@ -26,7 +26,7 @@ export default class Segmentation extends DerivedPixels {
             ContentLabel: "SEGMENTATION"
         });
 
-        let dimensionUID = DicomMetaDictionary.uid();
+        const dimensionUID = DicomMetaDictionary.uid();
         this.dataset.DimensionOrganizationSequence = {
             DimensionOrganizationUID: dimensionUID
         };
@@ -62,10 +62,8 @@ export default class Segmentation extends DerivedPixels {
 
             for (let i = 0; i < this.referencedDatasets.length; i++) {
                 ReferencedInstanceSequence.push({
-                    ReferencedSOPClassUID:
-                        this.referencedDatasets[i].SOPClassUID,
-                    ReferencedSOPInstanceUID:
-                        this.referencedDatasets[i].SOPInstanceUID
+                    ReferencedSOPClassUID: this.referencedDatasets[i].SOPClassUID,
+                    ReferencedSOPInstanceUID: this.referencedDatasets[i].SOPInstanceUID
                 });
             }
 
@@ -78,17 +76,12 @@ export default class Segmentation extends DerivedPixels {
 
         if (!this.options.includeSliceSpacing) {
             // per dciodvfy this should not be included, but dcmqi/Slicer requires it
-            delete this.dataset.SharedFunctionalGroupsSequence
-                .PixelMeasuresSequence.SpacingBetweenSlices;
+            delete this.dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence.SpacingBetweenSlices;
         }
 
-        if (
-            this.dataset.SharedFunctionalGroupsSequence
-                .PixelValueTransformationSequence
-        ) {
+        if (this.dataset.SharedFunctionalGroupsSequence.PixelValueTransformationSequence) {
             // If derived from a CT, this shouldn't be left in the SEG.
-            delete this.dataset.SharedFunctionalGroupsSequence
-                .PixelValueTransformationSequence;
+            delete this.dataset.SharedFunctionalGroupsSequence.PixelValueTransformationSequence;
         }
 
         // The pixelData array needs to be defined once you know how many frames you'll have.
@@ -108,9 +101,7 @@ export default class Segmentation extends DerivedPixels {
         const dataset = this.dataset;
         dataset.NumberOfFrames = NumberOfFrames;
 
-        dataset.PixelData = new ArrayBuffer(
-            dataset.Rows * dataset.Columns * NumberOfFrames
-        );
+        dataset.PixelData = new ArrayBuffer(dataset.Rows * dataset.Columns * NumberOfFrames);
     }
 
     /**
@@ -148,27 +139,16 @@ export default class Segmentation extends DerivedPixels {
      *                                            segmentation references.
      *
      */
-    addSegmentFromLabelmap(
-        Segment,
-        labelmaps,
-        segmentIndexInLabelmap,
-        referencedFrameNumbers
-    ) {
+    addSegmentFromLabelmap(Segment, labelmaps, segmentIndexInLabelmap, referencedFrameNumbers) {
         if (this.dataset.NumberOfFrames === 0) {
             throw new Error(
                 "Must set the total number of frames via setNumberOfFrames() before adding segments to the segmentation."
             );
         }
 
-        this._addSegmentPixelDataFromLabelmaps(
-            labelmaps,
-            segmentIndexInLabelmap
-        );
+        this._addSegmentPixelDataFromLabelmaps(labelmaps, segmentIndexInLabelmap);
         const ReferencedSegmentNumber = this._addSegmentMetadata(Segment);
-        this._addPerFrameFunctionalGroups(
-            ReferencedSegmentNumber,
-            referencedFrameNumbers
-        );
+        this._addPerFrameFunctionalGroups(ReferencedSegmentNumber, referencedFrameNumbers);
     }
 
     _addSegmentPixelDataFromLabelmaps(labelmaps, segmentIndex) {
@@ -177,11 +157,7 @@ export default class Segmentation extends DerivedPixels {
         const sliceLength = dataset.Rows * dataset.Columns;
         const byteOffset = existingFrames * sliceLength;
 
-        const pixelDataUInt8View = new Uint8Array(
-            dataset.PixelData,
-            byteOffset,
-            labelmaps.length * sliceLength
-        );
+        const pixelDataUInt8View = new Uint8Array(dataset.PixelData, byteOffset, labelmaps.length * sliceLength);
 
         const occupiedValue = this._getOccupiedValue();
 
@@ -223,10 +199,7 @@ export default class Segmentation extends DerivedPixels {
 
         this._addSegmentPixelData(pixelData);
         const ReferencedSegmentNumber = this._addSegmentMetadata(Segment);
-        this._addPerFrameFunctionalGroups(
-            ReferencedSegmentNumber,
-            referencedFrameNumbers
-        );
+        this._addPerFrameFunctionalGroups(ReferencedSegmentNumber, referencedFrameNumbers);
     }
 
     _addSegmentPixelData(pixelData) {
@@ -236,51 +209,33 @@ export default class Segmentation extends DerivedPixels {
         const sliceLength = dataset.Rows * dataset.Columns;
         const byteOffset = existingFrames * sliceLength;
 
-        const pixelDataUInt8View = new Uint8Array(
-            dataset.PixelData,
-            byteOffset,
-            pixelData.length
-        );
+        const pixelDataUInt8View = new Uint8Array(dataset.PixelData, byteOffset, pixelData.length);
 
         for (let i = 0; i < pixelData.length; i++) {
             pixelDataUInt8View[i] = pixelData[i];
         }
     }
 
-    _addPerFrameFunctionalGroups(
-        ReferencedSegmentNumber,
-        referencedFrameNumbers
-    ) {
-        const PerFrameFunctionalGroupsSequence =
-            this.dataset.PerFrameFunctionalGroupsSequence;
+    _addPerFrameFunctionalGroups(ReferencedSegmentNumber, referencedFrameNumbers) {
+        const PerFrameFunctionalGroupsSequence = this.dataset.PerFrameFunctionalGroupsSequence;
 
-        const ReferencedSeriesSequence =
-            this.referencedDataset.ReferencedSeriesSequence;
+        const ReferencedSeriesSequence = this.referencedDataset.ReferencedSeriesSequence;
 
         for (let i = 0; i < referencedFrameNumbers.length; i++) {
             const frameNumber = referencedFrameNumbers[i];
 
             const perFrameFunctionalGroups = {};
 
-            perFrameFunctionalGroups.PlanePositionSequence =
-                DerivedDataset.copyDataset(
-                    this.referencedDataset.PerFrameFunctionalGroupsSequence[
-                        frameNumber - 1
-                    ].PlanePositionSequence
-                );
+            perFrameFunctionalGroups.PlanePositionSequence = DerivedDataset.copyDataset(
+                this.referencedDataset.PerFrameFunctionalGroupsSequence[frameNumber - 1].PlanePositionSequence
+            );
 
             // If the PlaneOrientationSequence is not in the SharedFunctionalGroupsSequence,
             // extract it from the PerFrameFunctionalGroupsSequence.
-            if (
-                !this.dataset.SharedFunctionalGroupsSequence
-                    .PlaneOrientationSequence
-            ) {
-                perFrameFunctionalGroups.PlaneOrientationSequence =
-                    DerivedDataset.copyDataset(
-                        this.referencedDataset.PerFrameFunctionalGroupsSequence[
-                            frameNumber - 1
-                        ].PlaneOrientationSequence
-                    );
+            if (!this.dataset.SharedFunctionalGroupsSequence.PlaneOrientationSequence) {
+                perFrameFunctionalGroups.PlaneOrientationSequence = DerivedDataset.copyDataset(
+                    this.referencedDataset.PerFrameFunctionalGroupsSequence[frameNumber - 1].PlaneOrientationSequence
+                );
             }
 
             perFrameFunctionalGroups.FrameContentSequence = {
@@ -297,22 +252,17 @@ export default class Segmentation extends DerivedPixels {
 
             if (ReferencedSeriesSequence) {
                 const referencedInstanceSequenceI =
-                    ReferencedSeriesSequence.ReferencedInstanceSequence[
-                        frameNumber - 1
-                    ];
+                    ReferencedSeriesSequence.ReferencedInstanceSequence[frameNumber - 1];
 
-                ReferencedSOPClassUID =
-                    referencedInstanceSequenceI.ReferencedSOPClassUID;
-                ReferencedSOPInstanceUID =
-                    referencedInstanceSequenceI.ReferencedSOPInstanceUID;
+                ReferencedSOPClassUID = referencedInstanceSequenceI.ReferencedSOPClassUID;
+                ReferencedSOPInstanceUID = referencedInstanceSequenceI.ReferencedSOPInstanceUID;
 
                 if (Normalizer.isMultiframeSOPClassUID(ReferencedSOPClassUID)) {
                     ReferencedFrameNumber = frameNumber;
                 }
             } else {
                 ReferencedSOPClassUID = this.referencedDataset.SOPClassUID;
-                ReferencedSOPInstanceUID =
-                    this.referencedDataset.SOPInstanceUID;
+                ReferencedSOPInstanceUID = this.referencedDataset.SOPInstanceUID;
                 ReferencedFrameNumber = frameNumber;
             }
 
@@ -325,8 +275,7 @@ export default class Segmentation extends DerivedPixels {
                         PurposeOfReferenceCodeSequence: {
                             CodeValue: "121322",
                             CodingSchemeDesignator: "DCM",
-                            CodeMeaning:
-                                "Source image for image processing operation"
+                            CodeMeaning: "Source image for image processing operation"
                         }
                     },
                     DerivationCodeSequence: {
@@ -343,8 +292,7 @@ export default class Segmentation extends DerivedPixels {
                         PurposeOfReferenceCodeSequence: {
                             CodeValue: "121322",
                             CodingSchemeDesignator: "DCM",
-                            CodeMeaning:
-                                "Source image for image processing operation"
+                            CodeMeaning: "Source image for image processing operation"
                         }
                     },
                     DerivationCodeSequence: {
@@ -366,15 +314,12 @@ export default class Segmentation extends DerivedPixels {
             !Segment.SegmentedPropertyTypeCodeSequence ||
             !Segment.SegmentAlgorithmType
         ) {
-            throw new Error(
-                `Segment does not contain all the required fields.`
-            );
+            throw new Error(`Segment does not contain all the required fields.`);
         }
 
         // Capitalise the SegmentAlgorithmType if it happens to be given in
         // Lower/mixed case.
-        Segment.SegmentAlgorithmType =
-            Segment.SegmentAlgorithmType.toUpperCase();
+        Segment.SegmentAlgorithmType = Segment.SegmentAlgorithmType.toUpperCase();
 
         // Check SegmentAlgorithmType and SegmentAlgorithmName if necessary.
         switch (Segment.SegmentAlgorithmType) {
@@ -391,9 +336,7 @@ export default class Segmentation extends DerivedPixels {
             case "MANUAL":
                 break;
             default:
-                throw new Error(
-                    `SegmentAlgorithmType ${Segment.SegmentAlgorithmType} invalid.`
-                );
+                throw new Error(`SegmentAlgorithmType ${Segment.SegmentAlgorithmType} invalid.`);
         }
 
         // Deep copy, so we don't change the segment index stored in cornerstoneTools.
@@ -403,28 +346,20 @@ export default class Segmentation extends DerivedPixels {
         const SegmentAlgorithmType = Segment.SegmentAlgorithmType;
 
         const reNumberedSegmentCopy = {
-            SegmentedPropertyCategoryCodeSequence:
-                Segment.SegmentedPropertyCategoryCodeSequence,
+            SegmentedPropertyCategoryCodeSequence: Segment.SegmentedPropertyCategoryCodeSequence,
             SegmentNumber: (SegmentSequence.length + 1).toString(),
             SegmentLabel: Segment.SegmentLabel,
             SegmentAlgorithmType,
-            RecommendedDisplayCIELabValue:
-                Segment.RecommendedDisplayCIELabValue,
-            SegmentedPropertyTypeCodeSequence:
-                Segment.SegmentedPropertyTypeCodeSequence
+            RecommendedDisplayCIELabValue: Segment.RecommendedDisplayCIELabValue,
+            SegmentedPropertyTypeCodeSequence: Segment.SegmentedPropertyTypeCodeSequence
         };
 
         if (Segment.SegmentDescription) {
-            reNumberedSegmentCopy.SegmentDescription =
-                Segment.SegmentDescription;
+            reNumberedSegmentCopy.SegmentDescription = Segment.SegmentDescription;
         }
 
-        if (
-            SegmentAlgorithmType === "AUTOMATIC" ||
-            SegmentAlgorithmType === "SEMIAUTOMATIC"
-        ) {
-            reNumberedSegmentCopy.SegmentAlgorithmName =
-                Segment.SegmentAlgorithmName;
+        if (SegmentAlgorithmType === "AUTOMATIC" || SegmentAlgorithmType === "SEMIAUTOMATIC") {
+            reNumberedSegmentCopy.SegmentAlgorithmName = Segment.SegmentAlgorithmName;
         }
 
         SegmentSequence.push(reNumberedSegmentCopy);

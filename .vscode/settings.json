@@ -1,8 +1,11 @@
 {
   
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "biomejs.biome",
   "[javascript]": {
     "editor.tabSize": 4,
     "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
   },
 }

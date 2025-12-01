@@ -20,7 +20,7 @@
  * @param {Number} tolerance.
  * @return {Boolean} True if a and b are nearly equal.
  */
-export default function nearlyEqual(a, b, epsilon) {
+export default function nearlyEqual(a: number, b: number, epsilon: number): boolean {
     const absA = Math.abs(a);
     const absB = Math.abs(b);
     const diff = Math.abs(a - b);

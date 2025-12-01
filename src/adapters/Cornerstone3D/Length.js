@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Length from "../../utilities/TID300/Length.js";
 import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
+import MeasurementReport from "./MeasurementReport.js";
 
 const LENGTH = "Length";
 const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${LENGTH}`;
@@ -9,12 +9,7 @@ class Length {
     constructor() {}
 
     // TODO: this function is required for all Cornerstone Tool Adapters, since it is called by MeasurementReport.
-    static getMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata
-    ) {
+    static getMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata) {
         const { defaultState, NUMGroup, SCOORDGroup, ReferencedFrameNumber } =
             MeasurementReport.getSetupMeasurementData(
                 MeasurementGroup,
@@ -23,16 +18,12 @@ class Length {
                 Length.toolType
             );
 
-        const referencedImageId =
-            defaultState.annotation.metadata.referencedImageId;
+        const referencedImageId = defaultState.annotation.metadata.referencedImageId;
 
         const { GraphicData } = SCOORDGroup;
         const worldCoords = [];
         for (let i = 0; i < GraphicData.length; i += 2) {
-            const point = imageToWorldCoords(referencedImageId, [
-                GraphicData[i],
-                GraphicData[i + 1]
-            ]);
+            const point = imageToWorldCoords(referencedImageId, [GraphicData[i], GraphicData[i + 1]]);
             worldCoords.push(point);
         }
 
@@ -48,9 +39,7 @@ class Length {
             },
             cachedStats: {
                 [`imageId:${referencedImageId}`]: {
-                    length: NUMGroup
-                        ? NUMGroup.MeasuredValueSequence.NumericValue
-                        : 0
+                    length: NUMGroup ? NUMGroup.MeasuredValueSequence.NumericValue : 0
                 }
             },
             frameNumber: ReferencedFrameNumber
@@ -66,9 +55,7 @@ class Length {
         const { referencedImageId } = metadata;
 
         if (!referencedImageId) {
-            throw new Error(
-                "Length.getTID300RepresentationArguments: referencedImageId is not defined"
-            );
+            throw new Error("Length.getTID300RepresentationArguments: referencedImageId is not defined");
         }
 
         const start = worldToImageCoords(referencedImageId, handles.points[0]);
@@ -77,8 +64,7 @@ class Length {
         const point1 = { x: start[0], y: start[1] };
         const point2 = { x: end[0], y: end[1] };
 
-        const { length: distance } =
-            cachedStats[`imageId:${referencedImageId}`] || {};
+        const { length: distance } = cachedStats[`imageId:${referencedImageId}`] || {};
 
         return {
             point1,
@@ -94,7 +80,7 @@ class Length {
 Length.toolType = LENGTH;
 Length.utilityToolType = LENGTH;
 Length.TID300Representation = TID300Length;
-Length.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+Length.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

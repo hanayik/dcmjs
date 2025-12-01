@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Point from "../../utilities/TID300/Point.js";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport.js";
 
 const ARROW_ANNOTATE = "ArrowAnnotate";
 const CORNERSTONEFREETEXT = "CORNERSTONEFREETEXT";
@@ -9,8 +9,7 @@ class ArrowAnnotate {
     constructor() {}
 
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, SCOORDGroup, findingGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, SCOORDGroup, findingGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const text = findingGroup.ConceptCodeSequence.CodeMeaning;
 
@@ -30,14 +29,8 @@ class ArrowAnnotate {
                 // Use a generic offset if the stored data doesn't have the endpoint, otherwise
                 // use the actual endpoint.
                 end: {
-                    x:
-                        GraphicData.length == 4
-                            ? GraphicData[2]
-                            : GraphicData[0] + 20,
-                    y:
-                        GraphicData.length == 4
-                            ? GraphicData[3]
-                            : GraphicData[1] + 20,
+                    x: GraphicData.length === 4 ? GraphicData[2] : GraphicData[0] + 20,
+                    y: GraphicData.length === 4 ? GraphicData[3] : GraphicData[1] + 20,
                     highlight: true,
                     active: false
                 },
@@ -86,7 +79,7 @@ class ArrowAnnotate {
 ArrowAnnotate.toolType = ARROW_ANNOTATE;
 ArrowAnnotate.utilityToolType = ARROW_ANNOTATE;
 ArrowAnnotate.TID300Representation = TID300Point;
-ArrowAnnotate.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+ArrowAnnotate.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

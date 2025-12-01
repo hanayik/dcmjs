@@ -19,11 +19,7 @@ class Normalizer {
                 sopClassUID = dataset.SOPClassUID;
             }
             if (dataset.SOPClassUID !== sopClassUID) {
-                log.error(
-                    "inconsistent sopClassUIDs: ",
-                    dataset.SOPClassUID,
-                    sopClassUID
-                );
+                log.error("inconsistent sopClassUIDs: ", dataset.SOPClassUID, sopClassUID);
                 return undefined;
             }
         });
@@ -39,20 +35,16 @@ class Normalizer {
         sopClassUIDMap[toUID.ParametricMapStorage] = PMImageNormalizer;
         sopClassUIDMap[toUID.MRImage] = MRImageNormalizer;
         sopClassUIDMap[toUID.EnhancedCTImage] = EnhancedCTImageNormalizer;
-        sopClassUIDMap[toUID.LegacyConvertedEnhancedCTImage] =
-            EnhancedCTImageNormalizer;
+        sopClassUIDMap[toUID.LegacyConvertedEnhancedCTImage] = EnhancedCTImageNormalizer;
         sopClassUIDMap[toUID.EnhancedMRImage] = EnhancedMRImageNormalizer;
-        sopClassUIDMap[toUID.LegacyConvertedEnhancedMRImage] =
-            EnhancedMRImageNormalizer;
+        sopClassUIDMap[toUID.LegacyConvertedEnhancedMRImage] = EnhancedMRImageNormalizer;
         sopClassUIDMap[toUID.EnhancedUSVolume] = EnhancedUSVolumeNormalizer;
         sopClassUIDMap[toUID.PETImage] = PETImageNormalizer;
         sopClassUIDMap[toUID.EnhancedPETImage] = PETImageNormalizer;
-        sopClassUIDMap[toUID.LegacyConvertedEnhancedPETImage] =
-            PETImageNormalizer;
+        sopClassUIDMap[toUID.LegacyConvertedEnhancedPETImage] = PETImageNormalizer;
         sopClassUIDMap[toUID.Segmentation] = SEGImageNormalizer;
         sopClassUIDMap[toUID.DeformableSpatialRegistration] = DSRNormalizer;
-        sopClassUIDMap[toUID.OphthalmicPhotography8BitImage] =
-            OPImageNormalizer;
+        sopClassUIDMap[toUID.OphthalmicPhotography8BitImage] = OPImageNormalizer;
         sopClassUIDMap[toUID.OphthalmicTomographyImage] = OCTImageNormalizer;
         sopClassUIDMap[toUID.LabelmapSegmentation] = SEGImageNormalizer; // Labelmap Segmentation uses the same normalizer as Segmentation
         return sopClassUIDMap[sopClassUID];
@@ -133,10 +125,7 @@ class ImageNormalizer extends Normalizer {
     }
 
     convertToMultiframe() {
-        if (
-            this.datasets.length === 1 &&
-            Normalizer.isMultiframeDataset(this.datasets[0])
-        ) {
+        if (this.datasets.length === 1 && Normalizer.isMultiframeDataset(this.datasets[0])) {
             // already a multiframe, so just use it
             this.dataset = this.datasets[0];
             return;
@@ -172,17 +161,11 @@ class ImageNormalizer extends Normalizer {
         let referencePosition = referenceDataset.ImagePositionPatient;
         let rowVector = referenceDataset.ImageOrientationPatient.slice(0, 3);
         let columnVector = referenceDataset.ImageOrientationPatient.slice(3, 6);
-        let scanAxis = ImageNormalizer.vec3CrossProduct(
-            rowVector,
-            columnVector
-        );
+        let scanAxis = ImageNormalizer.vec3CrossProduct(rowVector, columnVector);
         let distanceDatasetPairs = [];
         this.datasets.forEach(function (dataset) {
             let position = dataset.ImagePositionPatient.slice();
-            let positionVector = ImageNormalizer.vec3Subtract(
-                position,
-                referencePosition
-            );
+            let positionVector = ImageNormalizer.vec3Subtract(position, referencePosition);
             let distance = ImageNormalizer.vec3Dot(positionVector, scanAxis);
             distanceDatasetPairs.push([distance, dataset]);
         });
@@ -192,10 +175,7 @@ class ImageNormalizer extends Normalizer {
 
         // assign array buffers
         if (ds.BitsAllocated !== 16) {
-            log.error(
-                "Only works with 16 bit data, not " +
-                    String(this.dataset.BitsAllocated)
-            );
+            log.error("Only works with 16 bit data, not " + String(this.dataset.BitsAllocated));
         }
         if (referenceDataset._vrMap && !referenceDataset._vrMap.PixelData) {
             log.warn("No vr map given for pixel data, using OW");
@@ -209,11 +189,7 @@ class ImageNormalizer extends Normalizer {
         distanceDatasetPairs.forEach(function (pair) {
             let dataset = pair[1];
             let pixels = new Uint16Array(dataset.PixelData);
-            let frameView = new Uint16Array(
-                ds.PixelData,
-                frame * frameSize,
-                frameSize / 2
-            );
+            let frameView = new Uint16Array(ds.PixelData, frame * frameSize, frameSize / 2);
             try {
                 frameView.set(pixels);
             } catch (e) {
@@ -232,9 +208,7 @@ class ImageNormalizer extends Normalizer {
 
         if (ds.NumberOfFrames < 2) {
             // TODO
-            log.error(
-                "Cannot populate shared groups uniquely without multiple frames"
-            );
+            log.error("Cannot populate shared groups uniquely without multiple frames");
         }
         let [distance0, dataset0] = distanceDatasetPairs[0];
         let distance1 = distanceDatasetPairs[1][0];
@@ -327,9 +301,7 @@ class ImageNormalizer extends Normalizer {
         }
 
         if (!ds.SharedFunctionalGroupsSequence) {
-            log.error(
-                "Can only process multiframe data with SharedFunctionalGroupsSequence"
-            );
+            log.error("Can only process multiframe data with SharedFunctionalGroupsSequence");
         }
 
         // TODO: special case!
@@ -352,14 +324,9 @@ class ImageNormalizer extends Normalizer {
             RescaleType: "US"
         };
         let frameNumber = 1;
-        this.datasets.forEach(dataset => {
-            if (ds.NumberOfFrames === 1)
-                ds.PerFrameFunctionalGroupsSequence = [
-                    ds.PerFrameFunctionalGroupsSequence
-                ];
-            ds.PerFrameFunctionalGroupsSequence[
-                frameNumber - 1
-            ].FrameContentSequence = {
+        this.datasets.forEach((dataset) => {
+            if (ds.NumberOfFrames === 1) ds.PerFrameFunctionalGroupsSequence = [ds.PerFrameFunctionalGroupsSequence];
+            ds.PerFrameFunctionalGroupsSequence[frameNumber - 1].FrameContentSequence = {
                 FrameAcquisitionDuration: 0,
                 StackID: 1,
                 InStackPositionNumber: frameNumber,
@@ -367,9 +334,7 @@ class ImageNormalizer extends Normalizer {
             };
             let frameTime = dataset.AcquisitionDate + dataset.AcquisitionTime;
             if (!isNaN(frameTime)) {
-                let frameContentSequence =
-                    ds.PerFrameFunctionalGroupsSequence[frameNumber - 1]
-                        .FrameContentSequence;
+                let frameContentSequence = ds.PerFrameFunctionalGroupsSequence[frameNumber - 1].FrameContentSequence;
                 frameContentSequence.FrameAcquisitionDateTime = frameTime;
                 frameContentSequence.FrameReferenceDateTime = frameTime;
             }
@@ -396,14 +361,10 @@ class ImageNormalizer extends Normalizer {
             // provide a volume-level window/level guess (mean of per-frame)
             if (ds.PerFrameFunctionalGroupsSequence) {
                 let wcww = { center: 0, width: 0, count: 0 };
-                ds.PerFrameFunctionalGroupsSequence.forEach(function (
-                    functionalGroup
-                ) {
+                ds.PerFrameFunctionalGroupsSequence.forEach(function (functionalGroup) {
                     if (functionalGroup.FrameVOILUT) {
-                        let wc =
-                            functionalGroup.FrameVOILUTSequence.WindowCenter;
-                        let ww =
-                            functionalGroup.FrameVOILUTSequence.WindowWidth;
+                        let wc = functionalGroup.FrameVOILUTSequence.WindowCenter;
+                        let ww = functionalGroup.FrameVOILUTSequence.WindowWidth;
                         if (functionalGroup.FrameVOILUTSequence && wc && ww) {
                             if (Array.isArray(wc)) {
                                 wc = wc[0];
@@ -524,9 +485,7 @@ class PMImageNormalizer extends ImageNormalizer {
         super.normalize();
         let ds = this.datasets[0];
         if (ds.BitsAllocated !== 32) {
-            log.error(
-                "Only works with 32 bit data, not " + String(ds.BitsAllocated)
-            );
+            log.error("Only works with 32 bit data, not " + String(ds.BitsAllocated));
         }
     }
 }

@@ -41,9 +41,7 @@ export default class Bidirectional extends TID300Measurement {
                     ValueType: use3DSpatialCoordinates ? "SCOORD3D" : "SCOORD",
                     GraphicType: "POLYLINE",
                     GraphicData: longAxisGraphicData,
-                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates
-                        ? ReferencedFrameOfReferenceUID
-                        : undefined,
+                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates ? ReferencedFrameOfReferenceUID : undefined,
                     ContentSequence: use3DSpatialCoordinates
                         ? undefined
                         : {
@@ -70,9 +68,7 @@ export default class Bidirectional extends TID300Measurement {
                     ValueType: use3DSpatialCoordinates ? "SCOORD3D" : "SCOORD",
                     GraphicType: "POLYLINE",
                     GraphicData: shortAxisGraphicData,
-                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates
-                        ? ReferencedFrameOfReferenceUID
-                        : undefined,
+                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates ? ReferencedFrameOfReferenceUID : undefined,
                     ContentSequence: use3DSpatialCoordinates
                         ? undefined
                         : {

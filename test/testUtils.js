@@ -14,7 +14,7 @@ function downloadToFile(url, filePath) {
     return new Promise((resolve, reject) => {
         const fileStream = fs.createWriteStream(filePath);
         https
-            .get(url, response => {
+            .get(url, (response) => {
                 response.pipe(fileStream);
                 fileStream.on("finish", () => {
                     resolve(filePath);

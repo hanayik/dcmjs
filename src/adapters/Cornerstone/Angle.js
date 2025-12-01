@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300CobbAngle from "../../utilities/TID300/CobbAngle.js";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport.js";
 
 const ANGLE = "Angle";
 
@@ -13,8 +13,7 @@ class Angle {
      * @returns
      */
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, NUMGroup, SCOORDGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, NUMGroup, SCOORDGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const state = {
             ...defaultState,
@@ -74,7 +73,7 @@ class Angle {
 Angle.toolType = ANGLE;
 Angle.utilityToolType = ANGLE;
 Angle.TID300Representation = TID300CobbAngle;
-Angle.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+Angle.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

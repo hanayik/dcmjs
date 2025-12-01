@@ -1,10 +1,10 @@
-import Colors from "../../colors.js";
 import BitArray from "../../bitArray.js";
+import Colors from "../../colors.js";
 
 // TODO: Is there a better name for this? RGBAInt?
 // Should we move it to Colors.js
 function dicomlab2RGBA(cielab) {
-    const rgba = Colors.dicomlab2RGB(cielab).map(x => Math.round(x * 255));
+    const rgba = Colors.dicomlab2RGB(cielab).map((x) => Math.round(x * 255));
     rgba.push(255);
 
     return rgba;
@@ -60,26 +60,17 @@ function subtract(a, b, out) {
 // dcmjs.adapters.vtk.Multiframe? dcmjs.utils?
 function geometryFromFunctionalGroups(dataset, PerFrameFunctionalGroups) {
     const geometry = {};
-    const pixelMeasures =
-        dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
-    const planeOrientation =
-        dataset.SharedFunctionalGroupsSequence.PlaneOrientationSequence;
+    const pixelMeasures = dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
+    const planeOrientation = dataset.SharedFunctionalGroupsSequence.PlaneOrientationSequence;
 
     // Find the origin of the volume from the PerFrameFunctionalGroups' ImagePositionPatient values
     //
     // TODO: assumes sorted frames. This should read the ImagePositionPatient from each frame and
     // sort them to obtain the first and last position along the acquisition axis.
     const firstFunctionalGroup = PerFrameFunctionalGroups[0];
-    const lastFunctionalGroup =
-        PerFrameFunctionalGroups[PerFrameFunctionalGroups.length - 1];
-    const firstPosition =
-        firstFunctionalGroup.PlanePositionSequence.ImagePositionPatient.map(
-            Number
-        );
-    const lastPosition =
-        lastFunctionalGroup.PlanePositionSequence.ImagePositionPatient.map(
-            Number
-        );
+    const lastFunctionalGroup = PerFrameFunctionalGroups[PerFrameFunctionalGroups.length - 1];
+    const firstPosition = firstFunctionalGroup.PlanePositionSequence.ImagePositionPatient.map(Number);
+    const lastPosition = lastFunctionalGroup.PlanePositionSequence.ImagePositionPatient.map(Number);
 
     geometry.origin = firstPosition;
 
@@ -91,11 +82,7 @@ function geometryFromFunctionalGroups(dataset, PerFrameFunctionalGroups) {
         pixelMeasures.SpacingBetweenSlices
     ].map(Number);
 
-    geometry.dimensions = [
-        dataset.Columns,
-        dataset.Rows,
-        PerFrameFunctionalGroups.length
-    ].map(Number);
+    geometry.dimensions = [dataset.Columns, dataset.Rows, PerFrameFunctionalGroups.length].map(Number);
 
     const orientation = planeOrientation.ImageOrientationPatient.map(Number);
     const columnStepToPatient = orientation.slice(0, 3);
@@ -108,9 +95,7 @@ function geometryFromFunctionalGroups(dataset, PerFrameFunctionalGroups) {
     geometry.sliceStep = [];
     subtract(lastPosition, firstPosition, geometry.sliceStep);
     normalize(geometry.sliceStep);
-    geometry.direction = columnStepToPatient
-        .concat(rowStepToPatient)
-        .concat(geometry.sliceStep);
+    geometry.direction = columnStepToPatient.concat(rowStepToPatient).concat(geometry.sliceStep);
 
     return geometry;
 }
@@ -162,7 +147,7 @@ export default class Segmentation {
         }
 
         const segments = {};
-        dataset.SegmentSequence.forEach(segment => {
+        dataset.SegmentSequence.forEach((segment) => {
             // TODO: other interesting fields could be extracted from the segment
             // TODO: Read SegmentsOverlay field
             // http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.2.html
@@ -181,10 +166,8 @@ export default class Segmentation {
         });
 
         // make a list of functional groups per segment
-        dataset.PerFrameFunctionalGroupsSequence.forEach(functionalGroup => {
-            const segmentNumber =
-                functionalGroup.SegmentIdentificationSequence
-                    .ReferencedSegmentNumber;
+        dataset.PerFrameFunctionalGroupsSequence.forEach((functionalGroup) => {
+            const segmentNumber = functionalGroup.SegmentIdentificationSequence.ReferencedSegmentNumber;
 
             segments[segmentNumber].functionalGroups.push(functionalGroup);
         });
@@ -194,7 +177,7 @@ export default class Segmentation {
         const frameSize = Math.ceil((dataset.Rows * dataset.Columns) / 8);
         let nextOffset = 0;
 
-        Object.keys(segments).forEach(segmentNumber => {
+        Object.keys(segments).forEach((segmentNumber) => {
             const segment = segments[segmentNumber];
 
             segment.numberOfFrames = segment.functionalGroups.length;
@@ -203,17 +186,11 @@ export default class Segmentation {
 
             nextOffset = segment.offset + segment.size;
 
-            const packedSegment = dataset.PixelData.slice(
-                segment.offset,
-                nextOffset
-            );
+            const packedSegment = dataset.PixelData.slice(segment.offset, nextOffset);
 
             segment.pixelData = BitArray.unpack(packedSegment);
 
-            const geometry = geometryFromFunctionalGroups(
-                dataset,
-                segment.functionalGroups
-            );
+            const geometry = geometryFromFunctionalGroups(dataset, segment.functionalGroups);
 
             segment.geometry = geometry;
         });

@@ -1,9 +1,5 @@
 import { ReadBufferStream } from "../../src/BufferStream";
-import {
-    ITEM_DELIMITATION_LENGTH,
-    SEQUENCE_DELIMITATION_VALUE,
-    UNDEFINED_LENGTH
-} from "../../src/constants/dicom";
+import { ITEM_DELIMITATION_LENGTH, SEQUENCE_DELIMITATION_VALUE, UNDEFINED_LENGTH } from "../../src/constants/dicom";
 import { DicomMetaDictionary } from "../../src/DicomMetaDictionary";
 
 export class DicomDataReadBufferStreamBuilder {
@@ -21,15 +17,11 @@ export class DicomDataReadBufferStreamBuilder {
         this.splitIntoFourTwoByteItemsAndAddToDataArray(
             DicomMetaDictionary.tagAsIntegerFromName("SequenceDelimitationItem")
         );
-        this.splitIntoFourTwoByteItemsAndAddToDataArray(
-            SEQUENCE_DELIMITATION_VALUE
-        );
+        this.splitIntoFourTwoByteItemsAndAddToDataArray(SEQUENCE_DELIMITATION_VALUE);
     }
 
     addUndefinedLengthItem() {
-        this.splitIntoFourTwoByteItemsAndAddToDataArray(
-            DicomMetaDictionary.tagAsIntegerFromName("Item")
-        );
+        this.splitIntoFourTwoByteItemsAndAddToDataArray(DicomMetaDictionary.tagAsIntegerFromName("Item"));
         this.splitIntoFourTwoByteItemsAndAddToDataArray(UNDEFINED_LENGTH);
     }
 
@@ -37,9 +29,7 @@ export class DicomDataReadBufferStreamBuilder {
         this.splitIntoFourTwoByteItemsAndAddToDataArray(
             DicomMetaDictionary.tagAsIntegerFromName("ItemDelimitationItem")
         );
-        this.splitIntoFourTwoByteItemsAndAddToDataArray(
-            ITEM_DELIMITATION_LENGTH
-        );
+        this.splitIntoFourTwoByteItemsAndAddToDataArray(ITEM_DELIMITATION_LENGTH);
     }
 
     /**
@@ -49,14 +39,8 @@ export class DicomDataReadBufferStreamBuilder {
     splitIntoFourTwoByteItemsAndAddToDataArray(hexValue) {
         let hexValueItemArray = [];
 
-        for (
-            let index = 0;
-            index < hexValue.toString(16).length;
-            index = index + 2
-        ) {
-            hexValueItemArray.push(
-                "0x" + hexValue.toString(16).slice(index, index + 2)
-            );
+        for (let index = 0; index < hexValue.toString(16).length; index = index + 2) {
+            hexValueItemArray.push("0x" + hexValue.toString(16).slice(index, index + 2));
         }
 
         // ensure 4 items in the array

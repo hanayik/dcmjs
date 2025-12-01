@@ -37,9 +37,7 @@ class CodedConcept {
             throw new Error("Option 'meaning' is required for CodedConcept.");
         }
         if (options.schemeDesignator === undefined) {
-            throw new Error(
-                "Option 'schemeDesignator' is required for CodedConcept."
-            );
+            throw new Error("Option 'schemeDesignator' is required for CodedConcept.");
         }
         this.CodeValue = options.value;
         this.CodeMeaning = options.meaning;
@@ -50,10 +48,7 @@ class CodedConcept {
     }
 
     equals(other) {
-        if (
-            other.value === this.value &&
-            other.schemeDesignator === this.schemeDesignator
-        ) {
+        if (other.value === this.value && other.schemeDesignator === this.schemeDesignator) {
             if (other.schemeVersion && this.schemeVersion) {
                 return other.schemeVersion === this.schemeVersion;
             }

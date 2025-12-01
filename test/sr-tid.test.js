@@ -1,14 +1,6 @@
 import { utilities } from "../src";
 
-const {
-    Length,
-    Circle,
-    Polygon,
-    Polyline,
-    Ellipse,
-    Bidirectional,
-    Calibration
-} = utilities.TID300;
+const { Length, Circle, Polygon, Polyline, Ellipse, Bidirectional, Calibration } = utilities.TID300;
 
 describe("DICOM SR TID 300/1500 tests", () => {
     describe("TID300 Creation", () => {
@@ -28,9 +20,7 @@ describe("DICOM SR TID 300/1500 tests", () => {
             expect(value.length).toBe(4);
             const measured = value[2].MeasuredValueSequence;
             expect(measured.NumericValue).toBe(props.perimeter);
-            expect(value[3].MeasuredValueSequence.NumericValue).toBe(
-                props.area
-            );
+            expect(value[3].MeasuredValueSequence.NumericValue).toBe(props.area);
             const units = measured.MeasurementUnitsCodeSequence;
             expect(units.CodeValue).toBe("mm");
         });
@@ -51,9 +41,7 @@ describe("DICOM SR TID 300/1500 tests", () => {
             expect(value.length).toBe(4);
             const measured = value[2].MeasuredValueSequence;
             expect(measured.NumericValue).toBe(props.perimeter);
-            expect(value[3].MeasuredValueSequence.NumericValue).toBe(
-                props.area
-            );
+            expect(value[3].MeasuredValueSequence.NumericValue).toBe(props.area);
             const units = measured.MeasurementUnitsCodeSequence;
             expect(units.CodeValue).toBe("mm");
         });

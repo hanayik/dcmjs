@@ -7,8 +7,7 @@ class DicomMetaDictionary {
     // intakes a custom dictionary that will be used to parse/denaturalize the dataset
     constructor(customDictionary) {
         this.customDictionary = customDictionary;
-        this.customNameMap =
-            DicomMetaDictionary._generateCustomNameMap(customDictionary);
+        this.customNameMap = DicomMetaDictionary._generateCustomNameMap(customDictionary);
     }
 
     static punctuateTag(rawTag) {
@@ -16,8 +15,8 @@ class DicomMetaDictionary {
             return rawTag;
         }
         if (rawTag.length === 8 && rawTag === rawTag.match(/[0-9a-fA-F]*/)[0]) {
-            var tag = rawTag.toUpperCase();
-            return "(" + tag.substring(0, 4) + "," + tag.substring(4, 8) + ")";
+            const tag = rawTag.toUpperCase();
+            return `(${tag.substring(0, 4)},${tag.substring(4, 8)})`;
         }
     }
 
@@ -29,16 +28,14 @@ class DicomMetaDictionary {
     }
 
     static parseIntFromTag(tag) {
-        const integerValue = parseInt(
-            "0x" + DicomMetaDictionary.unpunctuateTag(tag)
-        );
+        const integerValue = parseInt(`0x${DicomMetaDictionary.unpunctuateTag(tag)}`, 10);
         return integerValue;
     }
 
     static tagAsIntegerFromName(name) {
         const item = DicomMetaDictionary.nameMap[name];
-        if (item != undefined) {
-            return this.parseIntFromTag(item.tag);
+        if (item !== undefined) {
+            return DicomMetaDictionary.parseIntFromTag(item.tag);
         } else {
             return undefined;
         }
@@ -49,21 +46,19 @@ class DicomMetaDictionary {
     // or in a dedicated class
     static cleanDataset(dataset) {
         const cleanedDataset = {};
-        Object.keys(dataset).forEach(tag => {
+        Object.keys(dataset).forEach((tag) => {
             const data = Object.assign({}, dataset[tag]);
-            if (data.vr == "SQ") {
+            if (data.vr === "SQ") {
                 const cleanedValues = [];
-                Object.keys(data.Value).forEach(index => {
-                    cleanedValues.push(
-                        DicomMetaDictionary.cleanDataset(data.Value[index])
-                    );
+                Object.keys(data.Value).forEach((index) => {
+                    cleanedValues.push(DicomMetaDictionary.cleanDataset(data.Value[index]));
                 });
                 data.Value = cleanedValues;
             } else {
                 // remove null characters from strings
-                data.Value = Object.keys(data.Value).map(index => {
+                data.Value = Object.keys(data.Value).map((index) => {
                     const item = data.Value[index];
-                    if (item.constructor.name == "String") {
+                    if (item.constructor.name === "String") {
                         return item.replace(/\0/, "");
                     }
                     return item;
@@ -79,14 +74,12 @@ class DicomMetaDictionary {
     // but leaves the values intact
     static namifyDataset(dataset) {
         var namedDataset = {};
-        Object.keys(dataset).forEach(tag => {
+        Object.keys(dataset).forEach((tag) => {
             const data = Object.assign({}, dataset[tag]);
-            if (data.vr == "SQ") {
-                var namedValues = [];
-                Object.keys(data.Value).forEach(index => {
-                    namedValues.push(
-                        DicomMetaDictionary.namifyDataset(data.Value[index])
-                    );
+            if (data.vr === "SQ") {
+                const namedValues = [];
+                Object.keys(data.Value).forEach((index) => {
+                    namedValues.push(DicomMetaDictionary.namifyDataset(data.Value[index]));
                 });
                 data.Value = namedValues;
             }
@@ -113,7 +106,7 @@ class DicomMetaDictionary {
             _vrMap: {}
         });
 
-        Object.keys(dataset).forEach(tag => {
+        Object.keys(dataset).forEach((tag) => {
             const data = dataset[tag];
             const punctuatedTag = DicomMetaDictionary.punctuateTag(tag);
             const entry = DicomMetaDictionary.dictionary[punctuatedTag];
@@ -122,7 +115,7 @@ class DicomMetaDictionary {
             if (entry) {
                 naturalName = entry.name;
 
-                if (entry.vr == "ox") {
+                if (entry.vr === "ox") {
                     // when the vr is data-dependent, keep track of the original type
                     naturalDataset._vrMap[naturalName] = data.vr;
                 }
@@ -150,12 +143,8 @@ class DicomMetaDictionary {
                     // convert sequence to list of values
                     const naturalValues = [];
 
-                    Object.keys(data.Value).forEach(index => {
-                        naturalValues.push(
-                            DicomMetaDictionary.naturalizeDataset(
-                                data.Value[index]
-                            )
-                        );
+                    Object.keys(data.Value).forEach((index) => {
+                        naturalValues.push(DicomMetaDictionary.naturalizeDataset(data.Value[index]));
                     });
 
                     naturalDataset[naturalName] = naturalValues;
@@ -165,15 +154,8 @@ class DicomMetaDictionary {
 
                 if (naturalDataset[naturalName].length === 1) {
                     const sqZero = naturalDataset[naturalName][0];
-                    if (
-                        sqZero &&
-                        typeof sqZero === "object" &&
-                        !sqZero.length
-                    ) {
-                        naturalDataset[naturalName] = addAccessors(
-                            naturalDataset[naturalName],
-                            sqZero
-                        );
+                    if (sqZero && typeof sqZero === "object" && !sqZero.length) {
+                        naturalDataset[naturalName] = addAccessors(naturalDataset[naturalName], sqZero);
                     } else {
                         naturalDataset[naturalName] = sqZero;
                     }
@@ -189,9 +171,7 @@ class DicomMetaDictionary {
         if (!Array.isArray(value)) {
             value = [value];
         } else {
-            const thereIsUndefinedValues = naturalValue.some(
-                item => item === undefined
-            );
+            const thereIsUndefinedValues = naturalValue.some((item) => item === undefined);
             if (thereIsUndefinedValues) {
                 throw new Error(
                     "There are undefined values at the array naturalValue in DicomMetaDictionary.denaturalizeValue"
@@ -199,77 +179,61 @@ class DicomMetaDictionary {
             }
         }
 
-        value = value.map(entry =>
-            entry.constructor.name == "Number" ? String(entry) : entry
-        );
+        value = value.map((entry) => (entry.constructor.name === "Number" ? String(entry) : entry));
 
         return value;
+    }
+
+    // denaturalizes dataset using custom dictionary and nameMap
+    denaturalizeDataset(dataset) {
+        return DicomMetaDictionary.denaturalizeDataset(dataset, this.customNameMap);
     }
 
     // keep the static function to support previous calls to the class
     static denaturalizeDataset(dataset, nameMap = DicomMetaDictionary.nameMap) {
         var unnaturalDataset = {};
-        Object.keys(dataset).forEach(naturalName => {
+        Object.keys(dataset).forEach((naturalName) => {
             // check if it's a sequence
             var name = naturalName;
             var entry = nameMap[name];
             if (entry) {
-                let dataValue = dataset[naturalName];
+                const dataValue = dataset[naturalName];
 
                 if (dataValue === undefined) {
                     // handle the case where it was deleted from the object but is in keys
                     return;
                 }
                 // process this one entry
-                const vr =
-                    dataset._vrMap && dataset._vrMap[naturalName]
-                        ? dataset._vrMap[naturalName]
-                        : entry.vr;
+                const vr = dataset._vrMap?.[naturalName] ? dataset._vrMap[naturalName] : entry.vr;
 
-                var dataItem = ValueRepresentation.addTagAccessors({ vr });
+                const dataItem = ValueRepresentation.addTagAccessors({ vr });
 
                 dataItem.Value = dataset[naturalName];
 
                 if (dataValue !== null) {
-                    if (entry.vr == "ox") {
-                        if (dataset._vrMap && dataset._vrMap[naturalName]) {
+                    if (entry.vr === "ox") {
+                        if (dataset._vrMap?.[naturalName]) {
                             dataItem.vr = dataset._vrMap[naturalName];
                         } else {
-                            log.error(
-                                "No value representation given for",
-                                naturalName
-                            );
+                            log.error("No value representation given for", naturalName);
                         }
                     }
 
-                    let vr = ValueRepresentation.createByTypeString(
-                        dataItem.vr
-                    );
+                    const vr = ValueRepresentation.createByTypeString(dataItem.vr);
 
-                    dataItem.Value = DicomMetaDictionary.denaturalizeValue(
-                        dataItem.Value
-                    );
+                    dataItem.Value = DicomMetaDictionary.denaturalizeValue(dataItem.Value);
 
-                    if (entry.vr == "SQ") {
-                        var unnaturalValues = [];
-                        for (
-                            let datasetIndex = 0;
-                            datasetIndex < dataItem.Value.length;
-                            datasetIndex++
-                        ) {
+                    if (entry.vr === "SQ") {
+                        const unnaturalValues = [];
+                        for (let datasetIndex = 0; datasetIndex < dataItem.Value.length; datasetIndex++) {
                             const nestedDataset = dataItem.Value[datasetIndex];
-                            unnaturalValues.push(
-                                DicomMetaDictionary.denaturalizeDataset(
-                                    nestedDataset,
-                                    nameMap
-                                )
-                            );
+                            unnaturalValues.push(DicomMetaDictionary.denaturalizeDataset(nestedDataset, nameMap));
                         }
                         dataItem.Value = unnaturalValues;
                     }
 
                     if (!vr.isBinary() && vr.maxLength) {
-                        dataItem.Value = dataItem.Value.map(value => {
+                        dataItem.Value = dataItem.Value.map((value) => {
                             let maxLength = vr.maxLength;
                             if (vr.rangeMatchingMaxLength) {
                                 maxLength = vr.rangeMatchingMaxLength;
@@ -287,17 +251,12 @@ class DicomMetaDictionary {
                     }
                 }
 
-                var tag = DicomMetaDictionary.unpunctuateTag(entry.tag);
+                const tag = DicomMetaDictionary.unpunctuateTag(entry.tag);
                 unnaturalDataset[tag] = dataItem;
             } else {
                 const validMetaNames = ["_vrMap", "_meta"];
-                if (validMetaNames.indexOf(name) == -1) {
-                    log.warn(
-                        "Unknown name in dataset",
-                        name,
-                        ":",
-                        dataset[name]
-                    );
+                if (validMetaNames.indexOf(name) === -1) {
+                    log.warn("Unknown name in dataset", name, ":", dataset[name]);
                 }
             }
         });
@@ -314,26 +273,26 @@ class DicomMetaDictionary {
 
     // date and time in UTC
     static date() {
-        let now = new Date();
+        const now = new Date();
         return now.toISOString().replace(/-/g, "").slice(0, 8);
     }
 
     static time() {
-        let now = new Date();
+        const now = new Date();
         return now.toISOString().replace(/:/g, "").slice(11, 17);
     }
 
     static dateTime() {
         // "2017-07-07T16:09:18.079Z" -> "20170707160918.079"
-        let now = new Date();
+        const now = new Date();
         return now.toISOString().replace(/[:\-TZ]/g, "");
     }
 
     static _generateNameMap() {
         DicomMetaDictionary.nameMap = {};
-        Object.keys(DicomMetaDictionary.dictionary).forEach(tag => {
+        Object.keys(DicomMetaDictionary.dictionary).forEach((tag) => {
             var dict = DicomMetaDictionary.dictionary[tag];
-            if (dict.version != "PrivateTag") {
+            if (dict.version !== "PrivateTag") {
                 DicomMetaDictionary.nameMap[dict.name] = dict;
             }
         });
@@ -341,9 +300,9 @@ class DicomMetaDictionary {
 
     static _generateCustomNameMap(dictionary) {
         const nameMap = {};
-        Object.keys(dictionary).forEach(tag => {
-            var dict = dictionary[tag];
-            if (dict.version != "PrivateTag") {
+        Object.keys(dictionary).forEach((tag) => {
+            const dict = dictionary[tag];
+            if (dict.version !== "PrivateTag") {
                 nameMap[dict.name] = dict;
             }
         });
@@ -352,18 +311,10 @@ class DicomMetaDictionary {
 
     static _generateUIDMap() {
         DicomMetaDictionary.sopClassUIDsByName = {};
-        Object.keys(DicomMetaDictionary.sopClassNamesByUID).forEach(uid => {
+        Object.keys(DicomMetaDictionary.sopClassNamesByUID).forEach((uid) => {
             var name = DicomMetaDictionary.sopClassNamesByUID[uid];
             DicomMetaDictionary.sopClassUIDsByName[name] = uid;
         });
-    }
-
-    // denaturalizes dataset using custom dictionary and nameMap
-    denaturalizeDataset(dataset) {
-        return DicomMetaDictionary.denaturalizeDataset(
-            dataset,
-            this.customNameMap
-        );
     }
 }
 

@@ -73,9 +73,8 @@ export default class TID300Measurement {
     getFindingSiteGroups() {
         let findingSites = this.props.findingSites || [];
 
-        return findingSites.map(findingSite => {
-            const { CodeValue, CodingSchemeDesignator, CodeMeaning } =
-                findingSite;
+        return findingSites.map((findingSite) => {
+            const { CodeValue, CodingSchemeDesignator, CodeMeaning } = findingSite;
             return {
                 RelationshipType: "CONTAINS",
                 ValueType: "CODE",
@@ -104,7 +103,7 @@ export default class TID300Measurement {
     flattenPoints({ points, use3DSpatialCoordinates = false }) {
         const flattenedCoordinates = [];
 
-        points.forEach(point => {
+        points.forEach((point) => {
             flattenedCoordinates.push(point[0] || point.x);
             flattenedCoordinates.push(point[1] || point.y);
             if (use3DSpatialCoordinates) {

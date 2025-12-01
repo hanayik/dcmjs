@@ -14,13 +14,9 @@ function pnStringToObject(value, multiple = true) {
     if (typeof value === "string" || value instanceof String) {
         // Direct string assignment:
         //   naturalizedDataset.PatientName = "Doe^John";
-        const values = value
-            .split(String.fromCharCode(VM_DELIMITER))
-            .filter(Boolean);
+        const values = value.split(String.fromCharCode(VM_DELIMITER)).filter(Boolean);
         const pnObj = values.map(function (v) {
-            const components = v.split(
-                String.fromCharCode(PN_COMPONENT_DELIMITER)
-            );
+            const components = v.split(String.fromCharCode(PN_COMPONENT_DELIMITER));
             return {
                 ...(components[0] ? { Alphabetic: components[0] } : {}),
                 ...(components[1] ? { Ideographic: components[1] } : {}),
@@ -57,11 +53,7 @@ function pnObjectToString(value) {
     return value
         .filter(Boolean)
         .map(function (v) {
-            if (
-                v === undefined ||
-                typeof v === "string" ||
-                v instanceof String
-            ) {
+            if (v === undefined || typeof v === "string" || v instanceof String) {
                 return v;
             }
             return [v.Alphabetic ?? "", v.Ideographic ?? "", v.Phonetic ?? ""]
@@ -84,9 +76,7 @@ function pnAddValueAccessors(value) {
         Object.defineProperty(value, "toJSON", {
             value: function () {
                 if (Array.isArray(this)) {
-                    return this.filter(Boolean).map(x =>
-                        pnStringToObject(x, false)
-                    );
+                    return this.filter(Boolean).map((x) => pnStringToObject(x, false));
                 } else {
                     return pnStringToObject(this);
                 }

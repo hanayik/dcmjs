@@ -50,7 +50,7 @@ class Colors {
         if (n <= 0.0031306684425005883) {
             return 12.92 * n;
         } else {
-            return 1.055 * Math.pow(n, 1 / 2.4) - 0.055;
+            return 1.055 * n ** (1 / 2.4) - 0.055;
         }
     }
 
@@ -58,29 +58,23 @@ class Colors {
         if (n <= 0.0404482362771076) {
             return n / 12.92;
         } else {
-            return Math.pow((n + 0.055) / 1.055, 2.4);
+            return ((n + 0.055) / 1.055) ** 2.4;
         }
     }
 
     static rgb2XYZ(rgb) {
-        let R = Colors.invGammaCorrection(rgb[0]);
-        let G = Colors.invGammaCorrection(rgb[1]);
-        let B = Colors.invGammaCorrection(rgb[2]);
+        const R = Colors.invGammaCorrection(rgb[0]);
+        const G = Colors.invGammaCorrection(rgb[1]);
+        const B = Colors.invGammaCorrection(rgb[2]);
         return [
-            0.4123955889674142161 * R +
-                0.3575834307637148171 * G +
-                0.1804926473817015735 * B,
-            0.2125862307855955516 * R +
-                0.7151703037034108499 * G +
-                0.07220049864333622685 * B,
-            0.01929721549174694484 * R +
-                0.1191838645808485318 * G +
-                0.950497125131579766 * B
+            0.4123955889674142161 * R + 0.3575834307637148171 * G + 0.1804926473817015735 * B,
+            0.2125862307855955516 * R + 0.7151703037034108499 * G + 0.07220049864333622685 * B,
+            0.01929721549174694484 * R + 0.1191838645808485318 * G + 0.950497125131579766 * B
         ];
     }
 
     static xyz2LAB(xyz) {
-        let whitePoint = Colors.d65WhitePointXYZ();
+        const whitePoint = Colors.d65WhitePointXYZ();
         let X = xyz[0] / whitePoint[0];
         let Y = xyz[1] / whitePoint[1];
         let Z = xyz[2] / whitePoint[2];
@@ -95,10 +89,10 @@ class Colors {
     }
 
     static lab2XYZ(lab) {
-        let L = (lab[0] + 16) / 116;
-        let a = L + lab[1] / 500;
-        let b = L - lab[2] / 200;
-        let whitePoint = Colors.d65WhitePointXYZ();
+        const L = (lab[0] + 16) / 116;
+        const a = L + lab[1] / 500;
+        const b = L - lab[2] / 200;
+        const whitePoint = Colors.d65WhitePointXYZ();
         return [
             whitePoint[0] * Colors.labfInv(a),
             whitePoint[1] * Colors.labfInv(L),
@@ -121,16 +115,12 @@ class Colors {
         }
 
         /* Transform from RGB to R'G'B' */
-        return [
-            Colors.gammaCorrection(R1),
-            Colors.gammaCorrection(G1),
-            Colors.gammaCorrection(B1)
-        ];
+        return [Colors.gammaCorrection(R1), Colors.gammaCorrection(G1), Colors.gammaCorrection(B1)];
     }
 
     static labf(n) {
         if (n >= 8.85645167903563082e-3) {
-            return Math.pow(n, 0.333333333333333);
+            return n ** 0.333333333333333;
         } else {
             return (841.0 / 108.0) * n + 4.0 / 29.0;
         }

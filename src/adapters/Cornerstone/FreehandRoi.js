@@ -1,13 +1,12 @@
-import MeasurementReport from "./MeasurementReport";
 import TID300Polyline from "../../utilities/TID300/Polyline";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport";
 
 class FreehandRoi {
     constructor() {}
 
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, SCOORDGroup, NUMGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, SCOORDGroup, NUMGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const state = {
             ...defaultState,
@@ -45,8 +44,7 @@ class FreehandRoi {
         const { points } = handles;
         const { area = 0, perimeter = 0 } = cachedStats;
 
-        const trackingIdentifierTextValue =
-            "cornerstoneTools@^4.0.0:FreehandRoi";
+        const trackingIdentifierTextValue = "cornerstoneTools@^4.0.0:FreehandRoi";
 
         return {
             points,
@@ -62,7 +60,7 @@ class FreehandRoi {
 FreehandRoi.toolType = "FreehandRoi";
 FreehandRoi.utilityToolType = "FreehandRoi";
 FreehandRoi.TID300Representation = TID300Polyline;
-FreehandRoi.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+FreehandRoi.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

@@ -1,5 +1,5 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Polyline from "../../utilities/TID300/Polyline";
+import MeasurementReport from "./MeasurementReport.js";
 
 class Polyline {
     constructor() {}
@@ -7,16 +7,16 @@ class Polyline {
     static getMeasurementData(measurementContent) {
         // removing duplication and Getting only the graphicData information
         const measurement = measurementContent
-            .map(item => item.GraphicData)
+            .map((item) => item.GraphicData)
             .filter(
                 (
-                    s => a =>
-                        (j => !s.has(j) && s.add(j))(JSON.stringify(a))
+                    (s) => (a) =>
+                        ((j) => !s.has(j) && s.add(j))(JSON.stringify(a))
                 )(new Set())
             );
 
         // Chunking the array into size of three
-        return measurement.map(measurement => {
+        return measurement.map((measurement) => {
             return measurement.reduce((all, one, i) => {
                 const ch = Math.floor(i / 3);
                 all[ch] = [].concat(all[ch] || [], one);

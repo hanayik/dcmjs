@@ -8,8 +8,7 @@ import { getZippedTestDataset, getTestDataset } from "./testUtils.js";
 const { DicomMetaDictionary, DicomMessage } = dcmjs.data;
 
 const areEqual = (first, second) =>
-    first.byteLength === second.byteLength &&
-    first.every((value, index) => value === second[index]);
+    first.byteLength === second.byteLength && first.every((value, index) => value === second[index]);
 
 it("test_untilTag", () => {
     const buffer = fs.readFileSync("test/sample-dicom.dcm");
@@ -48,18 +47,15 @@ it("noCopy multiframe DICOM which has trailing padding", async () => {
     const url =
         "https://github.com/dcmjs-org/data/releases/download/binary-parsing-stressors/multiframe-ultrasound.dcm";
     const dcmPath = await getTestDataset(url, "multiframe-ultrasound.dcm");
-    const dicomDictNoCopy = DicomMessage.readFile(
-        fs.readFileSync(dcmPath).buffer,
-        {
-            noCopy: true
-        }
-    );
+    const dicomDictNoCopy = DicomMessage.readFile(fs.readFileSync(dcmPath).buffer, {
+        noCopy: true
+    });
 
     const dicomDict = DicomMessage.readFile(fs.readFileSync(dcmPath).buffer, {
         noCopy: false
     });
 
-    Object.keys(dicomDict.dict).map(key => {
+    Object.keys(dicomDict.dict).map((key) => {
         const value = dicomDict.dict[key].Value;
         if (value[0] instanceof ArrayBuffer) {
             value.map((e, idx) => {
@@ -83,50 +79,39 @@ function hashCode(buffer) {
 }
 
 it("multiframe DICOM with large private tags gets written to bulkdata", async () => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/binary-parsing-stressors/large-private-tags.dcm";
+    const url = "https://github.com/dcmjs-org/data/releases/download/binary-parsing-stressors/large-private-tags.dcm";
     const dcmPath = await getTestDataset(url, "large-private-tags.dcm");
 
     const writeBulkdata = (header, stream) => {
-        const bytes = stream.getBuffer(
-            stream.offset,
-            stream.offset + header.length
-        );
+        const bytes = stream.getBuffer(stream.offset, stream.offset + header.length);
         const BulkDataUUID = hashCode(bytes);
         return {
             ...header,
             BulkDataUUID
         };
     };
-    const dicomDictBulkdata = DicomMessage.readFile(
-        fs.readFileSync(dcmPath).buffer,
-        {
-            writeBulkdata,
-            publicTagBulkdataSize: 60
-        }
-    );
+    const dicomDictBulkdata = DicomMessage.readFile(fs.readFileSync(dcmPath).buffer, {
+        writeBulkdata,
+        publicTagBulkdataSize: 60
+    });
     const { dict } = dicomDictBulkdata;
     expect(dict["60031012"].BulkDataUUID).toBe(1600810170);
     expect(dict["00080008"].BulkDataUUID).toBe(186433950);
 });
 
 it("noCopy multiframe DICOM with large private tags before and after the image data", async () => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/binary-parsing-stressors/large-private-tags.dcm";
+    const url = "https://github.com/dcmjs-org/data/releases/download/binary-parsing-stressors/large-private-tags.dcm";
     const dcmPath = await getTestDataset(url, "large-private-tags.dcm");
 
-    const dicomDictNoCopy = DicomMessage.readFile(
-        fs.readFileSync(dcmPath).buffer,
-        {
-            noCopy: true
-        }
-    );
+    const dicomDictNoCopy = DicomMessage.readFile(fs.readFileSync(dcmPath).buffer, {
+        noCopy: true
+    });
 
     const dicomDict = DicomMessage.readFile(fs.readFileSync(dcmPath).buffer, {
         noCopy: false
     });
 
-    Object.keys(dicomDict.dict).map(key => {
+    Object.keys(dicomDict.dict).map((key) => {
         const value = dicomDict.dict[key].Value;
         if (value[0] instanceof ArrayBuffer) {
             value.map((e, idx) => {
@@ -139,8 +124,7 @@ it("noCopy multiframe DICOM with large private tags before and after the image d
 });
 
 it("noCopy binary data into an ArrayBuffer", async () => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/binary-tag/binary-tag.dcm";
+    const url = "https://github.com/dcmjs-org/data/releases/download/binary-tag/binary-tag.dcm";
     const dcmPath = await getTestDataset(url, "binary-tag.dcm");
     const fileData = await promisify(fs.readFile)(dcmPath);
 
@@ -152,7 +136,7 @@ it("noCopy binary data into an ArrayBuffer", async () => {
         noCopy: false
     });
 
-    Object.keys(dicomDict.dict).map(key => {
+    Object.keys(dicomDict.dict).map((key) => {
         const value = dicomDict.dict[key].Value;
         if (value[0] instanceof ArrayBuffer) {
             value.map((e, idx) => {
@@ -165,21 +149,14 @@ it("noCopy binary data into an ArrayBuffer", async () => {
 });
 
 it("noCopy test_multiframe_1", async () => {
-    const url =
-        "https://github.com/dcmjs-org/data/releases/download/MRHead/MRHead.zip";
+    const url = "https://github.com/dcmjs-org/data/releases/download/MRHead/MRHead.zip";
 
-    const unzipPath = await getZippedTestDataset(
-        url,
-        "MRHead.zip",
-        "test_multiframe_1"
-    );
+    const unzipPath = await getZippedTestDataset(url, "MRHead.zip", "test_multiframe_1");
     const mrHeadPath = path.join(unzipPath, "MRHead");
     const fileNames = await fsPromises.readdir(mrHeadPath);
 
-    fileNames.forEach(fileName => {
-        const arrayBuffer = fs.readFileSync(
-            path.join(mrHeadPath, fileName)
-        ).buffer;
+    fileNames.forEach((fileName) => {
+        const arrayBuffer = fs.readFileSync(path.join(mrHeadPath, fileName)).buffer;
         const dicomDictNoCopy = DicomMessage.readFile(arrayBuffer, {
             noCopy: true
         });
@@ -187,7 +164,7 @@ it("noCopy test_multiframe_1", async () => {
             noCopy: false
         });
 
-        Object.keys(dicomDict.dict).map(key => {
+        Object.keys(dicomDict.dict).map((key) => {
             const value = dicomDict.dict[key].Value;
             if (value[0] instanceof ArrayBuffer) {
                 value.map((e, idx) => {
@@ -203,10 +180,7 @@ it("noCopy test_multiframe_1", async () => {
 it("noCopy test_fragment_multiframe", async () => {
     const url =
         "https://github.com/dcmjs-org/data/releases/download/encapsulation/encapsulation-fragment-multiframe.dcm";
-    const dcmPath = await getTestDataset(
-        url,
-        "encapsulation-fragment-multiframe-b.dcm"
-    );
+    const dcmPath = await getTestDataset(url, "encapsulation-fragment-multiframe-b.dcm");
     const file = fs.readFileSync(dcmPath);
 
     const dicomDict = dcmjs.data.DicomMessage.readFile(file.buffer, {
@@ -217,19 +191,15 @@ it("noCopy test_fragment_multiframe", async () => {
         noCopy: true
     });
 
-    Object.keys(dicomDict.dict).map(key => {
+    Object.keys(dicomDict.dict).map((key) => {
         const value = dicomDict.dict[key].Value;
         if (value[0] instanceof ArrayBuffer) {
             value.map((e, idx) => {
                 const noCopyValue = dicomDictNoCopy.dict[key].Value[idx];
                 const copyValue = new Uint8Array(e);
-                const areEqual = (first, second) =>
-                    first.every((value, index) => value === second[index]);
+                const areEqual = (first, second) => first.every((value, index) => value === second[index]);
 
-                const totalSize = noCopyValue.reduce(
-                    (sum, arr) => sum + arr.byteLength,
-                    0
-                );
+                const totalSize = noCopyValue.reduce((sum, arr) => sum + arr.byteLength, 0);
                 expect(totalSize).toEqual(copyValue.length);
                 expect(areEqual(noCopyValue[0], copyValue)).toEqual(true);
             });

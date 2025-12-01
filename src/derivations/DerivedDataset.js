@@ -3,19 +3,17 @@ import { DicomMetaDictionary } from "../DicomMetaDictionary.js";
 export default class DerivedDataset {
     constructor(datasets, options = {}) {
         this.options = JSON.parse(JSON.stringify(options));
-        let o = this.options;
+        const o = this.options;
 
         o.Manufacturer = options.Manufacturer || "Unspecified";
-        o.ManufacturerModelName =
-            options.ManufacturerModelName || "Unspecified";
-        o.SeriesDescription =
-            options.SeriesDescription || "Research Derived series";
+        o.ManufacturerModelName = options.ManufacturerModelName || "Unspecified";
+        o.SeriesDescription = options.SeriesDescription || "Research Derived series";
         o.SeriesNumber = options.SeriesNumber || "99";
         o.SoftwareVersions = options.SoftwareVersions || "0";
         o.DeviceSerialNumber = options.DeviceSerialNumber || "1";
 
-        let date = DicomMetaDictionary.date();
-        let time = DicomMetaDictionary.time();
+        const date = DicomMetaDictionary.date();
+        const time = DicomMetaDictionary.time();
 
         o.SeriesDate = options.SeriesDate || date;
         o.SeriesTime = options.SeriesTime || time;
@@ -23,12 +21,10 @@ export default class DerivedDataset {
         o.ContentTime = options.ContentTime || time;
 
         o.SOPInstanceUID = options.SOPInstanceUID || DicomMetaDictionary.uid();
-        o.SeriesInstanceUID =
-            options.SeriesInstanceUID || DicomMetaDictionary.uid();
+        o.SeriesInstanceUID = options.SeriesInstanceUID || DicomMetaDictionary.uid();
 
         o.ClinicalTrialTimePointID = options.ClinicalTrialTimePointID || "";
-        o.ClinicalTrialCoordinatingCenterName =
-            options.ClinicalTrialCoordinatingCenterName || "";
+        o.ClinicalTrialCoordinatingCenterName = options.ClinicalTrialCoordinatingCenterName || "";
         o.ClinicalTrialSeriesID = options.ClinicalTrialSeriesID || "";
 
         o.ImageComments = options.ImageComments || "NOT FOR CLINICAL USE";
@@ -45,17 +41,24 @@ export default class DerivedDataset {
     }
 
     assignToDataset(data) {
-        Object.keys(data).forEach(key => (this.dataset[key] = data[key]));
+        Object.keys(data).forEach((key) => {
+            this.dataset[key] = data[key];
+            return;
+        });
     }
 
     assignFromReference(tags) {
-        tags.forEach(
-            tag => (this.dataset[tag] = this.referencedDataset[tag] || "")
-        );
+        tags.forEach((tag) => {
+            this.dataset[tag] = this.referencedDataset[tag] || "";
+            return;
+        });
     }
 
     assignFromOptions(tags) {
-        tags.forEach(tag => (this.dataset[tag] = this.options[tag] || ""));
+        tags.forEach((tag) => {
+            this.dataset[tag] = this.options[tag] || "";
+            return;
+        });
     }
 
     derive() {

@@ -4,7 +4,7 @@ const flipImageOrientationPatient = {
      * @param {Number[6]} iop - ImageOrientationPatient
      * @returns {Number[6]} The transformed ImageOrientationPatient
      */
-    h: iop => {
+    h: (iop) => {
         return [iop[0], iop[1], iop[2], -iop[3], -iop[4], -iop[5]];
     },
     /**
@@ -12,7 +12,7 @@ const flipImageOrientationPatient = {
      * @param {Number[6]} iop - ImageOrientationPatient
      * @returns {Number[6]} The transformed ImageOrientationPatient
      */
-    v: iop => {
+    v: (iop) => {
         return [-iop[0], -iop[1], -iop[2], iop[3], iop[4], iop[5]];
     },
     /**
@@ -20,7 +20,7 @@ const flipImageOrientationPatient = {
      * @param {Number[6]} iop - ImageOrientationPatient
      * @returns {Number[6]} The transformed ImageOrientationPatient
      */
-    hv: iop => {
+    hv: (iop) => {
         return [-iop[0], -iop[1], -iop[2], -iop[3], -iop[4], -iop[5]];
     }
 };

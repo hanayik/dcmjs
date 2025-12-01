@@ -1,23 +1,20 @@
-import log from "../../log.js";
+import cloneDeep from "lodash.clonedeep";
 import ndarray from "ndarray";
 import { BitArray } from "../../bitArray.js";
-import { datasetToBlob } from "../../datasetToBlob.js";
 import { DicomMessage } from "../../DicomMessage.js";
 import { DicomMetaDictionary } from "../../DicomMetaDictionary.js";
-import { Normalizer } from "../../normalizers.js";
+import { datasetToBlob } from "../../datasetToBlob.js";
 import { Segmentation as SegmentationDerivation } from "../../derivations/index.js";
+import log from "../../log.js";
+import { Normalizer } from "../../normalizers.js";
+import { decode, encode } from "../../utilities/compression/rleSingleSamplePerPixel";
 import {
-    rotateDirectionCosinesInPlane,
     flipImageOrientationPatient as flipIOP,
     flipMatrix2D,
-    rotateMatrix902D,
-    nearlyEqual
+    nearlyEqual,
+    rotateDirectionCosinesInPlane,
+    rotateMatrix902D
 } from "../../utilities/orientation/index.js";
-import {
-    encode,
-    decode
-} from "../../utilities/compression/rleSingleSamplePerPixel";
-import cloneDeep from "lodash.clonedeep";
 
 const Segmentation = {
     generateSegmentation,
@@ -52,11 +49,7 @@ const generateSegmentationDefaultOptions = {
  */
 function generateSegmentation(images, inputLabelmaps3D, userOptions = {}) {
     const isMultiframe = images[0].imageId.includes("?frame");
-    const segmentation = _createSegFromImages(
-        images,
-        isMultiframe,
-        userOptions
-    );
+    const segmentation = _createSegFromImages(images, isMultiframe, userOptions);
 
     return fillSegmentation(segmentation, inputLabelmaps3D, userOptions);
 }
@@ -70,25 +63,15 @@ function generateSegmentation(images, inputLabelmaps3D, userOptions = {}) {
  * @returns {Blob}           description
  */
 function fillSegmentation(segmentation, inputLabelmaps3D, userOptions = {}) {
-    const options = Object.assign(
-        {},
-        generateSegmentationDefaultOptions,
-        userOptions
-    );
+    const options = Object.assign({}, generateSegmentationDefaultOptions, userOptions);
 
     // Use another variable so we don't redefine labelmaps3D.
-    const labelmaps3D = Array.isArray(inputLabelmaps3D)
-        ? inputLabelmaps3D
-        : [inputLabelmaps3D];
+    const labelmaps3D = Array.isArray(inputLabelmaps3D) ? inputLabelmaps3D : [inputLabelmaps3D];
 
     let numberOfFrames = 0;
     const referencedFramesPerLabelmap = [];
 
-    for (
-        let labelmapIndex = 0;
-        labelmapIndex < labelmaps3D.length;
-        labelmapIndex++
-    ) {
+    for (let labelmapIndex = 0; labelmapIndex < labelmaps3D.length; labelmapIndex++) {
         const labelmap3D = labelmaps3D[labelmapIndex];
         const { labelmaps2D, metadata } = labelmap3D;
 
@@ -106,7 +89,7 @@ function fillSegmentation(segmentation, inputLabelmaps3D, userOptions = {}) {
             if (labelmaps2D[i]) {
                 const { segmentsOnLabelmap } = labelmap2D;
 
-                segmentsOnLabelmap.forEach(segmentIndex => {
+                segmentsOnLabelmap.forEach((segmentIndex) => {
                     if (segmentIndex !== 0) {
                         referencedFramesPerSegment[segmentIndex].push(i);
                         numberOfFrames++;
@@ -120,44 +103,24 @@ function fillSegmentation(segmentation, inputLabelmaps3D, userOptions = {}) {
 
     segmentation.setNumberOfFrames(numberOfFrames);
 
-    for (
-        let labelmapIndex = 0;
-        labelmapIndex < labelmaps3D.length;
-        labelmapIndex++
-    ) {
-        const referencedFramesPerSegment =
-            referencedFramesPerLabelmap[labelmapIndex];
+    for (let labelmapIndex = 0; labelmapIndex < labelmaps3D.length; labelmapIndex++) {
+        const referencedFramesPerSegment = referencedFramesPerLabelmap[labelmapIndex];
 
         const labelmap3D = labelmaps3D[labelmapIndex];
         const { metadata } = labelmap3D;
 
-        for (
-            let segmentIndex = 1;
-            segmentIndex < referencedFramesPerSegment.length;
-            segmentIndex++
-        ) {
-            const referencedFrameIndicies =
-                referencedFramesPerSegment[segmentIndex];
+        for (let segmentIndex = 1; segmentIndex < referencedFramesPerSegment.length; segmentIndex++) {
+            const referencedFrameIndicies = referencedFramesPerSegment[segmentIndex];
 
             if (referencedFrameIndicies) {
                 // Frame numbers start from 1.
-                const referencedFrameNumbers = referencedFrameIndicies.map(
-                    element => {
-                        return element + 1;
-                    }
-                );
+                const referencedFrameNumbers = referencedFrameIndicies.map((element) => {
+                    return element + 1;
+                });
                 const segmentMetadata = metadata[segmentIndex];
-                const labelmaps = _getLabelmapsFromRefernecedFrameIndicies(
-                    labelmap3D,
-                    referencedFrameIndicies
-                );
+                const labelmaps = _getLabelmapsFromRefernecedFrameIndicies(labelmap3D, referencedFrameIndicies);
 
-                segmentation.addSegmentFromLabelmap(
-                    segmentMetadata,
-                    labelmaps,
-                    segmentIndex,
-                    referencedFrameNumbers
-                );
+                segmentation.addSegmentFromLabelmap(segmentMetadata, labelmaps, segmentIndex, referencedFrameNumbers);
             }
         }
     }
@@ -198,10 +161,7 @@ function fillSegmentation(segmentation, inputLabelmaps3D, userOptions = {}) {
     return segBlob;
 }
 
-function _getLabelmapsFromRefernecedFrameIndicies(
-    labelmap3D,
-    referencedFrameIndicies
-) {
+function _getLabelmapsFromRefernecedFrameIndicies(labelmap3D, referencedFrameIndicies) {
     const { labelmaps2D } = labelmap3D;
 
     const labelmaps = [];
@@ -240,9 +200,7 @@ function _createSegFromImages(images, isMultiframe, options) {
             const image = images[i];
             const arrayBuffer = image.data.byteArray.buffer;
             const dicomData = DicomMessage.readFile(arrayBuffer);
-            const dataset = DicomMetaDictionary.naturalizeDataset(
-                dicomData.dict
-            );
+            const dataset = DicomMetaDictionary.naturalizeDataset(dicomData.dict);
 
             dataset._meta = DicomMetaDictionary.namifyDataset(dicomData.meta);
             datasets.push(dataset);
@@ -270,27 +228,15 @@ function _createSegFromImages(images, isMultiframe, options) {
  * @return {[][][]} 3D list containing the track of segments per frame for each labelMap
  *                  (available only for the overlapping case).
  */
-function generateToolState(
-    imageIds,
-    arrayBuffer,
-    metadataProvider,
-    skipOverlapping = false,
-    tolerance = 1e-3
-) {
+function generateToolState(imageIds, arrayBuffer, metadataProvider, skipOverlapping = false, tolerance = 1e-3) {
     const dicomData = DicomMessage.readFile(arrayBuffer);
     const dataset = DicomMetaDictionary.naturalizeDataset(dicomData.dict);
     dataset._meta = DicomMetaDictionary.namifyDataset(dicomData.meta);
     const multiframe = Normalizer.normalizeToDataset([dataset]);
 
-    const imagePlaneModule = metadataProvider.get(
-        "imagePlaneModule",
-        imageIds[0]
-    );
+    const imagePlaneModule = metadataProvider.get("imagePlaneModule", imageIds[0]);
 
-    const generalSeriesModule = metadataProvider.get(
-        "generalSeriesModule",
-        imageIds[0]
-    );
+    const generalSeriesModule = metadataProvider.get("generalSeriesModule", imageIds[0]);
 
     const SeriesInstanceUID = generalSeriesModule.seriesInstanceUID;
 
@@ -304,10 +250,7 @@ function generateToolState(
         }
 
         ImageOrientationPatient = Array.isArray(imagePlaneModule.rowCosines)
-            ? [
-                  ...imagePlaneModule.rowCosines,
-                  ...imagePlaneModule.columnCosines
-              ]
+            ? [...imagePlaneModule.rowCosines, ...imagePlaneModule.columnCosines]
             : [
                   imagePlaneModule.rowCosines.x,
                   imagePlaneModule.rowCosines.y,
@@ -329,15 +272,9 @@ function generateToolState(
     let pixelData;
 
     if (TransferSyntaxUID === "1.2.840.10008.1.2.5") {
-        const rleEncodedFrames = Array.isArray(multiframe.PixelData)
-            ? multiframe.PixelData
-            : [multiframe.PixelData];
+        const rleEncodedFrames = Array.isArray(multiframe.PixelData) ? multiframe.PixelData : [multiframe.PixelData];
 
-        pixelData = decode(
-            rleEncodedFrames,
-            multiframe.Rows,
-            multiframe.Columns
-        );
+        pixelData = decode(rleEncodedFrames, multiframe.Rows, multiframe.Columns);
 
         if (multiframe.BitsStored === 1) {
             console.warn("No implementation for rle + bitbacking.");
@@ -392,9 +329,7 @@ function generateToolState(
                 "Segmentations orthogonal to the acquisition plane of the source data are not yet supported."
             );
         case "Oblique":
-            throw new Error(
-                "Segmentations oblique to the acquisition plane of the source data are not yet supported."
-            );
+            throw new Error("Segmentations oblique to the acquisition plane of the source data are not yet supported.");
     }
 
     /* if SEGs are overlapping:
@@ -443,44 +378,29 @@ function generateToolState(
  *
  * @returns {String}     Returns the imageId
  */
-function findReferenceSourceImageId(
-    multiframe,
-    frameSegment,
-    imageIds,
-    metadataProvider,
-    tolerance
-) {
-    let imageId = undefined;
+function findReferenceSourceImageId(multiframe, frameSegment, imageIds, metadataProvider, tolerance) {
+    let imageId;
 
     if (!multiframe) {
         return imageId;
     }
 
-    const {
-        FrameOfReferenceUID,
-        PerFrameFunctionalGroupsSequence,
-        SourceImageSequence,
-        ReferencedSeriesSequence
-    } = multiframe;
+    const { FrameOfReferenceUID, PerFrameFunctionalGroupsSequence, SourceImageSequence, ReferencedSeriesSequence } =
+        multiframe;
 
-    if (
-        !PerFrameFunctionalGroupsSequence ||
-        PerFrameFunctionalGroupsSequence.length === 0
-    ) {
+    if (!PerFrameFunctionalGroupsSequence || PerFrameFunctionalGroupsSequence.length === 0) {
         return imageId;
     }
 
-    const PerFrameFunctionalGroup =
-        PerFrameFunctionalGroupsSequence[frameSegment];
+    const PerFrameFunctionalGroup = PerFrameFunctionalGroupsSequence[frameSegment];
 
     if (!PerFrameFunctionalGroup) {
         return imageId;
     }
 
-    let frameSourceImageSequence = undefined;
+    let frameSourceImageSequence;
     if (PerFrameFunctionalGroup.DerivationImageSequence) {
-        let DerivationImageSequence =
-            PerFrameFunctionalGroup.DerivationImageSequence;
+        let DerivationImageSequence = PerFrameFunctionalGroup.DerivationImageSequence;
         if (Array.isArray(DerivationImageSequence)) {
             if (DerivationImageSequence.length !== 0) {
                 DerivationImageSequence = DerivationImageSequence[0];
@@ -490,8 +410,7 @@ function findReferenceSourceImageId(
         }
 
         if (DerivationImageSequence) {
-            frameSourceImageSequence =
-                DerivationImageSequence.SourceImageSequence;
+            frameSourceImageSequence = DerivationImageSequence.SourceImageSequence;
             if (Array.isArray(frameSourceImageSequence)) {
                 if (frameSourceImageSequence.length !== 0) {
                     frameSourceImageSequence = frameSourceImageSequence[0];
@@ -505,19 +424,14 @@ function findReferenceSourceImageId(
     }
 
     if (frameSourceImageSequence) {
-        imageId = getImageIdOfSourceImagebySourceImageSequence(
-            frameSourceImageSequence,
-            imageIds,
-            metadataProvider
-        );
+        imageId = getImageIdOfSourceImagebySourceImageSequence(frameSourceImageSequence, imageIds, metadataProvider);
     }
 
     if (imageId === undefined && ReferencedSeriesSequence) {
         const referencedSeriesSequence = Array.isArray(ReferencedSeriesSequence)
             ? ReferencedSeriesSequence[0]
             : ReferencedSeriesSequence;
-        const ReferencedSeriesInstanceUID =
-            referencedSeriesSequence.SeriesInstanceUID;
+        const ReferencedSeriesInstanceUID = referencedSeriesSequence.SeriesInstanceUID;
 
         imageId = getImageIdOfSourceImagebyGeometry(
             ReferencedSeriesInstanceUID,
@@ -537,32 +451,18 @@ function findReferenceSourceImageId(
  *  @returns {boolean} Returns a flag if segmentations overlapping
  */
 
-function checkSEGsOverlapping(
-    pixelData,
-    multiframe,
-    imageIds,
-    validOrientations,
-    metadataProvider,
-    tolerance
-) {
-    const {
-        SharedFunctionalGroupsSequence,
-        PerFrameFunctionalGroupsSequence,
-        SegmentSequence,
-        Rows,
-        Columns
-    } = multiframe;
+function checkSEGsOverlapping(pixelData, multiframe, imageIds, validOrientations, metadataProvider, tolerance) {
+    const { SharedFunctionalGroupsSequence, PerFrameFunctionalGroupsSequence, SegmentSequence, Rows, Columns } =
+        multiframe;
 
-    let numberOfSegs = SegmentSequence.length;
+    const numberOfSegs = SegmentSequence.length;
     if (numberOfSegs < 2) {
         return false;
     }
 
-    const sharedImageOrientationPatient =
-        SharedFunctionalGroupsSequence.PlaneOrientationSequence
-            ? SharedFunctionalGroupsSequence.PlaneOrientationSequence
-                  .ImageOrientationPatient
-            : undefined;
+    const sharedImageOrientationPatient = SharedFunctionalGroupsSequence.PlaneOrientationSequence
+        ? SharedFunctionalGroupsSequence.PlaneOrientationSequence.ImageOrientationPatient
+        : undefined;
     const sliceLength = Columns * Rows;
     const groupsLen = PerFrameFunctionalGroupsSequence.length;
 
@@ -572,39 +472,27 @@ function checkSEGsOverlapping(
      * frame 5 : 4
      */
 
-    let frameSegmentsMapping = new Map();
+    const frameSegmentsMapping = new Map();
     for (let frameSegment = 0; frameSegment < groupsLen; ++frameSegment) {
         const segmentIndex = getSegmentIndex(multiframe, frameSegment);
         if (segmentIndex === undefined) {
             console.warn(
-                "Could not retrieve the segment index for frame segment " +
-                    frameSegment +
-                    ", skipping this frame."
+                "Could not retrieve the segment index for frame segment " + frameSegment + ", skipping this frame."
             );
             continue;
         }
 
-        const imageId = findReferenceSourceImageId(
-            multiframe,
-            frameSegment,
-            imageIds,
-            metadataProvider,
-            tolerance
-        );
+        const imageId = findReferenceSourceImageId(multiframe, frameSegment, imageIds, metadataProvider, tolerance);
 
         if (!imageId) {
-            console.warn(
-                "Image not present in stack, can't import frame : " +
-                    frameSegment +
-                    "."
-            );
+            console.warn("Image not present in stack, can't import frame : " + frameSegment + ".");
             continue;
         }
 
-        const imageIdIndex = imageIds.findIndex(element => element === imageId);
+        const imageIdIndex = imageIds.findIndex((element) => element === imageId);
 
         if (frameSegmentsMapping.has(imageIdIndex)) {
-            let segmentArray = frameSegmentsMapping.get(imageIdIndex);
+            const segmentArray = frameSegmentsMapping.get(imageIdIndex);
             if (!segmentArray.includes(frameSegment)) {
                 segmentArray.push(frameSegment);
                 frameSegmentsMapping.set(imageIdIndex, segmentArray);
@@ -614,23 +502,18 @@ function checkSEGsOverlapping(
         }
     }
 
-    for (let [, role] of frameSegmentsMapping.entries()) {
-        let temp2DArray = new Uint16Array(sliceLength).fill(0);
+    for (const [, role] of frameSegmentsMapping.entries()) {
+        const temp2DArray = new Uint16Array(sliceLength).fill(0);
 
         for (let i = 0; i < role.length; ++i) {
             const frameSegment = role[i];
 
-            const PerFrameFunctionalGroups =
-                PerFrameFunctionalGroupsSequence[frameSegment];
+            const PerFrameFunctionalGroups = PerFrameFunctionalGroupsSequence[frameSegment];
 
-            const pixelDataI2D = ndarray(
-                new Uint8Array(
-                    pixelData.buffer,
-                    frameSegment * sliceLength,
-                    sliceLength
-                ),
-                [Rows, Columns]
-            );
+            const pixelDataI2D = ndarray(new Uint8Array(pixelData.buffer, frameSegment * sliceLength, sliceLength), [
+                Rows,
+                Columns
+            ]);
 
             let alignedPixelDataI;
 
@@ -638,8 +521,7 @@ function checkSEGsOverlapping(
             if (hasCoordinateSystem) {
                 const ImageOrientationPatientI =
                     sharedImageOrientationPatient ||
-                    PerFrameFunctionalGroups.PlaneOrientationSequence
-                        .ImageOrientationPatient;
+                    PerFrameFunctionalGroups.PlaneOrientationSequence.ImageOrientationPatient;
 
                 alignedPixelDataI = alignPixelDataWithSourceData(
                     pixelDataI2D,
@@ -684,18 +566,11 @@ function insertOverlappingPixelDataPlanar(
     metadataProvider,
     tolerance
 ) {
-    const {
-        SharedFunctionalGroupsSequence,
-        PerFrameFunctionalGroupsSequence,
-        Rows,
-        Columns
-    } = multiframe;
+    const { SharedFunctionalGroupsSequence, PerFrameFunctionalGroupsSequence, Rows, Columns } = multiframe;
 
-    const sharedImageOrientationPatient =
-        SharedFunctionalGroupsSequence.PlaneOrientationSequence
-            ? SharedFunctionalGroupsSequence.PlaneOrientationSequence
-                  .ImageOrientationPatient
-            : undefined;
+    const sharedImageOrientationPatient = SharedFunctionalGroupsSequence.PlaneOrientationSequence
+        ? SharedFunctionalGroupsSequence.PlaneOrientationSequence.ImageOrientationPatient
+        : undefined;
     const sliceLength = Columns * Rows;
     const arrayBufferLength = sliceLength * imageIds.length * 2; // 2 bytes per label voxel in cst4.
 
@@ -718,35 +593,24 @@ function insertOverlappingPixelDataPlanar(
      *  D) if overlap, repeat increasing the index m up to M (if out of memory, add new buffer in the array and M++);
      */
 
-    let numberOfSegs = multiframe.SegmentSequence.length;
-    for (
-        let segmentIndexToProcess = 1;
-        segmentIndexToProcess <= numberOfSegs;
-        ++segmentIndexToProcess
-    ) {
-        for (
-            let i = 0, groupsLen = PerFrameFunctionalGroupsSequence.length;
-            i < groupsLen;
-            ++i
-        ) {
-            const PerFrameFunctionalGroups =
-                PerFrameFunctionalGroupsSequence[i];
+    const numberOfSegs = multiframe.SegmentSequence.length;
+    for (let segmentIndexToProcess = 1; segmentIndexToProcess <= numberOfSegs; ++segmentIndexToProcess) {
+        for (let i = 0, groupsLen = PerFrameFunctionalGroupsSequence.length; i < groupsLen; ++i) {
+            const PerFrameFunctionalGroups = PerFrameFunctionalGroupsSequence[i];
 
             const segmentIndex = getSegmentIndex(multiframe, i);
             if (segmentIndex === undefined) {
-                throw new Error(
-                    "Could not retrieve the segment index. Aborting segmentation loading."
-                );
+                throw new Error("Could not retrieve the segment index. Aborting segmentation loading.");
             }
 
             if (segmentIndex !== segmentIndexToProcess) {
                 continue;
             }
 
-            const pixelDataI2D = ndarray(
-                new Uint8Array(pixelData.buffer, i * sliceLength, sliceLength),
-                [Rows, Columns]
-            );
+            const pixelDataI2D = ndarray(new Uint8Array(pixelData.buffer, i * sliceLength, sliceLength), [
+                Rows,
+                Columns
+            ]);
 
             let alignedPixelDataI;
 
@@ -754,8 +618,7 @@ function insertOverlappingPixelDataPlanar(
             if (hasCoordinateSystem) {
                 const ImageOrientationPatientI =
                     sharedImageOrientationPatient ||
-                    PerFrameFunctionalGroups.PlaneOrientationSequence
-                        .ImageOrientationPatient;
+                    PerFrameFunctionalGroups.PlaneOrientationSequence.ImageOrientationPatient;
 
                 alignedPixelDataI = alignPixelDataWithSourceData(
                     pixelDataI2D,
@@ -774,31 +637,15 @@ function insertOverlappingPixelDataPlanar(
                 );
             }
 
-            const imageId = findReferenceSourceImageId(
-                multiframe,
-                i,
-                imageIds,
-                metadataProvider,
-                tolerance
-            );
+            const imageId = findReferenceSourceImageId(multiframe, i, imageIds, metadataProvider, tolerance);
 
             if (!imageId) {
-                console.warn(
-                    "Image not present in stack, can't import frame : " +
-                        i +
-                        "."
-                );
+                console.warn("Image not present in stack, can't import frame : " + i + ".");
                 continue;
             }
 
-            const sourceImageMetadata = metadataProvider.get(
-                "imagePixelModule",
-                imageId
-            );
-            if (
-                Rows !== sourceImageMetadata.rows ||
-                Columns !== sourceImageMetadata.columns
-            ) {
+            const sourceImageMetadata = metadataProvider.get("imagePixelModule", imageId);
+            if (Rows !== sourceImageMetadata.rows || Columns !== sourceImageMetadata.columns) {
                 throw new Error(
                     "Individual SEG frames have different geometry dimensions (Rows and Columns) " +
                         "respect to the source image reference frame. This is not yet supported. " +
@@ -806,16 +653,10 @@ function insertOverlappingPixelDataPlanar(
                 );
             }
 
-            const imageIdIndex = imageIds.findIndex(
-                element => element === imageId
-            );
+            const imageIdIndex = imageIds.findIndex((element) => element === imageId);
             const byteOffset = sliceLength * 2 * imageIdIndex; // 2 bytes/pixel
 
-            const labelmap2DView = new Uint16Array(
-                tempBuffer,
-                byteOffset,
-                sliceLength
-            );
+            const labelmap2DView = new Uint16Array(tempBuffer, byteOffset, sliceLength);
 
             const data = alignedPixelDataI.data;
 
@@ -825,16 +666,12 @@ function insertOverlappingPixelDataPlanar(
                     if (labelmap2DView[j] !== 0) {
                         m++;
                         if (m >= M) {
-                            labelmapBufferArray[m] = new ArrayBuffer(
-                                arrayBufferLength
-                            );
+                            labelmapBufferArray[m] = new ArrayBuffer(arrayBufferLength);
                             segmentsOnFrameArray[m] = [];
                             M++;
                         }
                         tempBuffer = labelmapBufferArray[m].slice(0);
-                        tempSegmentsOnFrame = cloneDeep(
-                            segmentsOnFrameArray[m]
-                        );
+                        tempSegmentsOnFrame = cloneDeep(segmentsOnFrameArray[m]);
 
                         i = 0;
                         break;
@@ -871,17 +708,13 @@ function insertOverlappingPixelDataPlanar(
 }
 
 const getSegmentIndex = (multiframe, frame) => {
-    const { PerFrameFunctionalGroupsSequence, SharedFunctionalGroupsSequence } =
-        multiframe;
+    const { PerFrameFunctionalGroupsSequence, SharedFunctionalGroupsSequence } = multiframe;
     const PerFrameFunctionalGroups = PerFrameFunctionalGroupsSequence[frame];
-    return PerFrameFunctionalGroups &&
-        PerFrameFunctionalGroups.SegmentIdentificationSequence
-        ? PerFrameFunctionalGroups.SegmentIdentificationSequence
-              .ReferencedSegmentNumber
+    return PerFrameFunctionalGroups?.SegmentIdentificationSequence
+        ? PerFrameFunctionalGroups.SegmentIdentificationSequence.ReferencedSegmentNumber
         : SharedFunctionalGroupsSequence.SegmentIdentificationSequence
-        ? SharedFunctionalGroupsSequence.SegmentIdentificationSequence
-              .ReferencedSegmentNumber
-        : undefined;
+          ? SharedFunctionalGroupsSequence.SegmentIdentificationSequence.ReferencedSegmentNumber
+          : undefined;
 };
 
 function insertPixelDataPlanar(
@@ -895,31 +728,17 @@ function insertPixelDataPlanar(
     metadataProvider,
     tolerance
 ) {
-    const {
-        SharedFunctionalGroupsSequence,
-        PerFrameFunctionalGroupsSequence,
-        Rows,
-        Columns
-    } = multiframe;
+    const { SharedFunctionalGroupsSequence, PerFrameFunctionalGroupsSequence, Rows, Columns } = multiframe;
 
-    const sharedImageOrientationPatient =
-        SharedFunctionalGroupsSequence.PlaneOrientationSequence
-            ? SharedFunctionalGroupsSequence.PlaneOrientationSequence
-                  .ImageOrientationPatient
-            : undefined;
+    const sharedImageOrientationPatient = SharedFunctionalGroupsSequence.PlaneOrientationSequence
+        ? SharedFunctionalGroupsSequence.PlaneOrientationSequence.ImageOrientationPatient
+        : undefined;
     const sliceLength = Columns * Rows;
 
-    for (
-        let i = 0, groupsLen = PerFrameFunctionalGroupsSequence.length;
-        i < groupsLen;
-        ++i
-    ) {
+    for (let i = 0, groupsLen = PerFrameFunctionalGroupsSequence.length; i < groupsLen; ++i) {
         const PerFrameFunctionalGroups = PerFrameFunctionalGroupsSequence[i];
 
-        const pixelDataI2D = ndarray(
-            new Uint8Array(pixelData.buffer, i * sliceLength, sliceLength),
-            [Rows, Columns]
-        );
+        const pixelDataI2D = ndarray(new Uint8Array(pixelData.buffer, i * sliceLength, sliceLength), [Rows, Columns]);
 
         let alignedPixelDataI;
 
@@ -927,8 +746,7 @@ function insertPixelDataPlanar(
         if (hasCoordinateSystem) {
             const ImageOrientationPatientI =
                 sharedImageOrientationPatient ||
-                PerFrameFunctionalGroups.PlaneOrientationSequence
-                    .ImageOrientationPatient;
+                PerFrameFunctionalGroups.PlaneOrientationSequence.ImageOrientationPatient;
 
             alignedPixelDataI = alignPixelDataWithSourceData(
                 pixelDataI2D,
@@ -949,34 +767,18 @@ function insertPixelDataPlanar(
 
         const segmentIndex = getSegmentIndex(multiframe, i);
         if (segmentIndex === undefined) {
-            throw new Error(
-                "Could not retrieve the segment index. Aborting segmentation loading."
-            );
+            throw new Error("Could not retrieve the segment index. Aborting segmentation loading.");
         }
 
-        const imageId = findReferenceSourceImageId(
-            multiframe,
-            i,
-            imageIds,
-            metadataProvider,
-            tolerance
-        );
+        const imageId = findReferenceSourceImageId(multiframe, i, imageIds, metadataProvider, tolerance);
 
         if (!imageId) {
-            console.warn(
-                "Image not present in stack, can't import frame : " + i + "."
-            );
+            console.warn("Image not present in stack, can't import frame : " + i + ".");
             continue;
         }
 
-        const sourceImageMetadata = metadataProvider.get(
-            "imagePixelModule",
-            imageId
-        );
-        if (
-            Rows !== sourceImageMetadata.rows ||
-            Columns !== sourceImageMetadata.columns
-        ) {
+        const sourceImageMetadata = metadataProvider.get("imagePixelModule", imageId);
+        if (Rows !== sourceImageMetadata.rows || Columns !== sourceImageMetadata.columns) {
             throw new Error(
                 "Individual SEG frames have different geometry dimensions (Rows and Columns) " +
                     "respect to the source image reference frame. This is not yet supported. " +
@@ -984,14 +786,10 @@ function insertPixelDataPlanar(
             );
         }
 
-        const imageIdIndex = imageIds.findIndex(element => element === imageId);
+        const imageIdIndex = imageIds.findIndex((element) => element === imageId);
         const byteOffset = sliceLength * 2 * imageIdIndex; // 2 bytes/pixel
 
-        const labelmap2DView = new Uint16Array(
-            labelmapBufferArray[0],
-            byteOffset,
-            sliceLength
-        );
+        const labelmap2DView = new Uint16Array(labelmapBufferArray[0], byteOffset, sliceLength);
 
         const data = alignedPixelDataI.data;
         for (let j = 0, len = alignedPixelDataI.data.length; j < len; ++j) {
@@ -1014,32 +812,20 @@ function insertPixelDataPlanar(
     }
 }
 
-function checkOrientation(
-    multiframe,
-    validOrientations,
-    sourceDataDimensions,
-    tolerance
-) {
-    const { SharedFunctionalGroupsSequence, PerFrameFunctionalGroupsSequence } =
-        multiframe;
+function checkOrientation(multiframe, validOrientations, sourceDataDimensions, tolerance) {
+    const { SharedFunctionalGroupsSequence, PerFrameFunctionalGroupsSequence } = multiframe;
 
-    const sharedImageOrientationPatient =
-        SharedFunctionalGroupsSequence.PlaneOrientationSequence
-            ? SharedFunctionalGroupsSequence.PlaneOrientationSequence
-                  .ImageOrientationPatient
-            : undefined;
+    const sharedImageOrientationPatient = SharedFunctionalGroupsSequence.PlaneOrientationSequence
+        ? SharedFunctionalGroupsSequence.PlaneOrientationSequence.ImageOrientationPatient
+        : undefined;
 
     // Check if in plane.
     const PerFrameFunctionalGroups = PerFrameFunctionalGroupsSequence[0];
 
     const iop =
-        sharedImageOrientationPatient ||
-        PerFrameFunctionalGroups.PlaneOrientationSequence
-            .ImageOrientationPatient;
+        sharedImageOrientationPatient || PerFrameFunctionalGroups.PlaneOrientationSequence.ImageOrientationPatient;
 
-    const inPlane = validOrientations.some(operation =>
-        compareArrays(iop, operation, tolerance)
-    );
+    const inPlane = validOrientations.some((operation) => compareArrays(iop, operation, tolerance));
 
     if (inPlane) {
         return "Planar";
@@ -1067,18 +853,12 @@ function checkOrientation(
  * @return {Boolean} True if iop1 and iop2 are equal.
  */
 function checkIfPerpendicular(iop1, iop2, tolerance) {
-    const absDotColumnCosines = Math.abs(
-        iop1[0] * iop2[0] + iop1[1] * iop2[1] + iop1[2] * iop2[2]
-    );
-    const absDotRowCosines = Math.abs(
-        iop1[3] * iop2[3] + iop1[4] * iop2[4] + iop1[5] * iop2[5]
-    );
+    const absDotColumnCosines = Math.abs(iop1[0] * iop2[0] + iop1[1] * iop2[1] + iop1[2] * iop2[2]);
+    const absDotRowCosines = Math.abs(iop1[3] * iop2[3] + iop1[4] * iop2[4] + iop1[5] * iop2[5]);
 
     return (
-        (absDotColumnCosines < tolerance ||
-            Math.abs(absDotColumnCosines - 1) < tolerance) &&
-        (absDotRowCosines < tolerance ||
-            Math.abs(absDotRowCosines - 1) < tolerance)
+        (absDotColumnCosines < tolerance || Math.abs(absDotColumnCosines - 1) < tolerance) &&
+        (absDotRowCosines < tolerance || Math.abs(absDotRowCosines - 1) < tolerance)
     );
 }
 
@@ -1109,18 +889,14 @@ function unpackPixelData(multiframe) {
     const pixelData = new Uint8Array(data);
 
     const max = multiframe.MaximumFractionalValue;
-    const onlyMaxAndZero =
-        pixelData.find(element => element !== 0 && element !== max) ===
-        undefined;
+    const onlyMaxAndZero = pixelData.find((element) => element !== 0 && element !== max) === undefined;
 
     if (!onlyMaxAndZero) {
         // This is a fractional segmentation, which is not currently supported.
         return;
     }
 
-    log.warn(
-        "This segmentation object is actually binary... processing as such."
-    );
+    log.warn("This segmentation object is actually binary... processing as such.");
 
     return pixelData;
 }
@@ -1134,26 +910,12 @@ function unpackPixelData(multiframe) {
  *                                         metadata from imageIds.
  * @return {String}                        The corresponding imageId.
  */
-function getImageIdOfSourceImagebySourceImageSequence(
-    SourceImageSequence,
-    imageIds,
-    metadataProvider
-) {
-    const { ReferencedSOPInstanceUID, ReferencedFrameNumber } =
-        SourceImageSequence;
+function getImageIdOfSourceImagebySourceImageSequence(SourceImageSequence, imageIds, metadataProvider) {
+    const { ReferencedSOPInstanceUID, ReferencedFrameNumber } = SourceImageSequence;
 
     return ReferencedFrameNumber
-        ? getImageIdOfReferencedFrame(
-              ReferencedSOPInstanceUID,
-              ReferencedFrameNumber,
-              imageIds,
-              metadataProvider
-          )
-        : getImageIdOfReferencedSingleFramedSOPInstance(
-              ReferencedSOPInstanceUID,
-              imageIds,
-              metadataProvider
-          );
+        ? getImageIdOfReferencedFrame(ReferencedSOPInstanceUID, ReferencedFrameNumber, imageIds, metadataProvider)
+        : getImageIdOfReferencedSingleFramedSOPInstance(ReferencedSOPInstanceUID, imageIds, metadataProvider);
 }
 
 /**
@@ -1180,36 +942,26 @@ function getImageIdOfSourceImagebyGeometry(
         ReferencedSeriesInstanceUID === undefined ||
         PerFrameFunctionalGroup.PlanePositionSequence === undefined ||
         PerFrameFunctionalGroup.PlanePositionSequence[0] === undefined ||
-        PerFrameFunctionalGroup.PlanePositionSequence[0]
-            .ImagePositionPatient === undefined
+        PerFrameFunctionalGroup.PlanePositionSequence[0].ImagePositionPatient === undefined
     ) {
         return undefined;
     }
 
-    for (
-        let imageIdsIndexc = 0;
-        imageIdsIndexc < imageIds.length;
-        ++imageIdsIndexc
-    ) {
-        const sourceImageMetadata = metadataProvider.get(
-            "instance",
-            imageIds[imageIdsIndexc]
-        );
+    for (let imageIdsIndexc = 0; imageIdsIndexc < imageIds.length; ++imageIdsIndexc) {
+        const sourceImageMetadata = metadataProvider.get("instance", imageIds[imageIdsIndexc]);
 
         if (
             sourceImageMetadata === undefined ||
             sourceImageMetadata.ImagePositionPatient === undefined ||
             sourceImageMetadata.FrameOfReferenceUID !== FrameOfReferenceUID ||
-            sourceImageMetadata.SeriesInstanceUID !==
-                ReferencedSeriesInstanceUID
+            sourceImageMetadata.SeriesInstanceUID !== ReferencedSeriesInstanceUID
         ) {
             continue;
         }
 
         if (
             compareArrays(
-                PerFrameFunctionalGroup.PlanePositionSequence[0]
-                    .ImagePositionPatient,
+                PerFrameFunctionalGroup.PlanePositionSequence[0].ImagePositionPatient,
                 sourceImageMetadata.ImagePositionPatient,
                 tolerance
             )
@@ -1229,18 +981,11 @@ function getImageIdOfSourceImagebyGeometry(
  *                                 from the cornerstone imageIds.
  * @return {String}                  The imageId that corresponds to the sopInstanceUid.
  */
-function getImageIdOfReferencedSingleFramedSOPInstance(
-    sopInstanceUid,
-    imageIds,
-    metadataProvider
-) {
-    return imageIds.find(imageId => {
-        const sopCommonModule = metadataProvider.get(
-            "sopCommonModule",
-            imageId
-        );
+function getImageIdOfReferencedSingleFramedSOPInstance(sopInstanceUid, imageIds, metadataProvider) {
+    return imageIds.find((imageId) => {
+        const sopCommonModule = metadataProvider.get("sopCommonModule", imageId);
         if (!sopCommonModule) {
-            return;
+            return false;
         }
 
         return sopCommonModule.sopInstanceUID === sopInstanceUid;
@@ -1258,27 +1003,18 @@ function getImageIdOfReferencedSingleFramedSOPInstance(
  *                                   from the cornerstone imageIds.
  * @return {String}                  The imageId that corresponds to the sopInstanceUid.
  */
-function getImageIdOfReferencedFrame(
-    sopInstanceUid,
-    frameNumber,
-    imageIds,
-    metadataProvider
-) {
-    const imageId = imageIds.find(imageId => {
-        const sopCommonModule = metadataProvider.get(
-            "sopCommonModule",
-            imageId
-        );
+function getImageIdOfReferencedFrame(sopInstanceUid, frameNumber, imageIds, metadataProvider) {
+    const imageId = imageIds.find((imageId) => {
+        const sopCommonModule = metadataProvider.get("sopCommonModule", imageId);
         if (!sopCommonModule) {
-            return;
+            return false;
         }
 
         const imageIdFrameNumber = Number(imageId.split("frame=")[1]);
 
         return (
             //frameNumber is zero indexed for cornerstoneWADOImageLoader image Ids.
-            sopCommonModule.sopInstanceUID === sopInstanceUid &&
-            imageIdFrameNumber === frameNumber - 1
+            sopCommonModule.sopInstanceUID === sopInstanceUid && imageIdFrameNumber === frameNumber - 1
         );
     });
 
@@ -1323,12 +1059,7 @@ function getValidOrientations(iop) {
  * @param {Number} tolerance.
  * @return {Ndarray} The aligned pixelData.
  */
-function alignPixelDataWithSourceData(
-    pixelData2D,
-    iop,
-    orientations,
-    tolerance
-) {
+function alignPixelDataWithSourceData(pixelData2D, iop, orientations, tolerance) {
     if (compareArrays(iop, orientations[0], tolerance)) {
         return pixelData2D;
     } else if (compareArrays(iop, orientations[1], tolerance)) {
@@ -1364,9 +1095,7 @@ function alignPixelDataWithSourceData(
         // Rotated 270 degrees
 
         // Rotate back.
-        return rotateMatrix902D(
-            rotateMatrix902D(rotateMatrix902D(pixelData2D))
-        );
+        return rotateMatrix902D(rotateMatrix902D(rotateMatrix902D(pixelData2D)));
     }
 }
 
@@ -1380,7 +1109,7 @@ function alignPixelDataWithSourceData(
  * @return {Boolean} True if array1 and array2 are equal.
  */
 function compareArrays(array1, array2, tolerance) {
-    if (array1.length != array2.length) {
+    if (array1.length !== array2.length) {
         return false;
     }
 

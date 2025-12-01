@@ -24,18 +24,14 @@ it("test_anonymization", () => {
     const patientIDTag = dicomDict.dict[tagString];
     const patientIDValue = patientIDTag.Value;
 
-    expect(JSON.stringify(patientIDValue)).toEqual(
-        JSON.stringify([{ Alphabetic: "Fall 3" }])
-    );
+    expect(JSON.stringify(patientIDValue)).toEqual(JSON.stringify([{ Alphabetic: "Fall 3" }]));
     expect(patientIDValue.toString()).toEqual(["Fall 3"].toString());
 
     // when
     cleanTags(dicomDict.dict);
 
     // then
-    expect(JSON.stringify(patientIDTag.Value)).toEqual(
-        JSON.stringify([{ Alphabetic: "ANON^PATIENT" }])
-    );
+    expect(JSON.stringify(patientIDTag.Value)).toEqual(JSON.stringify([{ Alphabetic: "ANON^PATIENT" }]));
     expect(patientIDTag.Value.toString()).toEqual(["ANON^PATIENT"].toString());
 });
 
@@ -51,9 +47,7 @@ it("test_anonymization_no_change_ref", () => {
 
     const otherPatientNamesIDTag = dicomDict.dict[tagString];
     const otherPatientNamesIDValue = otherPatientNamesIDTag.Value;
-    const otherPatientNamesIDValueJSON = JSON.stringify(
-        otherPatientNamesIDValue
-    );
+    const otherPatientNamesIDValueJSON = JSON.stringify(otherPatientNamesIDValue);
 
     expect(JSON.stringify(otherPatientNamesIDValue)).toEqual(
         JSON.stringify([
@@ -65,24 +59,16 @@ it("test_anonymization_no_change_ref", () => {
             { Alphabetic: "Doe^Jane", Ideographic: "Janie", Phonetic: "Jayne" }
         ])
     );
-    expect(otherPatientNamesIDValue.toString()).toEqual(
-        ["Doe^John=Johnny=Jonny\\Doe^Jane=Janie=Jayne"].toString()
-    );
+    expect(otherPatientNamesIDValue.toString()).toEqual(["Doe^John=Johnny=Jonny\\Doe^Jane=Janie=Jayne"].toString());
 
     // when
     cleanTags(dicomDict.dict, { "00101001": "ANON^PATIENT" });
 
     // then
-    expect(JSON.stringify(otherPatientNamesIDTag.Value)).toEqual(
-        JSON.stringify([{ Alphabetic: "ANON^PATIENT" }])
-    );
-    expect(otherPatientNamesIDTag.Value.toString()).toEqual(
-        ["ANON^PATIENT"].toString()
-    );
+    expect(JSON.stringify(otherPatientNamesIDTag.Value)).toEqual(JSON.stringify([{ Alphabetic: "ANON^PATIENT" }]));
+    expect(otherPatientNamesIDTag.Value.toString()).toEqual(["ANON^PATIENT"].toString());
 
-    expect(JSON.stringify(otherPatientNamesIDValue)).toEqual(
-        otherPatientNamesIDValueJSON
-    );
+    expect(JSON.stringify(otherPatientNamesIDValue)).toEqual(otherPatientNamesIDValueJSON);
 });
 
 it("test_anonymization_tagtoreplace_param", () => {
@@ -97,9 +83,7 @@ it("test_anonymization_tagtoreplace_param", () => {
     const patientNameTag = dicomDict.dict[tagString];
     const patientNameValue = patientNameTag.Value;
 
-    expect(JSON.stringify(patientNameValue)).toEqual(
-        JSON.stringify([{ Alphabetic: "Fall 3" }])
-    );
+    expect(JSON.stringify(patientNameValue)).toEqual(JSON.stringify([{ Alphabetic: "Fall 3" }]));
     expect(patientNameValue.toString()).toEqual(["Fall 3"].toString());
 
     var tagsToReplace = {
@@ -110,12 +94,8 @@ it("test_anonymization_tagtoreplace_param", () => {
 
     // then
 
-    expect(JSON.stringify(patientNameTag.Value)).toEqual(
-        JSON.stringify([{ Alphabetic: "REPLACE^PATIENT" }])
-    );
-    expect(patientNameTag.Value.toString()).toEqual(
-        ["REPLACE^PATIENT"].toString()
-    );
+    expect(JSON.stringify(patientNameTag.Value)).toEqual(JSON.stringify([{ Alphabetic: "REPLACE^PATIENT" }]));
+    expect(patientNameTag.Value.toString()).toEqual(["REPLACE^PATIENT"].toString());
 });
 
 it("test_anonymization_keep_tag", () => {
@@ -158,9 +138,7 @@ it("test_anonymization_anonymize_tag", () => {
     const SeriesInstanceUIDTag = dicomDict.dict[tagString];
     const SeriesInstanceUIDValue = SeriesInstanceUIDTag.Value;
 
-    expect(SeriesInstanceUIDValue).toEqual([
-        "1.2.276.0.50.192168001092.11156604.14547392.303"
-    ]);
+    expect(SeriesInstanceUIDValue).toEqual(["1.2.276.0.50.192168001092.11156604.14547392.303"]);
 
     var tagsToReplace = {};
     var tagsToAnon = getTagsNameToEmpty();

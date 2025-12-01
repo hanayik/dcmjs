@@ -1,7 +1,7 @@
 import { vec3 } from "gl-matrix";
-import MeasurementReport from "./MeasurementReport";
 import TID300Ellipse from "../../utilities/TID300/Ellipse";
 import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
+import MeasurementReport from "./MeasurementReport";
 
 const ELLIPTICALROI = "EllipticalROI";
 const EPSILON = 1e-4;
@@ -11,12 +11,7 @@ const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${ELLIPTICALROI}`;
 class EllipticalROI {
     constructor() {}
 
-    static getMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata
-    ) {
+    static getMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata) {
         const { defaultState, NUMGroup, SCOORDGroup, ReferencedFrameNumber } =
             MeasurementReport.getSetupMeasurementData(
                 MeasurementGroup,
@@ -25,8 +20,7 @@ class EllipticalROI {
                 EllipticalROI.toolType
             );
 
-        const referencedImageId =
-            defaultState.annotation.metadata.referencedImageId;
+        const referencedImageId = defaultState.annotation.metadata.referencedImageId;
 
         const { GraphicData } = SCOORDGroup;
 
@@ -36,10 +30,7 @@ class EllipticalROI {
         // in the image plane and then choose the correct points to use for the ellipse.
         const pointsWorld = [];
         for (let i = 0; i < GraphicData.length; i += 2) {
-            const worldPos = imageToWorldCoords(referencedImageId, [
-                GraphicData[i],
-                GraphicData[i + 1]
-            ]);
+            const worldPos = imageToWorldCoords(referencedImageId, [GraphicData[i], GraphicData[i + 1]]);
 
             pointsWorld.push(worldPos);
         }
@@ -59,10 +50,7 @@ class EllipticalROI {
         vec3.sub(minorAxisVec, minorAxisEnd, minorAxisStart);
         vec3.normalize(minorAxisVec, minorAxisVec);
 
-        const imagePlaneModule = metadata.get(
-            "imagePlaneModule",
-            referencedImageId
-        );
+        const imagePlaneModule = metadata.get("imagePlaneModule", referencedImageId);
 
         if (!imagePlaneModule) {
             throw new Error("imageId does not have imagePlaneModule metadata");
@@ -73,34 +61,18 @@ class EllipticalROI {
         // find which axis is parallel to the columnCosines
         const columnCosinesVec = vec3.fromValues(...columnCosines);
 
-        const projectedMajorAxisOnColVec = vec3.dot(
-            columnCosinesVec,
-            majorAxisVec
-        );
+        const projectedMajorAxisOnColVec = vec3.dot(columnCosinesVec, majorAxisVec);
 
-        const projectedMinorAxisOnColVec = vec3.dot(
-            columnCosinesVec,
-            minorAxisVec
-        );
+        const projectedMinorAxisOnColVec = vec3.dot(columnCosinesVec, minorAxisVec);
 
         const absoluteOfMajorDotProduct = Math.abs(projectedMajorAxisOnColVec);
         const absoluteOfMinorDotProduct = Math.abs(projectedMinorAxisOnColVec);
 
         let ellipsePoints = [];
         if (Math.abs(absoluteOfMajorDotProduct - 1) < EPSILON) {
-            ellipsePoints = [
-                pointsWorld[0],
-                pointsWorld[1],
-                pointsWorld[2],
-                pointsWorld[3]
-            ];
+            ellipsePoints = [pointsWorld[0], pointsWorld[1], pointsWorld[2], pointsWorld[3]];
         } else if (Math.abs(absoluteOfMinorDotProduct - 1) < EPSILON) {
-            ellipsePoints = [
-                pointsWorld[2],
-                pointsWorld[3],
-                pointsWorld[0],
-                pointsWorld[1]
-            ];
+            ellipsePoints = [pointsWorld[2], pointsWorld[3], pointsWorld[0], pointsWorld[1]];
         } else {
             console.warn("OBLIQUE ELLIPSE NOT YET SUPPORTED");
         }
@@ -117,9 +89,7 @@ class EllipticalROI {
             },
             cachedStats: {
                 [`imageId:${referencedImageId}`]: {
-                    area: NUMGroup
-                        ? NUMGroup.MeasuredValueSequence.NumericValue
-                        : 0
+                    area: NUMGroup ? NUMGroup.MeasuredValueSequence.NumericValue : 0
                 }
             },
             frameNumber: ReferencedFrameNumber
@@ -135,9 +105,7 @@ class EllipticalROI {
         const { referencedImageId } = metadata;
 
         if (!referencedImageId) {
-            throw new Error(
-                "EllipticalROI.getTID300RepresentationArguments: referencedImageId is not defined"
-            );
+            throw new Error("EllipticalROI.getTID300RepresentationArguments: referencedImageId is not defined");
         }
 
         const top = worldToImageCoords(referencedImageId, handles.points[0]);
@@ -149,7 +117,7 @@ class EllipticalROI {
         const topBottomLength = Math.abs(top[1] - bottom[1]);
         const leftRightLength = Math.abs(left[0] - right[0]);
 
-        let points = [];
+        const points = [];
         if (topBottomLength > leftRightLength) {
             // major axis is bottom to top
             points.push({ x: top[0], y: top[1] });
@@ -183,7 +151,7 @@ class EllipticalROI {
 EllipticalROI.toolType = ELLIPTICALROI;
 EllipticalROI.utilityToolType = ELLIPTICALROI;
 EllipticalROI.TID300Representation = TID300Ellipse;
-EllipticalROI.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+EllipticalROI.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

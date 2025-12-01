@@ -1,8 +1,7 @@
-import MeasurementReport from "./MeasurementReport";
 import TID300Bidirectional from "../../utilities/TID300/Bidirectional";
-import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
-
 import { toArray } from "../helpers.js";
+import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
+import MeasurementReport from "./MeasurementReport";
 
 const BIDIRECTIONAL = "Bidirectional";
 const LONG_AXIS = "Long Axis";
@@ -12,49 +11,39 @@ const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${BIDIRECTIONAL}`;
 class Bidirectional {
     constructor() {}
 
-    static getMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata
-    ) {
-        const { defaultState, ReferencedFrameNumber } =
-            MeasurementReport.getSetupMeasurementData(
-                MeasurementGroup,
-                sopInstanceUIDToImageIdMap,
-                metadata,
-                Bidirectional.toolType
-            );
+    static getMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata) {
+        const { defaultState, ReferencedFrameNumber } = MeasurementReport.getSetupMeasurementData(
+            MeasurementGroup,
+            sopInstanceUIDToImageIdMap,
+            metadata,
+            Bidirectional.toolType
+        );
 
-        const referencedImageId =
-            defaultState.annotation.metadata.referencedImageId;
+        const referencedImageId = defaultState.annotation.metadata.referencedImageId;
         const { ContentSequence } = MeasurementGroup;
 
         const longAxisNUMGroup = toArray(ContentSequence).find(
-            group => group.ConceptNameCodeSequence.CodeMeaning === LONG_AXIS
+            (group) => group.ConceptNameCodeSequence.CodeMeaning === LONG_AXIS
         );
 
-        const longAxisSCOORDGroup = toArray(
-            longAxisNUMGroup.ContentSequence
-        ).find(group => group.ValueType === "SCOORD");
+        const longAxisSCOORDGroup = toArray(longAxisNUMGroup.ContentSequence).find(
+            (group) => group.ValueType === "SCOORD"
+        );
 
         const shortAxisNUMGroup = toArray(ContentSequence).find(
-            group => group.ConceptNameCodeSequence.CodeMeaning === SHORT_AXIS
+            (group) => group.ConceptNameCodeSequence.CodeMeaning === SHORT_AXIS
         );
 
-        const shortAxisSCOORDGroup = toArray(
-            shortAxisNUMGroup.ContentSequence
-        ).find(group => group.ValueType === "SCOORD");
+        const shortAxisSCOORDGroup = toArray(shortAxisNUMGroup.ContentSequence).find(
+            (group) => group.ValueType === "SCOORD"
+        );
 
         const worldCoords = [];
 
-        [longAxisSCOORDGroup, shortAxisSCOORDGroup].forEach(group => {
+        [longAxisSCOORDGroup, shortAxisSCOORDGroup].forEach((group) => {
             const { GraphicData } = group;
             for (let i = 0; i < GraphicData.length; i += 2) {
-                const point = imageToWorldCoords(referencedImageId, [
-                    GraphicData[i],
-                    GraphicData[i + 1]
-                ]);
+                const point = imageToWorldCoords(referencedImageId, [GraphicData[i], GraphicData[i + 1]]);
                 worldCoords.push(point);
             }
         });
@@ -63,12 +52,7 @@ class Bidirectional {
 
         state.annotation.data = {
             handles: {
-                points: [
-                    worldCoords[0],
-                    worldCoords[1],
-                    worldCoords[2],
-                    worldCoords[3]
-                ],
+                points: [worldCoords[0], worldCoords[1], worldCoords[2], worldCoords[3]],
                 activeHandleIndex: 0,
                 textBox: {
                     hasMoved: false
@@ -93,29 +77,26 @@ class Bidirectional {
         const { referencedImageId } = metadata;
 
         if (!referencedImageId) {
-            throw new Error(
-                "Bidirectional.getTID300RepresentationArguments: referencedImageId is not defined"
-            );
+            throw new Error("Bidirectional.getTID300RepresentationArguments: referencedImageId is not defined");
         }
 
-        const { length, width } =
-            cachedStats[`imageId:${referencedImageId}`] || {};
+        const { length, width } = cachedStats[`imageId:${referencedImageId}`] || {};
         const { points } = handles;
 
         // Find the length and width point pairs by comparing the distances of the points at 0,1 to points at 2,3
-        let firstPointPairs = [points[0], points[1]];
-        let secondPointPairs = [points[2], points[3]];
+        const firstPointPairs = [points[0], points[1]];
+        const secondPointPairs = [points[2], points[3]];
 
-        let firstPointPairsDistance = Math.sqrt(
-            Math.pow(firstPointPairs[0][0] - firstPointPairs[1][0], 2) +
-                Math.pow(firstPointPairs[0][1] - firstPointPairs[1][1], 2) +
-                Math.pow(firstPointPairs[0][2] - firstPointPairs[1][2], 2)
+        const firstPointPairsDistance = Math.sqrt(
+            (firstPointPairs[0][0] - firstPointPairs[1][0]) ** 2 +
+                (firstPointPairs[0][1] - firstPointPairs[1][1]) ** 2 +
+                (firstPointPairs[0][2] - firstPointPairs[1][2]) ** 2
         );
 
-        let secondPointPairsDistance = Math.sqrt(
-            Math.pow(secondPointPairs[0][0] - secondPointPairs[1][0], 2) +
-                Math.pow(secondPointPairs[0][1] - secondPointPairs[1][1], 2) +
-                Math.pow(secondPointPairs[0][2] - secondPointPairs[1][2], 2)
+        const secondPointPairsDistance = Math.sqrt(
+            (secondPointPairs[0][0] - secondPointPairs[1][0]) ** 2 +
+                (secondPointPairs[0][1] - secondPointPairs[1][1]) ** 2 +
+                (secondPointPairs[0][2] - secondPointPairs[1][2]) ** 2
         );
 
         let shortAxisPoints;
@@ -128,22 +109,10 @@ class Bidirectional {
             longAxisPoints = firstPointPairs;
         }
 
-        const longAxisStartImage = worldToImageCoords(
-            referencedImageId,
-            shortAxisPoints[0]
-        );
-        const longAxisEndImage = worldToImageCoords(
-            referencedImageId,
-            shortAxisPoints[1]
-        );
-        const shortAxisStartImage = worldToImageCoords(
-            referencedImageId,
-            longAxisPoints[0]
-        );
-        const shortAxisEndImage = worldToImageCoords(
-            referencedImageId,
-            longAxisPoints[1]
-        );
+        const longAxisStartImage = worldToImageCoords(referencedImageId, shortAxisPoints[0]);
+        const longAxisEndImage = worldToImageCoords(referencedImageId, shortAxisPoints[1]);
+        const shortAxisStartImage = worldToImageCoords(referencedImageId, longAxisPoints[0]);
+        const shortAxisEndImage = worldToImageCoords(referencedImageId, longAxisPoints[1]);
 
         return {
             longAxis: {
@@ -178,7 +147,7 @@ class Bidirectional {
 Bidirectional.toolType = BIDIRECTIONAL;
 Bidirectional.utilityToolType = BIDIRECTIONAL;
 Bidirectional.TID300Representation = TID300Bidirectional;
-Bidirectional.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+Bidirectional.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

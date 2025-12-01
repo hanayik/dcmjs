@@ -1,15 +1,8 @@
 import DerivedDataset from "./DerivedDataset";
-import DerivedPixels from "./DerivedPixels";
 import DerivedImage from "./DerivedImage";
-import Segmentation from "./Segmentation";
+import DerivedPixels from "./DerivedPixels";
 import ParametricMap from "./ParametricMap";
+import Segmentation from "./Segmentation";
 import StructuredReport from "./StructuredReport";
 
-export {
-    DerivedDataset,
-    DerivedPixels,
-    DerivedImage,
-    Segmentation,
-    ParametricMap,
-    StructuredReport
-};
+export { DerivedDataset, DerivedPixels, DerivedImage, Segmentation, ParametricMap, StructuredReport };

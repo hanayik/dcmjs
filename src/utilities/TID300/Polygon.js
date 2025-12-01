@@ -37,9 +37,7 @@ export default class Polygon extends TID300Measurement {
                     ValueType: use3DSpatialCoordinates ? "SCOORD3D" : "SCOORD",
                     GraphicType: "POLYGON",
                     GraphicData,
-                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates
-                        ? ReferencedFrameOfReferenceUID
-                        : undefined,
+                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates ? ReferencedFrameOfReferenceUID : undefined,
                     ContentSequence: use3DSpatialCoordinates
                         ? undefined
                         : {
@@ -66,9 +64,7 @@ export default class Polygon extends TID300Measurement {
                     ValueType: use3DSpatialCoordinates ? "SCOORD3D" : "SCOORD",
                     GraphicType: "POLYGON",
                     GraphicData,
-                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates
-                        ? ReferencedFrameOfReferenceUID
-                        : undefined,
+                    ReferencedFrameOfReferenceUID: use3DSpatialCoordinates ? ReferencedFrameOfReferenceUID : undefined,
                     ContentSequence: use3DSpatialCoordinates
                         ? undefined
                         : {

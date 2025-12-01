@@ -11,9 +11,7 @@ describe("dicomJson", () => {
             const accessorValue = dicomJson.pnAddValueAccessors(value);
 
             expect(value).toBe(accessorValue);
-            expect(JSON.stringify(value)).toEqual(
-                JSON.stringify([{ Alphabetic: "One" }, { Alphabetic: "Two" }])
-            );
+            expect(JSON.stringify(value)).toEqual(JSON.stringify([{ Alphabetic: "One" }, { Alphabetic: "Two" }]));
             expect(String(accessorValue)).toEqual("One\\Two");
         });
 
@@ -22,9 +20,7 @@ describe("dicomJson", () => {
             const accessorValue = dicomJson.pnAddValueAccessors(value);
 
             expect(value).toBe(accessorValue);
-            expect(JSON.stringify(value)).toEqual(
-                JSON.stringify([{ Alphabetic: "One" }, { Alphabetic: "Two" }])
-            );
+            expect(JSON.stringify(value)).toEqual(JSON.stringify([{ Alphabetic: "One" }, { Alphabetic: "Two" }]));
             expect(String(accessorValue)).toEqual("One\\Two");
         });
     });
@@ -37,12 +33,8 @@ describe("dicomJson", () => {
         });
 
         it("accepts json PNs", () => {
-            expect(dicomJson.pnObjectToString({ Alphabetic: "One" })).toEqual(
-                "One"
-            );
-            expect(dicomJson.pnObjectToString([{ Alphabetic: "One" }])).toEqual(
-                "One"
-            );
+            expect(dicomJson.pnObjectToString({ Alphabetic: "One" })).toEqual("One");
+            expect(dicomJson.pnObjectToString([{ Alphabetic: "One" }])).toEqual("One");
             expect(
                 dicomJson.pnObjectToString([
                     {
@@ -52,63 +44,40 @@ describe("dicomJson", () => {
                     }
                 ])
             ).toEqual("One");
-            expect(
-                dicomJson.pnObjectToString([
-                    { Alphabetic: "One", Ideographic: "Two", Phonetic: "Three" }
-                ])
-            ).toEqual("One=Two=Three");
-            expect(
-                dicomJson.pnObjectToString([
-                    { Alphabetic: "One" },
-                    { Alphabetic: "Two" }
-                ])
-            ).toEqual("One\\Two");
+            expect(dicomJson.pnObjectToString([{ Alphabetic: "One", Ideographic: "Two", Phonetic: "Three" }])).toEqual(
+                "One=Two=Three"
+            );
+            expect(dicomJson.pnObjectToString([{ Alphabetic: "One" }, { Alphabetic: "Two" }])).toEqual("One\\Two");
         });
 
         it("accepts strings", () => {
             expect(dicomJson.pnObjectToString("One")).toEqual("One");
             expect(dicomJson.pnObjectToString(String("One"))).toEqual("One");
-            expect(dicomJson.pnObjectToString("One=Two\\Three\\Four")).toEqual(
-                "One=Two\\Three\\Four"
-            );
+            expect(dicomJson.pnObjectToString("One=Two\\Three\\Four")).toEqual("One=Two\\Three\\Four");
         });
     });
 
     describe("pnConvertToJsonObject", () => {
         it("accepts undefined", () => {
             expect(dicomJson.pnConvertToJsonObject(undefined)).toEqual([]);
-            expect(dicomJson.pnConvertToJsonObject(undefined, false)).toEqual(
-                undefined
-            );
+            expect(dicomJson.pnConvertToJsonObject(undefined, false)).toEqual(undefined);
         });
 
         it("accepts a single name string", () => {
-            expect(dicomJson.pnConvertToJsonObject("One")).toEqual([
-                { Alphabetic: "One" }
-            ]);
-            expect(dicomJson.pnConvertToJsonObject("One==")).toEqual([
-                { Alphabetic: "One" }
-            ]);
-            expect(dicomJson.pnConvertToJsonObject("One=Two=")).toEqual([
-                { Alphabetic: "One", Ideographic: "Two" }
-            ]);
-            expect(dicomJson.pnConvertToJsonObject("One==Three")).toEqual([
-                { Alphabetic: "One", Phonetic: "Three" }
-            ]);
+            expect(dicomJson.pnConvertToJsonObject("One")).toEqual([{ Alphabetic: "One" }]);
+            expect(dicomJson.pnConvertToJsonObject("One==")).toEqual([{ Alphabetic: "One" }]);
+            expect(dicomJson.pnConvertToJsonObject("One=Two=")).toEqual([{ Alphabetic: "One", Ideographic: "Two" }]);
+            expect(dicomJson.pnConvertToJsonObject("One==Three")).toEqual([{ Alphabetic: "One", Phonetic: "Three" }]);
             expect(dicomJson.pnConvertToJsonObject("One=Two=Three")).toEqual([
                 { Alphabetic: "One", Ideographic: "Two", Phonetic: "Three" }
             ]);
-            expect(
-                dicomJson.pnConvertToJsonObject("One=Two=Three", false)
-            ).toEqual({
+            expect(dicomJson.pnConvertToJsonObject("One=Two=Three", false)).toEqual({
                 Alphabetic: "One",
                 Ideographic: "Two",
                 Phonetic: "Three"
             });
             // Discard extraneous or empty values
-            expect(
-                dicomJson.pnConvertToJsonObject("One=Two=Three\\Four", false)
-            ).toEqual({
+            expect(dicomJson.pnConvertToJsonObject("One=Two=Three\\Four", false)).toEqual({
                 Alphabetic: "One",
                 Ideographic: "Two",
                 Phonetic: "Three"
@@ -120,9 +89,7 @@ describe("dicomJson", () => {
                     Phonetic: "Three"
                 }
             ]);
-            expect(
-                dicomJson.pnConvertToJsonObject("\\One=Two=Three", false)
-            ).toEqual({
+            expect(dicomJson.pnConvertToJsonObject("\\One=Two=Three", false)).toEqual({
                 Alphabetic: "One",
                 Ideographic: "Two",
                 Phonetic: "Three"
@@ -130,9 +97,7 @@ describe("dicomJson", () => {
         });
 
         it("accepts multiple name string", () => {
-            expect(
-                dicomJson.pnConvertToJsonObject("One=Two=Three\\Four=Five=Six")
-            ).toEqual([
+            expect(dicomJson.pnConvertToJsonObject("One=Two=Three\\Four=Five=Six")).toEqual([
                 { Alphabetic: "One", Ideographic: "Two", Phonetic: "Three" },
                 { Alphabetic: "Four", Ideographic: "Five", Phonetic: "Six" }
             ]);
@@ -145,15 +110,9 @@ describe("dicomJson", () => {
                 Phonetic: "Three"
             };
             expect(dicomJson.pnConvertToJsonObject(jsonObj)).toEqual([jsonObj]);
-            expect(dicomJson.pnConvertToJsonObject(jsonObj, false)).toEqual(
-                jsonObj
-            );
-            expect(dicomJson.pnConvertToJsonObject([jsonObj])).toEqual([
-                jsonObj
-            ]);
-            expect(dicomJson.pnConvertToJsonObject([jsonObj], false)).toEqual([
-                jsonObj
-            ]);
+            expect(dicomJson.pnConvertToJsonObject(jsonObj, false)).toEqual(jsonObj);
+            expect(dicomJson.pnConvertToJsonObject([jsonObj])).toEqual([jsonObj]);
+            expect(dicomJson.pnConvertToJsonObject([jsonObj], false)).toEqual([jsonObj]);
         });
     });
 });
@@ -171,7 +130,7 @@ describe("addAccessor", () => {
 
         // Check that we can iterate as an array
         const forArr = [];
-        val.forEach(item => forArr.push(item));
+        val.forEach((item) => forArr.push(item));
         expect(forArr.length).toEqual(1);
         expect(forArr[0]).toEqual(baseValue);
     });

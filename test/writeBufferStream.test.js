@@ -11,12 +11,7 @@ describe("WriteBufferStream Tests", () => {
             const expected = i % 256;
             const actual = stream.view.getUint8(i);
             if (expected !== actual) {
-                console.error(
-                    "Expected and actual differ",
-                    i,
-                    expected,
-                    actual
-                );
+                console.error("Expected and actual differ", i, expected, actual);
                 stream.view.getUint8(i);
             }
             expect(actual).toBe(expected);
@@ -30,9 +25,7 @@ describe("WriteBufferStream Tests", () => {
             stream.writeUint16((i * 511) % 0x10000);
         }
         for (let i = 0; i < 512; i++) {
-            expect(stream.view.getUint16(i * 2, stream.isLittleEndian)).toBe(
-                (i * 511) % 0x10000
-            );
+            expect(stream.view.getUint16(i * 2, stream.isLittleEndian)).toBe((i * 511) % 0x10000);
         }
     });
 
@@ -81,7 +74,7 @@ describe("WriteBufferStream Tests", () => {
         out.concat(new ReadBufferStream(out, out.isLittleEndian, { start: 0 }));
         expect(out.size).toBe(firstSize * 2);
 
-        const checkValues = stream => {
+        const checkValues = (stream) => {
             expect(stream.readUint8Array(128)[5]).toBe(1);
             expect(stream.readAsciiString(4)).toBe("DICM");
             expect(stream.readDouble()).toBeCloseTo(Math.PI);
@@ -97,10 +90,7 @@ describe("WriteBufferStream Tests", () => {
         };
 
         it("Should clone with getBuffer", () => {
-            const stream = new ReadBufferStream(
-                out.getBuffer(),
-                out.isLittleEndian
-            );
+            const stream = new ReadBufferStream(out.getBuffer(), out.isLittleEndian);
             expect(stream.size).toBe(out.size);
             checkValues(stream);
             // Second copy identical
@@ -120,13 +110,9 @@ describe("WriteBufferStream Tests", () => {
         });
 
         it("Should clone with buffer", () => {
-            const stream = new ReadBufferStream(
-                out.buffer,
-                out.isLittleEndian,
-                {
-                    stop: out.size
-                }
-            );
+            const stream = new ReadBufferStream(out.buffer, out.isLittleEndian, {
+                stop: out.size
+            });
             expect(stream.size).toBe(out.size);
             checkValues(stream);
             // Second copy identical
@@ -135,10 +121,7 @@ describe("WriteBufferStream Tests", () => {
         });
 
         it("Should clone with slice", () => {
-            const stream = new ReadBufferStream(
-                out.slice(0, out.size),
-                out.isLittleEndian
-            );
+            const stream = new ReadBufferStream(out.slice(0, out.size), out.isLittleEndian);
             expect(stream.size).toBe(out.size);
             checkValues(stream);
             // Second copy identical

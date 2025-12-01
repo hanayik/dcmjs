@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport.js";
 import TID300Point from "../../utilities/TID300/Point.js";
 import CORNERSTONE_3D_TAG from "./cornerstone3DTag";
+import MeasurementReport from "./MeasurementReport.js";
 
 const PROBE = "Probe";
 const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${PROBE}`;
@@ -8,31 +8,21 @@ const trackingIdentifierTextValue = `${CORNERSTONE_3D_TAG}:${PROBE}`;
 class Probe {
     constructor() {}
 
-    static getMeasurementData(
-        MeasurementGroup,
-        sopInstanceUIDToImageIdMap,
-        imageToWorldCoords,
-        metadata
-    ) {
-        const { defaultState, SCOORDGroup, ReferencedFrameNumber } =
-            MeasurementReport.getSetupMeasurementData(
-                MeasurementGroup,
-                sopInstanceUIDToImageIdMap,
-                metadata,
-                Probe.toolType
-            );
+    static getMeasurementData(MeasurementGroup, sopInstanceUIDToImageIdMap, imageToWorldCoords, metadata) {
+        const { defaultState, SCOORDGroup, ReferencedFrameNumber } = MeasurementReport.getSetupMeasurementData(
+            MeasurementGroup,
+            sopInstanceUIDToImageIdMap,
+            metadata,
+            Probe.toolType
+        );
 
-        const referencedImageId =
-            defaultState.annotation.metadata.referencedImageId;
+        const referencedImageId = defaultState.annotation.metadata.referencedImageId;
 
         const { GraphicData } = SCOORDGroup;
 
         const worldCoords = [];
         for (let i = 0; i < GraphicData.length; i += 2) {
-            const point = imageToWorldCoords(referencedImageId, [
-                GraphicData[i],
-                GraphicData[i + 1]
-            ]);
+            const point = imageToWorldCoords(referencedImageId, [GraphicData[i], GraphicData[i + 1]]);
             worldCoords.push(point);
         }
 
@@ -54,18 +44,16 @@ class Probe {
 
     static getTID300RepresentationArguments(tool, worldToImageCoords) {
         const { data, metadata } = tool;
-        let { finding, findingSites } = tool;
+        const { finding, findingSites } = tool;
         const { referencedImageId } = metadata;
 
         if (!referencedImageId) {
-            throw new Error(
-                "Probe.getTID300RepresentationArguments: referencedImageId is not defined"
-            );
+            throw new Error("Probe.getTID300RepresentationArguments: referencedImageId is not defined");
         }
 
         const { points } = data.handles;
 
-        const pointsImage = points.map(point => {
+        const pointsImage = points.map((point) => {
             const pointImage = worldToImageCoords(referencedImageId, point);
             return {
                 x: pointImage[0],
@@ -87,7 +75,7 @@ class Probe {
 Probe.toolType = PROBE;
 Probe.utilityToolType = PROBE;
 Probe.TID300Representation = TID300Point;
-Probe.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+Probe.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

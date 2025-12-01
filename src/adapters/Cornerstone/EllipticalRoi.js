@@ -1,6 +1,6 @@
-import MeasurementReport from "./MeasurementReport";
 import TID300Ellipse from "../../utilities/TID300/Ellipse";
 import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport";
 
 const ELLIPTICALROI = "EllipticalRoi";
 
@@ -9,8 +9,7 @@ class EllipticalRoi {
 
     // TODO: this function is required for all Cornerstone Tool Adapters, since it is called by MeasurementReport.
     static getMeasurementData(MeasurementGroup) {
-        const { defaultState, NUMGroup, SCOORDGroup } =
-            MeasurementReport.getSetupMeasurementData(MeasurementGroup);
+        const { defaultState, NUMGroup, SCOORDGroup } = MeasurementReport.getSetupMeasurementData(MeasurementGroup);
 
         const { GraphicData } = SCOORDGroup;
 
@@ -26,8 +25,7 @@ class EllipticalRoi {
         // Calculate two opposite corners of box defined by two axes.
 
         const minorAxisLength = Math.sqrt(
-            Math.pow(minorAxis[0].x - minorAxis[1].x, 2) +
-                Math.pow(minorAxis[0].y - minorAxis[1].y, 2)
+            (minorAxis[0].x - minorAxis[1].x) ** 2 + (minorAxis[0].y - minorAxis[1].y) ** 2
         );
 
         const minorAxisDirection = {
@@ -114,8 +112,7 @@ class EllipticalRoi {
             points.push({ x: center.x + halfXLength, y: center.y });
         }
 
-        const trackingIdentifierTextValue =
-            "cornerstoneTools@^4.0.0:EllipticalRoi";
+        const trackingIdentifierTextValue = "cornerstoneTools@^4.0.0:EllipticalRoi";
 
         return {
             area,
@@ -130,7 +127,7 @@ class EllipticalRoi {
 EllipticalRoi.toolType = ELLIPTICALROI;
 EllipticalRoi.utilityToolType = ELLIPTICALROI;
 EllipticalRoi.TID300Representation = TID300Ellipse;
-EllipticalRoi.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+EllipticalRoi.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

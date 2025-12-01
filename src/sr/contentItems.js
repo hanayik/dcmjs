@@ -8,8 +8,8 @@ import {
     ImageContentItem,
     NumContentItem,
     RelationshipTypes,
-    ScoordContentItem,
     Scoord3DContentItem,
+    ScoordContentItem,
     UIDRefContentItem
 } from "./valueTypes.js";
 
@@ -99,23 +99,13 @@ class ImageRegion extends ScoordContentItem {
             relationshipType: RelationshipTypes.CONTAINS
         });
         if (options.graphicType === GraphicTypes.MULTIPOINT) {
-            throw new Error(
-                "Graphic type 'MULTIPOINT' is not valid for region."
-            );
+            throw new Error("Graphic type 'MULTIPOINT' is not valid for region.");
         }
         if (options.sourceImage === undefined) {
             throw Error("Option 'sourceImage' is required for ImageRegion.");
         }
-        if (
-            !(
-                options.sourceImage ||
-                options.sourceImage instanceof SourceImageForRegion
-            )
-        ) {
-            throw new Error(
-                "Option 'sourceImage' of ImageRegion must have type " +
-                    "SourceImageForRegion."
-            );
+        if (!(options.sourceImage || options.sourceImage instanceof SourceImageForRegion)) {
+            throw new Error("Option 'sourceImage' of ImageRegion must have type " + "SourceImageForRegion.");
         }
         this.ContentSequence = new ContentSequence();
         this.ContentSequence.push(options.sourceImage);
@@ -136,14 +126,10 @@ class ImageRegion3D extends Scoord3DContentItem {
             relationshipType: RelationshipTypes.CONTAINS
         });
         if (options.graphicType === GraphicTypes3D.MULTIPOINT) {
-            throw new Error(
-                "Graphic type 'MULTIPOINT' is not valid for region."
-            );
+            throw new Error("Graphic type 'MULTIPOINT' is not valid for region.");
         }
         if (options.graphicType === GraphicTypes3D.ELLIPSOID) {
-            throw new Error(
-                "Graphic type 'ELLIPSOID' is not valid for region."
-            );
+            throw new Error("Graphic type 'ELLIPSOID' is not valid for region.");
         }
     }
 }
@@ -162,36 +148,27 @@ class VolumeSurface extends Scoord3DContentItem {
             relationshipType: RelationshipTypes.CONTAINS
         });
         if (options.graphicType !== GraphicTypes3D.ELLIPSOID) {
-            throw new Error(
-                "Graphic type for volume surface must be 'ELLIPSOID'."
-            );
+            throw new Error("Graphic type for volume surface must be 'ELLIPSOID'.");
         }
         this.ContentSequence = new ContentSequence();
         if (options.sourceImages) {
-            options.sourceImages.forEach(image => {
+            options.sourceImages.forEach((image) => {
                 if (!(image instanceof SourceImageForRegion)) {
                     throw new Error(
-                        "Items of option 'sourceImages' of VolumeSurface " +
-                            "must have type SourceImageForRegion."
+                        "Items of option 'sourceImages' of VolumeSurface " + "must have type SourceImageForRegion."
                     );
                 }
                 this.ContentSequence.push(image);
             });
         } else if (options.sourceSeries) {
-            if (
-                !(options.sourceSeries instanceof SourceSeriesForSegmentation)
-            ) {
+            if (!(options.sourceSeries instanceof SourceSeriesForSegmentation)) {
                 throw new Error(
-                    "Option 'sourceSeries' of VolumeSurface " +
-                        "must have type SourceSeriesForSegmentation."
+                    "Option 'sourceSeries' of VolumeSurface " + "must have type SourceSeriesForSegmentation."
                 );
             }
             this.ContentSequence.push(options.sourceSeries);
         } else {
-            throw new Error(
-                "One of the following two options must be provided: " +
-                    "'sourceImage' or 'sourceSeries'."
-            );
+            throw new Error("One of the following two options must be provided: " + "'sourceImage' or 'sourceSeries'.");
         }
     }
 }
@@ -253,29 +230,19 @@ class FindingSite extends CodeContentItem {
 class ReferencedSegmentationFrame extends ContentSequence {
     constructor(options) {
         if (options.sopClassUID === undefined) {
-            throw new Error(
-                "Option 'sopClassUID' is required for ReferencedSegmentationFrame."
-            );
+            throw new Error("Option 'sopClassUID' is required for ReferencedSegmentationFrame.");
         }
         if (options.sopInstanceUID === undefined) {
-            throw new Error(
-                "Option 'sopInstanceUID' is required for ReferencedSegmentationFrame."
-            );
+            throw new Error("Option 'sopInstanceUID' is required for ReferencedSegmentationFrame.");
         }
         if (options.frameNumber === undefined) {
-            throw new Error(
-                "Option 'frameNumber' is required for ReferencedSegmentationFrame."
-            );
+            throw new Error("Option 'frameNumber' is required for ReferencedSegmentationFrame.");
         }
         if (options.segmentNumber === undefined) {
-            throw new Error(
-                "Option 'segmentNumber' is required for ReferencedSegmentationFrame."
-            );
+            throw new Error("Option 'segmentNumber' is required for ReferencedSegmentationFrame.");
         }
         if (options.sourceImage === undefined) {
-            throw new Error(
-                "Option 'sourceImage' is required for ReferencedSegmentationFrame."
-            );
+            throw new Error("Option 'sourceImage' is required for ReferencedSegmentationFrame.");
         }
         super();
         const segmentationItem = ImageContentItem({
@@ -291,9 +258,7 @@ class ReferencedSegmentationFrame extends ContentSequence {
         });
         this.push(segmentationItem);
         if (!(options.sourceImage instanceof SourceImageForSegmentation)) {
-            throw new Error(
-                "Option 'sourceImage' must have type SourceImageForSegmentation."
-            );
+            throw new Error("Option 'sourceImage' must have type SourceImageForSegmentation.");
         }
         this.push(options.sourceImage);
     }
@@ -302,24 +267,16 @@ class ReferencedSegmentationFrame extends ContentSequence {
 class ReferencedSegmentation extends ContentSequence {
     constructor(options) {
         if (options.sopClassUID === undefined) {
-            throw new Error(
-                "Option 'sopClassUID' is required for ReferencedSegmentation."
-            );
+            throw new Error("Option 'sopClassUID' is required for ReferencedSegmentation.");
         }
         if (options.sopInstanceUID === undefined) {
-            throw new Error(
-                "Option 'sopInstanceUID' is required for ReferencedSegmentation."
-            );
+            throw new Error("Option 'sopInstanceUID' is required for ReferencedSegmentation.");
         }
         if (options.frameNumbers === undefined) {
-            throw new Error(
-                "Option 'frameNumbers' is required for ReferencedSegmentation."
-            );
+            throw new Error("Option 'frameNumbers' is required for ReferencedSegmentation.");
         }
         if (options.segmentNumber === undefined) {
-            throw new Error(
-                "Option 'segmentNumber' is required for ReferencedSegmentation."
-            );
+            throw new Error("Option 'segmentNumber' is required for ReferencedSegmentation.");
         }
         super();
         const segmentationItem = new ImageContentItem({
@@ -335,28 +292,20 @@ class ReferencedSegmentation extends ContentSequence {
         });
         this.push(segmentationItem);
         if (options.sourceImages !== undefined) {
-            options.sourceImages.forEach(image => {
+            options.sourceImages.forEach((image) => {
                 if (!image || !(image instanceof SourceImageForSegmentation)) {
-                    throw new Error(
-                        "Items of option 'sourceImages' must have type " +
-                            "SourceImageForSegmentation."
-                    );
+                    throw new Error("Items of option 'sourceImages' must have type " + "SourceImageForSegmentation.");
                 }
                 this.push(image);
             });
         } else if (options.sourceSeries !== undefined) {
-            if (
-                !(options.sourceSeries instanceof SourceSeriesForSegmentation)
-            ) {
-                throw new Error(
-                    "Option 'sourceSeries' must have type SourceSeriesForSegmentation."
-                );
+            if (!(options.sourceSeries instanceof SourceSeriesForSegmentation)) {
+                throw new Error("Option 'sourceSeries' must have type SourceSeriesForSegmentation.");
             }
             this.push(options.sourceSeries);
         } else {
             throw new Error(
-                "One of the following two options must be provided: " +
-                    "'sourceImages' or 'sourceSeries'."
+                "One of the following two options must be provided: " + "'sourceImages' or 'sourceSeries'."
             );
         }
     }

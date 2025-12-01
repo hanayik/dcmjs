@@ -12,14 +12,12 @@ function encode(buffer, numberOfFrames, rows, cols) {
     const frameLength = rows * cols;
 
     const header = createHeader();
-    let encodedFrames = [];
+    const encodedFrames = [];
 
     for (let frame = 0; frame < numberOfFrames; frame++) {
         const frameOffset = frameLength * frame;
 
-        encodedFrames.push(
-            encodeFrame(buffer, frameOffset, rows, cols, header)
-        );
+        encodedFrames.push(encodeFrame(buffer, frameOffset, rows, cols, header));
     }
 
     return encodedFrames;
@@ -68,8 +66,7 @@ function encodeFrame(buffer, frameOffset, rows, cols, header) {
 
     const headerLength = 64;
 
-    const bodyLength =
-        rleArray.length % 2 === 0 ? rleArray.length : rleArray.length + 1;
+    const bodyLength = rleArray.length % 2 === 0 ? rleArray.length : rleArray.length + 1;
 
     const encodedFrameBuffer = new ArrayBuffer(headerLength + bodyLength);
 
@@ -105,11 +102,8 @@ function createHeader() {
 }
 
 function getLiteralRunLength(uint8Row, i) {
-    for (var l = 0; l < uint8Row.length - i; l++) {
-        if (
-            uint8Row[i + l] === uint8Row[i + l + 1] &&
-            uint8Row[i + l + 1] === uint8Row[i + l + 2]
-        ) {
+    for (let l = 0; l < uint8Row.length - i; l++) {
+        if (uint8Row[i + l] === uint8Row[i + l + 1] && uint8Row[i + l + 1] === uint8Row[i + l + 2]) {
             return l;
         }
 
@@ -143,11 +137,7 @@ function decode(rleEncodedFrames, rows, cols) {
     for (let i = 0; i < rleEncodedFrames.length; i++) {
         const rleEncodedFrame = rleEncodedFrames[i];
 
-        const uint8FrameView = new Uint8Array(
-            buffer,
-            i * frameLength,
-            frameLength
-        );
+        const uint8FrameView = new Uint8Array(buffer, i * frameLength, frameLength);
 
         decodeFrame(rleEncodedFrame, uint8FrameView);
     }
@@ -168,9 +158,7 @@ function decodeFrame(rleEncodedFrame, pixelData) {
     }
 
     if (header[1] !== 64) {
-        log.error(
-            "Data offset of Byte Segment 1 should be 64 bytes, this rle fragment is encoded incorrectly."
-        );
+        log.error("Data offset of Byte Segment 1 should be 64 bytes, this rle fragment is encoded incorrectly.");
 
         return;
     }

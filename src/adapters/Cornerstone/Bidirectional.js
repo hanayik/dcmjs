@@ -1,7 +1,7 @@
-import MeasurementReport from "./MeasurementReport";
 import TID300Bidirectional from "../../utilities/TID300/Bidirectional";
-import CORNERSTONE_4_TAG from "./cornerstone4Tag";
 import { toArray } from "../helpers.js";
+import CORNERSTONE_4_TAG from "./cornerstone4Tag";
+import MeasurementReport from "./MeasurementReport";
 
 const BIDIRECTIONAL = "Bidirectional";
 const LONG_AXIS = "Long Axis";
@@ -17,42 +17,37 @@ class Bidirectional {
         const { ContentSequence } = MeasurementGroup;
 
         const findingGroup = toArray(ContentSequence).find(
-            group => group.ConceptNameCodeSequence.CodeValue === FINDING
+            (group) => group.ConceptNameCodeSequence.CodeValue === FINDING
         );
 
         const findingSiteGroups = toArray(ContentSequence).filter(
-            group => group.ConceptNameCodeSequence.CodeValue === FINDING_SITE
+            (group) => group.ConceptNameCodeSequence.CodeValue === FINDING_SITE
         );
 
         const longAxisNUMGroup = toArray(ContentSequence).find(
-            group => group.ConceptNameCodeSequence.CodeMeaning === LONG_AXIS
+            (group) => group.ConceptNameCodeSequence.CodeMeaning === LONG_AXIS
         );
 
-        const longAxisSCOORDGroup = toArray(
-            longAxisNUMGroup.ContentSequence
-        ).find(group => group.ValueType === "SCOORD");
+        const longAxisSCOORDGroup = toArray(longAxisNUMGroup.ContentSequence).find(
+            (group) => group.ValueType === "SCOORD"
+        );
 
         const shortAxisNUMGroup = toArray(ContentSequence).find(
-            group => group.ConceptNameCodeSequence.CodeMeaning === SHORT_AXIS
+            (group) => group.ConceptNameCodeSequence.CodeMeaning === SHORT_AXIS
         );
 
-        const shortAxisSCOORDGroup = toArray(
-            shortAxisNUMGroup.ContentSequence
-        ).find(group => group.ValueType === "SCOORD");
+        const shortAxisSCOORDGroup = toArray(shortAxisNUMGroup.ContentSequence).find(
+            (group) => group.ValueType === "SCOORD"
+        );
 
         const { ReferencedSOPSequence } = longAxisSCOORDGroup.ContentSequence;
-        const { ReferencedSOPInstanceUID, ReferencedFrameNumber } =
-            ReferencedSOPSequence;
+        const { ReferencedSOPInstanceUID, ReferencedFrameNumber } = ReferencedSOPSequence;
 
         // Long axis
 
-        const longestDiameter = String(
-            longAxisNUMGroup.MeasuredValueSequence.NumericValue
-        );
+        const longestDiameter = String(longAxisNUMGroup.MeasuredValueSequence.NumericValue);
 
-        const shortestDiameter = String(
-            shortAxisNUMGroup.MeasuredValueSequence.NumericValue
-        );
+        const shortestDiameter = String(shortAxisNUMGroup.MeasuredValueSequence.NumericValue);
 
         const bottomRight = {
             x: Math.max(
@@ -129,23 +124,18 @@ class Bidirectional {
             shortestDiameter,
             toolName: "Bidirectional",
             visible: true,
-            finding: findingGroup
-                ? findingGroup.ConceptCodeSequence
-                : undefined,
-            findingSites: findingSiteGroups.map(fsg => fsg.ConceptCodeSequence)
+            finding: findingGroup ? findingGroup.ConceptCodeSequence : undefined,
+            findingSites: findingSiteGroups.map((fsg) => fsg.ConceptCodeSequence)
         };
 
         return state;
     }
 
     static getTID300RepresentationArguments(tool) {
-        const { start, end, perpendicularStart, perpendicularEnd } =
-            tool.handles;
-        const { shortestDiameter, longestDiameter, finding, findingSites } =
-            tool;
+        const { start, end, perpendicularStart, perpendicularEnd } = tool.handles;
+        const { shortestDiameter, longestDiameter, finding, findingSites } = tool;
 
-        const trackingIdentifierTextValue =
-            "cornerstoneTools@^4.0.0:Bidirectional";
+        const trackingIdentifierTextValue = "cornerstoneTools@^4.0.0:Bidirectional";
 
         return {
             longAxis: {
@@ -168,7 +158,7 @@ class Bidirectional {
 Bidirectional.toolType = BIDIRECTIONAL;
 Bidirectional.utilityToolType = BIDIRECTIONAL;
 Bidirectional.TID300Representation = TID300Bidirectional;
-Bidirectional.isValidCornerstoneTrackingIdentifier = TrackingIdentifier => {
+Bidirectional.isValidCornerstoneTrackingIdentifier = (TrackingIdentifier) => {
     if (!TrackingIdentifier.includes(":")) {
         return false;
     }

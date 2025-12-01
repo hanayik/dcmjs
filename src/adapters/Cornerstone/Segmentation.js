@@ -25,24 +25,14 @@ function generateSegmentation(
     cornerstoneToolsVersion = 4
 ) {
     if (cornerstoneToolsVersion === 4) {
-        return Segmentation_4X.generateSegmentation(
-            images,
-            labelmaps3DorBrushData,
-            options
-        );
+        return Segmentation_4X.generateSegmentation(images, labelmaps3DorBrushData, options);
     }
 
     if (cornerstoneToolsVersion === 3) {
-        return Segmentation_3X.generateSegmentation(
-            images,
-            labelmaps3DorBrushData,
-            options
-        );
+        return Segmentation_3X.generateSegmentation(images, labelmaps3DorBrushData, options);
     }
 
-    console.warn(
-        `No generateSegmentation adapater for cornerstone version ${cornerstoneToolsVersion}, exiting.`
-    );
+    console.warn(`No generateSegmentation adapater for cornerstone version ${cornerstoneToolsVersion}, exiting.`);
 }
 
 /**
@@ -68,26 +58,14 @@ function generateToolState(
     cornerstoneToolsVersion = 4
 ) {
     if (cornerstoneToolsVersion === 4) {
-        return Segmentation_4X.generateToolState(
-            imageIds,
-            arrayBuffer,
-            metadataProvider,
-            skipOverlapping,
-            tolerance
-        );
+        return Segmentation_4X.generateToolState(imageIds, arrayBuffer, metadataProvider, skipOverlapping, tolerance);
     }
 
     if (cornerstoneToolsVersion === 3) {
-        return Segmentation_3X.generateToolState(
-            imageIds,
-            arrayBuffer,
-            metadataProvider
-        );
+        return Segmentation_3X.generateToolState(imageIds, arrayBuffer, metadataProvider);
     }
 
-    console.warn(
-        `No generateToolState adapater for cornerstone version ${cornerstoneToolsVersion}, exiting.`
-    );
+    console.warn(`No generateToolState adapater for cornerstone version ${cornerstoneToolsVersion}, exiting.`);
 }
 
 /**
@@ -105,14 +83,8 @@ function fillSegmentation(
     cornerstoneToolsVersion = 4
 ) {
     if (cornerstoneToolsVersion === 4) {
-        return Segmentation_4X.fillSegmentation(
-            segmentation,
-            inputLabelmaps3D,
-            options
-        );
+        return Segmentation_4X.fillSegmentation(segmentation, inputLabelmaps3D, options);
     }
 
-    console.warn(
-        `No generateSegmentation adapater for cornerstone version ${cornerstoneToolsVersion}, exiting.`
-    );
+    console.warn(`No generateSegmentation adapater for cornerstone version ${cornerstoneToolsVersion}, exiting.`);
 }

@@ -1,5 +1,5 @@
-import DerivedDataset from "./DerivedDataset";
 import { DicomMetaDictionary } from "../DicomMetaDictionary";
+import DerivedDataset from "./DerivedDataset";
 
 export default class StructuredReport extends DerivedDataset {
     constructor(datasets, options = {}) {

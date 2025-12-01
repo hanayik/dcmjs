@@ -1,4 +1,3 @@
-/* eslint no-bitwise: 0 */
 import log from "./log.js";
 
 const BitArray = {
@@ -47,7 +46,7 @@ function pack(pixelData) {
         //log.info('pixValue: ' + pixValue);
         //log.info('bytePos: ' + bytePos);
 
-        const bitPixelValue = pixValue << i % 8;
+        const bitPixelValue = pixValue << (i % 8);
         //log.info('current bitPixelData: ' + bitPixelData[bytePos]);
         //log.info('this bitPixelValue: ' + bitPixelValue);
 
@@ -68,8 +67,7 @@ function unpack(bitPixelArray) {
     for (let byteIndex = 0; byteIndex < byteArray.length; byteIndex++) {
         const bitIndex = byteIndex % 8;
         const bitByteIndex = Math.floor(byteIndex / 8);
-        byteArray[byteIndex] =
-            255 * ((bitArray[bitByteIndex] & (1 << bitIndex)) >> bitIndex);
+        byteArray[byteIndex] = 255 * ((bitArray[bitByteIndex] & (1 << bitIndex)) >> bitIndex);
     }
 
     return byteArray;
