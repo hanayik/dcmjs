@@ -74,7 +74,7 @@ describe("WriteBufferStream Tests", () => {
         out.concat(new ReadBufferStream(out, out.isLittleEndian, { start: 0 }));
         expect(out.size).toBe(firstSize * 2);
 
-        const checkValues = (stream) => {
+        const checkValues = (stream: ReadBufferStream) => {
             expect(stream.readUint8Array(128)[5]).toBe(1);
             expect(stream.readAsciiString(4)).toBe("DICM");
             expect(stream.readDouble()).toBeCloseTo(Math.PI);
