@@ -8,14 +8,14 @@
         "example": "examples"
     },
     "scripts": {
-        "test": "vitest",
+        "test": "vitest run",
         "build": "tsdown",
         "dev": "tsdown -w",
         "build:examples": "npm run build && npx cpx 'build/**/*.{js,map}' examples/js",
         "format": "biome format --fix",
         "format:check": "biome ci",
         "typecheck": "tsc --noEmit",
-        "lint": "biome lint --fix"
+        "lint": "eslint --fix ."
     },
     "repository": {
         "type": "git",
@@ -29,15 +29,19 @@
     "homepage": "https://github.com/dcmjs-org/dcmjs#readme",
     "devDependencies": {
         "@biomejs/biome": "^2.3.8",
+        "@eslint/js": "^9.39.1",
+        "@types/ndarray": "^1.0.14",
         "@types/node": "^24.10.1",
         "@types/pako": "^2.0.4",
+        "@vitest/eslint-plugin": "^1.5.1",
+        "eslint": "^9.39.1",
         "follow-redirects": "^1.15.11",
         "globals": "^16.5.0",
         "husky": "^9.1.7",
-        "jest": "^30.2.0",
         "lint-staged": "^16.2.7",
         "tsdown": "^0.17.0-beta.4",
         "typescript": "^5.9.3",
+        "typescript-eslint": "^8.48.0",
         "vitest": "^4.0.14",
         "xml2js": "^0.6.2"
     },
@@ -58,11 +62,6 @@
         "src/**/*.{js,jsx,json,css}": [
             "biome format --fix",
             "git add"
-        ]
-    },
-    "jest": {
-        "setupFilesAfterEnv": [
-            "<rootDir>/jest.setup.js"
         ]
     }
 }

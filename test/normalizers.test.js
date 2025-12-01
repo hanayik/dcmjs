@@ -1,12 +1,8 @@
 import fs from "fs";
-import { jest } from "@jest/globals";
-import { getTestDataset } from "./testUtils";
+import dcmjs from "../src";
 import { DicomMessage } from "../src/DicomMessage";
 import { DicomMetaDictionary } from "../src/DicomMetaDictionary";
-import dcmjs from "../src";
-
-// The asset downloads in this file might take some time on a slower connection
-jest.setTimeout(60000);
+import { getTestDataset } from "./testUtils";
 
 it("test_normalizer_op", async () => {
     const file = fs.readFileSync("test/sample-op.dcm");

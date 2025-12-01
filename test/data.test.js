@@ -1,29 +1,23 @@
-import { jest } from "@jest/globals";
 import fs from "fs";
 import fsPromises from "fs/promises";
 import path from "path";
+import { promisify } from "util";
 import { WriteBufferStream } from "../src/BufferStream";
+import { EXPLICIT_LITTLE_ENDIAN, IMPLICIT_LITTLE_ENDIAN, PADDING_SPACE } from "./../src/constants/dicom.js";
 import dcmjs from "../src/index.js";
 import { log } from "./../src/log.js";
-import { getTestDataset, getZippedTestDataset } from "./testUtils.js";
-
-import { promisify } from "util";
+import { ValueRepresentation } from "../src/ValueRepresentation";
 import arrayItem from "./arrayItem.json";
 import minimalDataset from "./mocks/minimal_fields_dataset.json";
 import datasetWithNullNumberVRs from "./mocks/null_number_vrs_dataset.json";
 import { rawTags } from "./rawTags";
 import sampleDicomSR from "./sample-sr.json";
-
-import { ValueRepresentation } from "../src/ValueRepresentation";
-import { EXPLICIT_LITTLE_ENDIAN, IMPLICIT_LITTLE_ENDIAN, PADDING_SPACE } from "./../src/constants/dicom.js";
+import { getTestDataset, getZippedTestDataset } from "./testUtils.js";
 
 const { DicomMetaDictionary, DicomDict, DicomMessage, ReadBufferStream } = dcmjs.data;
 
 const fileMetaInformationVersionArray = new Uint8Array(2);
 fileMetaInformationVersionArray[1] = 1;
-
-// The asset downloads in this file might take some time on a slower connection
-jest.setTimeout(60000);
 
 const metadata = {
     "00020001": {

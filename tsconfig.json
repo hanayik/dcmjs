@@ -6,7 +6,7 @@
         "module": "preserve",
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
-        "types": ["node"],
+        "types": ["node", "vitest/globals"],
         "strict": true,
         "noUnusedLocals": true,
         "allowJs": true,
@@ -17,5 +17,5 @@
         "verbatimModuleSyntax": true,
         "skipLibCheck": true
     },
-    "include": ["src"]
+    "include": ["src", "test", "eslint.config.mjs", "vitest.config.ts", "tsdown.config.ts"]
 }

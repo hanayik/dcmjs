@@ -1,4 +1,4 @@
-import ndarray from "ndarray";
+import ndarray, { type NdArray } from "ndarray";
 
 const flipMatrix2D = {
     h,
@@ -13,7 +13,7 @@ export { flipMatrix2D };
  * @param  {Ndarry} matrix The matrix to flip.
  * @return {Ndarry}   The flipped matrix.
  */
-function h(matrix) {
+function h(matrix: NdArray) {
     const [rows, cols] = matrix.shape;
 
     const result = ndarray(new Uint8Array(rows * cols), [rows, cols]);
@@ -33,7 +33,7 @@ function h(matrix) {
  * @param  {Ndarry} matrix The matrix to flip.
  * @return {Ndarry}   The flipped matrix.
  */
-function v(matrix) {
+function v(matrix: NdArray) {
     const [rows, cols] = matrix.shape;
 
     const result = ndarray(new Uint8Array(rows * cols), [rows, cols]);
