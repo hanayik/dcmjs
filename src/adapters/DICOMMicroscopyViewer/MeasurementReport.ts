@@ -288,10 +288,7 @@ export default class MeasurementReport {
         graphicType: string;
         toolType: string;
         utilityToolType: string;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        TID300Representation: new (
-            args: any
-        ) => TID300Instance;
+        TID300Representation: new (args: unknown) => TID300Instance;
         getMeasurementData(measurementContent: MeasurementContentItem[]): number[][] | number[][][];
         getTID300RepresentationArguments(scoord3d: Scoord3d): TID300RepresentationArguments;
     }): void {
