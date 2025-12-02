@@ -1,7 +1,24 @@
-import TID300Measurement from "./TID300Measurement.js";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+
+interface PointCoord {
+    x?: number;
+    y?: number;
+    z?: number;
+    0?: number;
+    1?: number;
+    2?: number;
+}
+
+interface PointProps extends TID300MeasurementProps {
+    points: PointCoord[];
+    use3DSpatialCoordinates?: boolean;
+    ReferencedFrameOfReferenceUID?: string;
+}
 
 export default class Point extends TID300Measurement {
-    contentItem() {
+    declare props: PointProps;
+
+    contentItem(): ContentSequenceEntry[] {
         const {
             points,
             ReferencedSOPSequence,
