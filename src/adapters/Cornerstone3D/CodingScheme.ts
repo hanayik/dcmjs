@@ -6,7 +6,18 @@ const CORNERSTONEFREETEXT = "CORNERSTONEFREETEXT";
 // Cornerstone specified coding scheme for storing findings
 const CodingSchemeDesignator = "CORNERSTONEJS";
 
-const CodingScheme = {
+/** Code values used in the Cornerstone coding scheme */
+export interface CodeValues {
+    CORNERSTONEFREETEXT: string;
+}
+
+/** Cornerstone coding scheme structure */
+export interface CodingSchemeType {
+    CodingSchemeDesignator: string;
+    codeValues: CodeValues;
+}
+
+const CodingScheme: CodingSchemeType = {
     CodingSchemeDesignator,
     codeValues: {
         CORNERSTONEFREETEXT
