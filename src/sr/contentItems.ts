@@ -1,4 +1,5 @@
 import { CodedConcept } from "./coding.js";
+import type { GraphicType, GraphicType3D, PixelOriginInterpretation } from "./valueTypes.js";
 import {
     CodeContentItem,
     CompositeContentItem,
@@ -13,8 +14,16 @@ import {
     UIDRefContentItem
 } from "./valueTypes.js";
 
+interface LongitudinalTemporalOffsetFromEventOptions {
+    value: number;
+    unit: CodedConcept;
+    eventType: CodedConcept;
+}
+
 class LongitudinalTemporalOffsetFromEvent extends NumContentItem {
-    constructor(options) {
+    override ContentSequence: ContentSequence;
+
+    constructor(options: LongitudinalTemporalOffsetFromEventOptions) {
         super({
             name: new CodedConcept({
                 value: "128740",
@@ -39,8 +48,14 @@ class LongitudinalTemporalOffsetFromEvent extends NumContentItem {
     }
 }
 
+interface SourceImageForRegionOptions {
+    referencedSOPClassUID: string;
+    referencedSOPInstanceUID: string;
+    referencedFrameNumbers?: number[];
+}
+
 class SourceImageForRegion extends ImageContentItem {
-    constructor(options) {
+    constructor(options: SourceImageForRegionOptions) {
         super({
             name: new CodedConcept({
                 value: "121324",
@@ -55,8 +70,14 @@ class SourceImageForRegion extends ImageContentItem {
     }
 }
 
+interface SourceImageForSegmentationOptions {
+    referencedSOPClassUID: string;
+    referencedSOPInstanceUID: string;
+    referencedFrameNumbers?: number[];
+}
+
 class SourceImageForSegmentation extends ImageContentItem {
-    constructor(options) {
+    constructor(options: SourceImageForSegmentationOptions) {
         super({
             name: new CodedConcept({
                 value: "121233",
@@ -71,8 +92,12 @@ class SourceImageForSegmentation extends ImageContentItem {
     }
 }
 
+interface SourceSeriesForSegmentationOptions {
+    referencedSeriesInstanceUID: string;
+}
+
 class SourceSeriesForSegmentation extends UIDRefContentItem {
-    constructor(options) {
+    constructor(options: SourceSeriesForSegmentationOptions) {
         super({
             name: new CodedConcept({
                 value: "121232",
@@ -85,8 +110,17 @@ class SourceSeriesForSegmentation extends UIDRefContentItem {
     }
 }
 
+interface ImageRegionOptions {
+    graphicType: GraphicType;
+    graphicData: number[] | number[][];
+    pixelOriginInterpretation?: PixelOriginInterpretation;
+    sourceImage: SourceImageForRegion;
+}
+
 class ImageRegion extends ScoordContentItem {
-    constructor(options) {
+    override ContentSequence: ContentSequence;
+
+    constructor(options: ImageRegionOptions) {
         super({
             name: new CodedConcept({
                 value: "111030",
@@ -104,7 +138,7 @@ class ImageRegion extends ScoordContentItem {
         if (options.sourceImage === undefined) {
             throw Error("Option 'sourceImage' is required for ImageRegion.");
         }
-        if (!(options.sourceImage || options.sourceImage instanceof SourceImageForRegion)) {
+        if (!(options.sourceImage instanceof SourceImageForRegion)) {
             throw new Error("Option 'sourceImage' of ImageRegion must have type " + "SourceImageForRegion.");
         }
         this.ContentSequence = new ContentSequence();
@@ -112,8 +146,14 @@ class ImageRegion extends ScoordContentItem {
     }
 }
 
+interface ImageRegion3DOptions {
+    graphicType: GraphicType3D;
+    graphicData: number[] | number[][];
+    frameOfReferenceUID: string;
+}
+
 class ImageRegion3D extends Scoord3DContentItem {
-    constructor(options) {
+    constructor(options: ImageRegion3DOptions) {
         super({
             name: new CodedConcept({
                 value: "111030",
@@ -134,8 +174,18 @@ class ImageRegion3D extends Scoord3DContentItem {
     }
 }
 
+interface VolumeSurfaceOptions {
+    graphicType: GraphicType3D;
+    graphicData: number[] | number[][];
+    frameOfFeferenceUID: string;
+    sourceImages?: SourceImageForRegion[];
+    sourceSeries?: SourceSeriesForSegmentation;
+}
+
 class VolumeSurface extends Scoord3DContentItem {
-    constructor(options) {
+    override ContentSequence: ContentSequence;
+
+    constructor(options: VolumeSurfaceOptions) {
         super({
             name: new CodedConcept({
                 value: "121231",
@@ -144,7 +194,7 @@ class VolumeSurface extends Scoord3DContentItem {
             }),
             graphicType: options.graphicType,
             graphicData: options.graphicData,
-            frameOfFeferenceUID: options.frameOfFeferenceUID,
+            frameOfReferenceUID: options.frameOfFeferenceUID,
             relationshipType: RelationshipTypes.CONTAINS
         });
         if (options.graphicType !== GraphicTypes3D.ELLIPSOID) {
@@ -173,8 +223,13 @@ class VolumeSurface extends Scoord3DContentItem {
     }
 }
 
+interface ReferencedRealWorldValueMapOptions {
+    referencedSOPClassUID: string;
+    referencedSOPInstanceUID: string;
+}
+
 class ReferencedRealWorldValueMap extends CompositeContentItem {
-    constructor(options) {
+    constructor(options: ReferencedRealWorldValueMapOptions) {
         super({
             name: new CodedConcept({
                 value: "126100",
@@ -188,8 +243,16 @@ class ReferencedRealWorldValueMap extends CompositeContentItem {
     }
 }
 
+interface FindingSiteOptions {
+    anatomicLocation: CodedConcept;
+    laterality?: CodedConcept;
+    topographicalModifier?: CodedConcept;
+}
+
 class FindingSite extends CodeContentItem {
-    constructor(options) {
+    override ContentSequence: ContentSequence;
+
+    constructor(options: FindingSiteOptions) {
         super({
             name: new CodedConcept({
                 value: "363698007",
@@ -227,8 +290,18 @@ class FindingSite extends CodeContentItem {
     }
 }
 
+interface ReferencedSegmentationFrameOptions {
+    sopClassUID: string;
+    sopInstanceUID: string;
+    frameNumber: number;
+    segmentNumber: number;
+    sourceImage: SourceImageForSegmentation;
+    sopClassUid?: string;
+    sopInstanceUid?: string;
+}
+
 class ReferencedSegmentationFrame extends ContentSequence {
-    constructor(options) {
+    constructor(options: ReferencedSegmentationFrameOptions) {
         if (options.sopClassUID === undefined) {
             throw new Error("Option 'sopClassUID' is required for ReferencedSegmentationFrame.");
         }
@@ -245,16 +318,17 @@ class ReferencedSegmentationFrame extends ContentSequence {
             throw new Error("Option 'sourceImage' is required for ReferencedSegmentationFrame.");
         }
         super();
-        const segmentationItem = ImageContentItem({
+        const segmentationItem = new ImageContentItem({
             name: new CodedConcept({
                 value: "121214",
                 meaning: "Referenced Segmentation Frame",
                 schemeDesignator: "DCM"
             }),
-            referencedSOPClassUid: options.sopClassUid,
-            referencedSOPInstanceUid: options.sopInstanceUid,
-            referencedFrameNumber: options.frameNumber,
-            referencedSegmentNumber: options.segmentNumber
+            referencedSOPClassUID: options.sopClassUid ?? options.sopClassUID,
+            referencedSOPInstanceUID: options.sopInstanceUid ?? options.sopInstanceUID,
+            referencedFrameNumbers: [options.frameNumber],
+            referencedSegmentNumbers: [options.segmentNumber],
+            referencedFrameSegmentNumber: true
         });
         this.push(segmentationItem);
         if (!(options.sourceImage instanceof SourceImageForSegmentation)) {
@@ -264,8 +338,19 @@ class ReferencedSegmentationFrame extends ContentSequence {
     }
 }
 
+interface ReferencedSegmentationOptions {
+    sopClassUID: string;
+    sopInstanceUID: string;
+    frameNumbers: number[];
+    segmentNumber: number;
+    sourceImages?: SourceImageForSegmentation[];
+    sourceSeries?: SourceSeriesForSegmentation;
+    sopClassUid?: string;
+    sopInstanceUid?: string;
+}
+
 class ReferencedSegmentation extends ContentSequence {
-    constructor(options) {
+    constructor(options: ReferencedSegmentationOptions) {
         if (options.sopClassUID === undefined) {
             throw new Error("Option 'sopClassUID' is required for ReferencedSegmentation.");
         }
@@ -285,10 +370,11 @@ class ReferencedSegmentation extends ContentSequence {
                 meaning: "Referenced Segment",
                 schemeDesignator: "DCM"
             }),
-            referencedSOPClassUid: options.sopClassUid,
-            referencedSOPInstanceUid: options.sopInstanceUid,
-            referencedFrameNumber: options.frameNumbers,
-            referencedSegmentNumber: options.segmentNumber
+            referencedSOPClassUID: options.sopClassUid ?? options.sopClassUID,
+            referencedSOPInstanceUID: options.sopInstanceUid ?? options.sopInstanceUID,
+            referencedFrameNumbers: options.frameNumbers,
+            referencedSegmentNumbers: [options.segmentNumber],
+            referencedFrameSegmentNumber: true
         });
         this.push(segmentationItem);
         if (options.sourceImages !== undefined) {
@@ -323,4 +409,18 @@ export {
     SourceImageForRegion,
     SourceImageForSegmentation,
     SourceSeriesForSegmentation
+};
+
+export type {
+    FindingSiteOptions,
+    ImageRegion3DOptions,
+    ImageRegionOptions,
+    LongitudinalTemporalOffsetFromEventOptions,
+    ReferencedRealWorldValueMapOptions,
+    ReferencedSegmentationFrameOptions,
+    ReferencedSegmentationOptions,
+    SourceImageForRegionOptions,
+    SourceImageForSegmentationOptions,
+    SourceSeriesForSegmentationOptions,
+    VolumeSurfaceOptions
 };

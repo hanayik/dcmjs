@@ -1,3 +1,4 @@
+import type { CodeOptions } from "./coding.js";
 import { Code, CodedConcept } from "./coding.js";
 import {
     FindingSite,
@@ -8,6 +9,7 @@ import {
     ReferencedSegmentationFrame,
     VolumeSurface
 } from "./contentItems.js";
+import type { ContentItem } from "./valueTypes.js";
 import {
     CodeContentItem,
     ContainerContentItem,
@@ -21,8 +23,25 @@ import {
 
 class Template extends ContentSequence {}
 
+interface MeasurementOptions {
+    name: CodedConcept;
+    value: number;
+    unit: CodedConcept;
+    qualifier?: CodedConcept;
+    trackingIdentifier: TrackingIdentifier;
+    method?: CodedConcept;
+    derivation?: CodedConcept;
+    findingSites?: FindingSite[];
+    properties?: MeasurementProperties;
+    referencedRegions?: (ImageRegion | ImageRegion3D)[];
+    referencedVolume?: VolumeSurface;
+    referencedSegmentation?: ReferencedSegmentation | ReferencedSegmentationFrame;
+    referencedRealWorldValueMap?: ReferencedRealWorldValueMap;
+    algorithmId?: AlgorithmIdentification;
+}
+
 class Measurement extends Template {
-    constructor(options) {
+    constructor(options: MeasurementOptions) {
         super();
         const valueItem = new NumContentItem({
             name: options.name,
@@ -71,7 +90,7 @@ class Measurement extends Template {
                 if (!site || !(site instanceof FindingSite)) {
                     throw new Error("Items of option 'findingSites' must have type FindingSite.");
                 }
-                valueItem.ContentSequence.push(site);
+                valueItem.ContentSequence!.push(site);
             });
         }
         if (options.properties !== undefined) {
@@ -90,7 +109,7 @@ class Measurement extends Template {
                         "Items of option 'referencedRegion' must have type " + "ImageRegion or ImageRegion3D."
                     );
                 }
-                valueItem.ContentSequence.push(region);
+                valueItem.ContentSequence!.push(region);
             });
         } else if (options.referencedVolume !== undefined) {
             if (!(options.referencedVolume instanceof VolumeSurface)) {
@@ -129,8 +148,18 @@ class Measurement extends Template {
     }
 }
 
+interface MeasurementPropertiesOptions {
+    normality?: CodedConcept;
+    measurementStatisticalProperties?: MeasurementStatisticalProperties;
+    normalRangeProperties?: NormalRangeProperties;
+    levelOfSignificance?: CodedConcept;
+    selectionStatus?: CodedConcept;
+    upperMeasurementUncertainty?: CodedConcept;
+    lowerMeasurementUncertainty?: CodedConcept;
+}
+
 class MeasurementProperties extends Template {
-    constructor(options) {
+    constructor(options: MeasurementPropertiesOptions) {
         super();
         if (options.normality !== undefined) {
             const normalityItem = new CodeContentItem({
@@ -209,8 +238,15 @@ class MeasurementProperties extends Template {
     }
 }
 
+interface MeasurementStatisticalPropertiesOptions {
+    values: NumContentItem[];
+    concept?: NumContentItem;
+    description?: string;
+    authority?: string;
+}
+
 class MeasurementStatisticalProperties extends Template {
-    constructor(options) {
+    constructor(options: MeasurementStatisticalPropertiesOptions) {
         super();
         if (options.values === undefined) {
             throw new Error("Option 'values' is required for MeasurementStatisticalProperties.");
@@ -231,7 +267,7 @@ class MeasurementStatisticalProperties extends Template {
                     schemeDesignator: "DCM",
                     meaning: "Population Description"
                 }),
-                value: options.authority,
+                value: options.authority ?? "",
                 relationshipType: RelationshipTypes.HAS_PROPERTIES
             });
             this.push(descriptionItem);
@@ -251,9 +287,16 @@ class MeasurementStatisticalProperties extends Template {
     }
 }
 
+interface NormalRangePropertiesOptions {
+    values: NumContentItem[];
+    concept?: NumContentItem;
+    description?: string;
+    authority?: string;
+}
+
 class NormalRangeProperties extends Template {
-    constructor(options) {
-        super(options);
+    constructor(options: NormalRangePropertiesOptions) {
+        super();
         if (options.values === undefined) {
             throw new Error("Option 'values' is required for NormalRangeProperties.");
         }
@@ -273,7 +316,7 @@ class NormalRangeProperties extends Template {
                     schemeDesignator: "DCM",
                     meaning: "Normal Range Description"
                 }),
-                value: options.authority,
+                value: options.authority ?? "",
                 relationshipType: RelationshipTypes.HAS_PROPERTIES
             });
             this.push(descriptionItem);
@@ -293,8 +336,14 @@ class NormalRangeProperties extends Template {
     }
 }
 
+interface ObservationContextOptions {
+    observerPersonContext: ObserverContext;
+    observerDeviceContext?: ObserverContext;
+    subjectContext?: SubjectContext;
+}
+
 class ObservationContext extends Template {
-    constructor(options) {
+    constructor(options: ObservationContextOptions) {
         super();
         if (options.observerPersonContext === undefined) {
             throw new Error("Option 'observerPersonContext' is required for ObservationContext.");
@@ -318,8 +367,13 @@ class ObservationContext extends Template {
     }
 }
 
+interface ObserverContextOptions {
+    observerType: Code | CodedConcept;
+    observerIdentifyingAttributes: PersonObserverIdentifyingAttributes | DeviceObserverIdentifyingAttributes;
+}
+
 class ObserverContext extends Template {
-    constructor(options) {
+    constructor(options: ObserverContextOptions) {
         super();
         if (options.observerType === undefined) {
             throw new Error("Option 'observerType' is required for ObserverContext.");
@@ -334,14 +388,21 @@ class ObserverContext extends Template {
                 meaning: "Observer Type",
                 schemeDesignator: "DCM"
             }),
-            value: options.observerType,
+            value:
+                options.observerType instanceof Code
+                    ? new CodedConcept({
+                          value: options.observerType.value,
+                          meaning: options.observerType.meaning,
+                          schemeDesignator: options.observerType.schemeDesignator,
+                          schemeVersion: options.observerType.schemeVersion ?? undefined
+                      })
+                    : options.observerType,
             relationshipType: RelationshipTypes.HAS_OBS_CONTEXT
         });
         this.push(observerTypeItem);
         if (options.observerIdentifyingAttributes === undefined) {
             throw new Error("Option 'observerIdentifyingAttributes' is required for ObserverContext.");
         }
-        // FIXME
         const person = new CodedConcept({
             value: "121006",
             schemeDesignator: "DCM",
@@ -352,14 +413,14 @@ class ObserverContext extends Template {
             schemeDesignator: "DCM",
             meaning: "Device"
         });
-        if (person.equals(options.observerType)) {
+        if (person.equals(options.observerType as CodeOptions)) {
             if (!(options.observerIdentifyingAttributes instanceof PersonObserverIdentifyingAttributes)) {
                 throw new Error(
                     "Option 'observerIdentifyingAttributes' must have type " +
                         "PersonObserverIdentifyingAttributes for 'Person' observer type."
                 );
             }
-        } else if (device.equals(options.observerType)) {
+        } else if (device.equals(options.observerType as CodeOptions)) {
             if (!(options.observerIdentifyingAttributes instanceof DeviceObserverIdentifyingAttributes)) {
                 throw new Error(
                     "Option 'observerIdentifyingAttributes' must have type " +
@@ -373,8 +434,16 @@ class ObserverContext extends Template {
     }
 }
 
+interface PersonObserverIdentifyingAttributesOptions {
+    name: string;
+    loginName?: string;
+    organizationName?: string;
+    roleInOrganization?: CodedConcept;
+    roleInProcedure?: CodedConcept;
+}
+
 class PersonObserverIdentifyingAttributes extends Template {
-    constructor(options) {
+    constructor(options: PersonObserverIdentifyingAttributesOptions) {
         super();
         if (options.name === undefined) {
             throw new Error("Option 'name' is required for PersonObserverIdentifyingAttributes.");
@@ -440,8 +509,17 @@ class PersonObserverIdentifyingAttributes extends Template {
     }
 }
 
+interface DeviceObserverIdentifyingAttributesOptions {
+    uid: string;
+    manufacturerName?: string;
+    modelName?: string;
+    serialNumber?: string;
+    physicalLocation?: string;
+    roleInProcedure?: CodedConcept;
+}
+
 class DeviceObserverIdentifyingAttributes extends Template {
-    constructor(options) {
+    constructor(options: DeviceObserverIdentifyingAttributesOptions) {
         super();
         if (options.uid === undefined) {
             throw new Error("Option 'uid' is required for DeviceObserverIdentifyingAttributes.");
@@ -519,8 +597,13 @@ class DeviceObserverIdentifyingAttributes extends Template {
     }
 }
 
+interface SubjectContextOptions {
+    subjectClass: CodedConcept;
+    subjectClassSpecificContext: SubjectContextFetus | SubjectContextSpecimen | SubjectContextDevice;
+}
+
 class SubjectContext extends Template {
-    constructor(options) {
+    constructor(options: SubjectContextOptions) {
         super();
         if (options.subjectClass === undefined) {
             throw new Error("Option 'subjectClass' is required for SubjectContext.");
@@ -578,8 +661,12 @@ class SubjectContext extends Template {
     }
 }
 
+interface SubjectContextFetusOptions {
+    subjectID: string;
+}
+
 class SubjectContextFetus extends Template {
-    constructor(options) {
+    constructor(options: SubjectContextFetusOptions) {
         super();
         if (options.subjectID === undefined) {
             throw new Error("Option 'subjectID' is required for SubjectContextFetus.");
@@ -597,8 +684,15 @@ class SubjectContextFetus extends Template {
     }
 }
 
+interface SubjectContextSpecimenOptions {
+    uid: string;
+    identifier?: string;
+    containerIdentifier?: string;
+    specimenType?: CodedConcept;
+}
+
 class SubjectContextSpecimen extends Template {
-    constructor(options) {
+    constructor(options: SubjectContextSpecimenOptions) {
         super();
         if (options.uid === undefined) {
             throw new Error("Option 'uid' is required for SubjectContextSpecimen.");
@@ -652,9 +746,18 @@ class SubjectContextSpecimen extends Template {
     }
 }
 
+interface SubjectContextDeviceOptions {
+    name: string;
+    uid?: string;
+    manufacturerName?: string;
+    modelName?: string;
+    serialNumber?: string;
+    physicalLocation?: string;
+}
+
 class SubjectContextDevice extends Template {
-    constructor(options) {
-        super(options);
+    constructor(options: SubjectContextDeviceOptions) {
+        super();
         if (options.name === undefined) {
             throw new Error("Option 'name' is required for SubjectContextDevice.");
         }
@@ -731,11 +834,16 @@ class SubjectContextDevice extends Template {
     }
 }
 
+interface LanguageOfContentItemAndDescendantsOptions {
+    language?: CodedConcept;
+}
+
 class LanguageOfContentItemAndDescendants extends Template {
-    constructor(options) {
+    constructor(options: LanguageOfContentItemAndDescendantsOptions) {
         super();
-        if (options.language === undefined) {
-            options.language = new CodedConcept({
+        let language = options.language;
+        if (language === undefined) {
+            language = new CodedConcept({
                 value: "en-US",
                 schemeDesignator: "RFC5646",
                 meaning: "English (United States)"
@@ -747,15 +855,25 @@ class LanguageOfContentItemAndDescendants extends Template {
                 meaning: "Language of Content Item and Descendants",
                 schemeDesignator: "DCM"
             }),
-            value: options.language,
+            value: language,
             relationshipType: RelationshipTypes.HAS_CONCEPT_MOD
         });
         this.push(languageItem);
     }
 }
 
+interface MeasurementsAndQualitativeEvaluationsOptions {
+    trackingIdentifier: TrackingIdentifier;
+    session?: string;
+    findingType?: CodedConcept;
+    timePointContext?: TimePointContext;
+    referencedRealWorldValueMap?: ReferencedRealWorldValueMap;
+    measurements?: NumContentItem[];
+    qualitativeEvaluations?: (CodeContentItem | TextContentItem)[];
+}
+
 class _MeasurementsAndQualitatitiveEvaluations extends Template {
-    constructor(options) {
+    constructor(options: MeasurementsAndQualitativeEvaluationsOptions) {
         super();
         const groupItem = new ContainerContentItem({
             name: new CodedConcept({
@@ -829,7 +947,7 @@ class _MeasurementsAndQualitatitiveEvaluations extends Template {
                 if (!measurement || !(measurement instanceof NumContentItem)) {
                     throw new Error("Items of option 'measurement' must have type NumContentItem.");
                 }
-                groupItem.ContentSequence.push(measurement);
+                groupItem.ContentSequence!.push(measurement);
             });
         }
         if (options.qualitativeEvaluations !== undefined) {
@@ -845,15 +963,21 @@ class _MeasurementsAndQualitatitiveEvaluations extends Template {
                             "CodeContentItem or TextContentItem."
                     );
                 }
-                groupItem.ContentSequence.push(evaluation);
+                groupItem.ContentSequence!.push(evaluation);
             });
         }
         this.push(groupItem);
     }
 }
 
+interface ROIMeasurementsAndQualitativeEvaluationsOptions extends MeasurementsAndQualitativeEvaluationsOptions {
+    referencedRegions?: (ImageRegion | ImageRegion3D)[];
+    referencedVolume?: VolumeSurface;
+    referencedSegmentation?: ReferencedSegmentation | ReferencedSegmentationFrame;
+}
+
 class _ROIMeasurementsAndQualitativeEvaluations extends _MeasurementsAndQualitatitiveEvaluations {
-    constructor(options) {
+    constructor(options: ROIMeasurementsAndQualitativeEvaluationsOptions) {
         super({
             trackingIdentifier: options.trackingIdentifier,
             timePointContext: options.timePointContext,
@@ -862,13 +986,13 @@ class _ROIMeasurementsAndQualitativeEvaluations extends _MeasurementsAndQualitat
             measurements: options.measurements,
             qualitativeEvaluations: options.qualitativeEvaluations
         });
-        const groupItem = this[0];
+        const groupItem = this[0] as ContainerContentItem;
         const wereReferencesProvided = [
             options.referencedRegions !== undefined,
             options.referencedVolume !== undefined,
             options.referencedSegmentation !== undefined
         ];
-        const numReferences = wereReferencesProvided.reduce((a, b) => a + b);
+        const numReferences = wereReferencesProvided.reduce((a, b) => a + (b ? 1 : 0), 0);
         if (numReferences === 0) {
             throw new Error(
                 "One of the following options must be provided: " +
@@ -895,13 +1019,13 @@ class _ROIMeasurementsAndQualitativeEvaluations extends _MeasurementsAndQualitat
                         "Items of option 'referencedRegion' must have type " + "ImageRegion or ImageRegion3D."
                     );
                 }
-                groupItem.ContentSequence.push(region);
+                groupItem.ContentSequence!.push(region);
             });
         } else if (options.referencedVolume !== undefined) {
             if (!(options.referencedVolume instanceof VolumeSurface)) {
                 throw new Error("Items of option 'referencedVolume' must have type VolumeSurface.");
             }
-            groupItem.ContentSequence.push(options.referencedVolume);
+            groupItem.ContentSequence!.push(options.referencedVolume);
         } else if (options.referencedSegmentation !== undefined) {
             if (
                 !(
@@ -914,19 +1038,25 @@ class _ROIMeasurementsAndQualitativeEvaluations extends _MeasurementsAndQualitat
                         "ReferencedSegmentation or ReferencedSegmentationFrame."
                 );
             }
-            groupItem.ContentSequence.push(options.referencedSegmentation);
+            groupItem.ContentSequence!.push(options.referencedSegmentation);
         }
         this[0] = groupItem;
     }
 }
 
+interface PlanarROIMeasurementsAndQualitativeEvaluationsOptions extends MeasurementsAndQualitativeEvaluationsOptions {
+    referencedRegion?: ImageRegion;
+    referencedSegmentation?: ReferencedSegmentation | ReferencedSegmentationFrame;
+    referencedRealWorldValueMap?: ReferencedRealWorldValueMap;
+}
+
 class PlanarROIMeasurementsAndQualitativeEvaluations extends _ROIMeasurementsAndQualitativeEvaluations {
-    constructor(options) {
+    constructor(options: PlanarROIMeasurementsAndQualitativeEvaluationsOptions) {
         const wereReferencesProvided = [
             options.referencedRegion !== undefined,
             options.referencedSegmentation !== undefined
         ];
-        const numReferences = wereReferencesProvided.reduce((a, b) => a + b);
+        const numReferences = wereReferencesProvided.reduce((a, b) => a + (b ? 1 : 0), 0);
         if (numReferences === 0) {
             throw new Error(
                 "One of the following options must be provided: " + "'referencedRegion', 'referencedSegmentation'."
@@ -939,7 +1069,7 @@ class PlanarROIMeasurementsAndQualitativeEvaluations extends _ROIMeasurementsAnd
         }
         super({
             trackingIdentifier: options.trackingIdentifier,
-            referencedRegions: [options.referencedRegion],
+            referencedRegions: options.referencedRegion ? [options.referencedRegion] : undefined,
             referencedSegmentation: options.referencedSegmentation,
             referencedRealWorldValueMap: options.referencedRealWorldValueMap,
             timePointContext: options.timePointContext,
@@ -951,8 +1081,10 @@ class PlanarROIMeasurementsAndQualitativeEvaluations extends _ROIMeasurementsAnd
     }
 }
 
+type VolumetricROIMeasurementsAndQualitativeEvaluationsOptions = ROIMeasurementsAndQualitativeEvaluationsOptions;
+
 class VolumetricROIMeasurementsAndQualitativeEvaluations extends _ROIMeasurementsAndQualitativeEvaluations {
-    constructor(options) {
+    constructor(options: VolumetricROIMeasurementsAndQualitativeEvaluationsOptions) {
         super({
             trackingIdentifier: options.trackingIdentifier,
             referencedRegions: options.referencedRegions,
@@ -967,13 +1099,21 @@ class VolumetricROIMeasurementsAndQualitativeEvaluations extends _ROIMeasurement
     }
 }
 
+interface MeasurementsDerivedFromMultipleROIMeasurementsOptions {
+    derivation: CodedConcept;
+    measurementGroups: (
+        | PlanarROIMeasurementsAndQualitativeEvaluations
+        | VolumetricROIMeasurementsAndQualitativeEvaluations
+    )[];
+    measurementProperties?: MeasurementProperties;
+}
+
 class MeasurementsDerivedFromMultipleROIMeasurements extends Template {
-    constructor(options) {
-        super(options);
+    constructor(options: MeasurementsDerivedFromMultipleROIMeasurementsOptions) {
+        super();
         if (options.derivation === undefined) {
             throw new Error("Option 'derivation' is required for " + "MeasurementsDerivedFromMultipleROIMeasurements.");
         }
-        // FIXME
         const valueItem = new NumContentItem({
             name: options.derivation
         });
@@ -998,8 +1138,8 @@ class MeasurementsDerivedFromMultipleROIMeasurements extends Template {
                         "VolumetricROIMeasurementsAndQualitativeEvaluations."
                 );
             }
-            group[0].RelationshipType = "R-INFERRED FROM";
-            valueItem.ContentSequence.push(...group);
+            (group[0] as ContentItem).RelationshipType = "R-INFERRED FROM";
+            valueItem.ContentSequence!.push(...group);
         });
         if (options.measurementProperties !== undefined) {
             if (!(options.measurementProperties instanceof MeasurementProperties)) {
@@ -1011,8 +1151,10 @@ class MeasurementsDerivedFromMultipleROIMeasurements extends Template {
     }
 }
 
+type MeasurementAndQualitativeEvaluationGroupOptions = MeasurementsAndQualitativeEvaluationsOptions;
+
 class MeasurementAndQualitativeEvaluationGroup extends _MeasurementsAndQualitatitiveEvaluations {
-    constructor(options) {
+    constructor(options: MeasurementAndQualitativeEvaluationGroupOptions) {
         super({
             trackingIdentifier: options.trackingIdentifier,
             referencedRealWorldValueMap: options.referencedRealWorldValueMap,
@@ -1025,8 +1167,14 @@ class MeasurementAndQualitativeEvaluationGroup extends _MeasurementsAndQualitati
     }
 }
 
+interface ROIMeasurementsOptions {
+    method?: CodedConcept;
+    findingSites?: FindingSite[];
+    measurements: Measurement[];
+}
+
 class ROIMeasurements extends Template {
-    constructor(options) {
+    constructor(options: ROIMeasurementsOptions) {
         super();
         if (options.method !== undefined) {
             const methodItem = new CodeContentItem({
@@ -1069,8 +1217,17 @@ class ROIMeasurements extends Template {
     }
 }
 
+interface MeasurementReportOptions {
+    observationContext: ObservationContext;
+    procedureReported: CodedConcept | Code | (CodedConcept | Code)[];
+    languageOfContentItemAndDescendants: LanguageOfContentItemAndDescendants;
+    imagingMeasurements?: Template[];
+    derivedImagingMeasurements?: Template[];
+    qualitativeEvaluations?: Template[];
+}
+
 class MeasurementReport extends Template {
-    constructor(options) {
+    constructor(options: MeasurementReportOptions) {
         super();
         if (options.observationContext === undefined) {
             throw new Error("Option 'observationContext' is required for MeasurementReport.");
@@ -1097,23 +1254,33 @@ class MeasurementReport extends Template {
         }
         item.ContentSequence.push(...options.languageOfContentItemAndDescendants);
         item.ContentSequence.push(...options.observationContext);
-        if (options.procedureReported.constructor === CodedConcept || options.procedureReported.constructor === Code) {
-            options.procedureReported = [options.procedureReported];
+        let procedureReported = options.procedureReported;
+        if (procedureReported instanceof CodedConcept || procedureReported instanceof Code) {
+            procedureReported = [procedureReported];
         }
-        if (!(typeof options.procedureReported === "object" || Array.isArray(options.procedureReported))) {
+        if (!(typeof procedureReported === "object" || Array.isArray(procedureReported))) {
             throw new Error("Option 'procedureReported' must have type Array.");
         }
-        options.procedureReported.forEach((procedure) => {
+        procedureReported.forEach((procedure) => {
+            const procedureValue =
+                procedure instanceof Code
+                    ? new CodedConcept({
+                          value: procedure.value,
+                          meaning: procedure.meaning,
+                          schemeDesignator: procedure.schemeDesignator,
+                          schemeVersion: procedure.schemeVersion ?? undefined
+                      })
+                    : procedure;
             const procedureItem = new CodeContentItem({
                 name: new CodedConcept({
                     value: "121058",
                     meaning: "Procedure reported",
                     schemeDesignator: "DCM"
                 }),
-                value: procedure,
+                value: procedureValue,
                 relationshipType: RelationshipTypes.HAS_CONCEPT_MOD
             });
-            item.ContentSequence.push(procedureItem);
+            item.ContentSequence!.push(procedureItem);
         });
         const imageLibraryItem = new ImageLibrary();
         item.ContentSequence.push(...imageLibraryItem);
@@ -1123,7 +1290,7 @@ class MeasurementReport extends Template {
             options.derivedImagingMeasurements !== undefined,
             options.qualitativeEvaluations !== undefined
         ];
-        const numOptionsProvided = wereOptionsProvided.reduce((a, b) => a + b);
+        const numOptionsProvided = wereOptionsProvided.reduce((a, b) => a + (b ? 1 : 0), 0);
         if (numOptionsProvided > 1) {
             throw new Error(
                 "Only one of the following options should be provided: " +
@@ -1169,9 +1336,18 @@ class MeasurementReport extends Template {
     }
 }
 
+interface TimePointContextOptions {
+    timePoint: string;
+    timePointType?: CodedConcept;
+    timePointOrder?: number;
+    subjectTimePointIdentifier?: number;
+    protocolTimePointIdentifier?: number;
+    temporalOffsetFromEvent?: ContentItem;
+}
+
 class TimePointContext extends Template {
-    constructor(options) {
-        super(options);
+    constructor(options: TimePointContextOptions) {
+        super();
         if (options.timePoint === undefined) {
             throw new Error("Option 'timePoint' is required for TimePointContext.");
         }
@@ -1234,16 +1410,6 @@ class TimePointContext extends Template {
             this.push(protocolTimePointIdentifierItem);
         }
         if (options.temporalOffsetFromEvent !== undefined) {
-            // TODO: Missing LongitudinalTemporalOffsetFromEventContentItem
-            // if (
-            //     options.temporalOffsetFromEvent.constructor !==
-            //     LongitudinalTemporalOffsetFromEventContentItem
-            // ) {
-            //     throw new Error(
-            //         "Option 'temporalOffsetFromEvent' must have type " +
-            //             "LongitudinalTemporalOffsetFromEventContentItem."
-            //     );
-            // }
             this.push(options.temporalOffsetFromEvent);
         }
     }
@@ -1264,8 +1430,14 @@ class ImageLibrary extends Template {
     }
 }
 
+interface AlgorithmIdentificationOptions {
+    name: string;
+    version: string;
+    parameters?: string[];
+}
+
 class AlgorithmIdentification extends Template {
-    constructor(options) {
+    constructor(options: AlgorithmIdentificationOptions) {
         super();
         if (options.name === undefined) {
             throw new Error("Option 'name' is required for AlgorithmIdentification.");
@@ -1313,9 +1485,14 @@ class AlgorithmIdentification extends Template {
     }
 }
 
+interface TrackingIdentifierOptions {
+    uid: string;
+    identifier?: string;
+}
+
 class TrackingIdentifier extends Template {
-    constructor(options) {
-        super(options);
+    constructor(options: TrackingIdentifierOptions) {
+        super();
         if (options.uid === undefined) {
             throw new Error("Option 'uid' is required for TrackingIdentifier.");
         }
@@ -1365,11 +1542,29 @@ export {
     TimePointContext,
     TrackingIdentifier,
     VolumetricROIMeasurementsAndQualitativeEvaluations
-    // MeasurementProperties,
-    // MeasurementStatisticalProperties,
-    // NormalRangeProperties,
-    // EquationOrTable,
-    // ImageOrSpatialCoordinates,
-    // WaveformOrTemporalCoordinates,
-    // Quotation,
+};
+
+export type {
+    AlgorithmIdentificationOptions,
+    DeviceObserverIdentifyingAttributesOptions,
+    LanguageOfContentItemAndDescendantsOptions,
+    MeasurementAndQualitativeEvaluationGroupOptions,
+    MeasurementOptions,
+    MeasurementPropertiesOptions,
+    MeasurementReportOptions,
+    MeasurementsDerivedFromMultipleROIMeasurementsOptions,
+    MeasurementStatisticalPropertiesOptions,
+    NormalRangePropertiesOptions,
+    ObservationContextOptions,
+    ObserverContextOptions,
+    PersonObserverIdentifyingAttributesOptions,
+    PlanarROIMeasurementsAndQualitativeEvaluationsOptions,
+    ROIMeasurementsOptions,
+    SubjectContextDeviceOptions,
+    SubjectContextFetusOptions,
+    SubjectContextOptions,
+    SubjectContextSpecimenOptions,
+    TimePointContextOptions,
+    TrackingIdentifierOptions,
+    VolumetricROIMeasurementsAndQualitativeEvaluationsOptions
 };
