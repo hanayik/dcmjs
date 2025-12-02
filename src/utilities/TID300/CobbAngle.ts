@@ -1,7 +1,28 @@
-import TID300Measurement from "./TID300Measurement.js";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+
+interface PointCoord {
+    x?: number;
+    y?: number;
+    z?: number;
+    0?: number;
+    1?: number;
+    2?: number;
+}
+
+interface CobbAngleProps extends TID300MeasurementProps {
+    point1: PointCoord;
+    point2: PointCoord;
+    point3: PointCoord;
+    point4: PointCoord;
+    rAngle?: number;
+    use3DSpatialCoordinates?: boolean;
+    ReferencedFrameOfReferenceUID?: string;
+}
 
 export default class CobbAngle extends TID300Measurement {
-    contentItem() {
+    declare props: CobbAngleProps;
+
+    contentItem(): ContentSequenceEntry[] {
         const {
             point1,
             point2,
