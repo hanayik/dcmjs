@@ -1,27 +1,6 @@
 import TID300Point from "../../utilities/TID300/Point";
 import MeasurementReport from "./MeasurementReport.js";
-
-interface MeasurementContentItem {
-    GraphicData: number[];
-    GraphicType?: string;
-    [key: string]: unknown;
-}
-
-interface Point3D {
-    0: number;
-    1: number;
-    2: number;
-}
-
-interface Scoord3d {
-    graphicType: string;
-    graphicData: Point3D;
-}
-
-interface TID300RepresentationArguments {
-    points: Point3D[];
-    lengths: number;
-}
+import type { MeasurementContentItem, Point3D, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Point {
     constructor() {}
@@ -41,7 +20,8 @@ class Point {
             throw new Error("We expected a POINT graphicType");
         }
 
-        const points = [scoord3d.graphicData];
+        // For POINT, graphicData is a single Point3D, wrap it in an array
+        const points = [scoord3d.graphicData as Point3D];
         const lengths = 1;
 
         return { points, lengths };

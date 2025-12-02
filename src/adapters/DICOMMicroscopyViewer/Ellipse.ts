@@ -1,27 +1,6 @@
 import TID300Ellipse from "../../utilities/TID300/Ellipse";
 import MeasurementReport from "./MeasurementReport.js";
-
-interface MeasurementContentItem {
-    GraphicData: number[];
-    GraphicType?: string;
-    [key: string]: unknown;
-}
-
-interface Point3D {
-    0: number;
-    1: number;
-    2: number;
-}
-
-interface Scoord3d {
-    graphicType: string;
-    graphicData: Point3D[];
-}
-
-interface TID300RepresentationArguments {
-    points: Point3D[];
-    lengths: number;
-}
+import type { MeasurementContentItem, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Ellipse {
     constructor() {}

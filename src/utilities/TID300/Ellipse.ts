@@ -1,14 +1,5 @@
-import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps, type PointCoord } from "./TID300Measurement";
 import unit2CodingValue from "./unit2CodingValue";
-
-interface PointCoord {
-    x?: number;
-    y?: number;
-    z?: number;
-    0?: number;
-    1?: number;
-    2?: number;
-}
 
 interface EllipseProps extends TID300MeasurementProps {
     points: PointCoord[];

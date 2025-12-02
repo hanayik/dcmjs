@@ -31,17 +31,19 @@ export interface ContentSequenceEntry {
     ReferencedSOPSequence?: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[];
 }
 
-interface Point2D {
+export interface Point2D {
     x?: number;
     y?: number;
     0?: number;
     1?: number;
 }
 
-interface Point3D extends Point2D {
+export interface Point3D extends Point2D {
     z?: number;
     2?: number;
 }
+
+export type PointCoord = Point3D;
 
 interface FlattenPointsParams {
     points: (Point2D | Point3D)[];
