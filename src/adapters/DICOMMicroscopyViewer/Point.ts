@@ -1,5 +1,5 @@
 import TID300Point from "../../utilities/TID300/Point";
-import MeasurementReport from "./MeasurementReport.js";
+import MeasurementReport from "./MeasurementReport";
 import type { MeasurementContentItem, Point3D, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Point {

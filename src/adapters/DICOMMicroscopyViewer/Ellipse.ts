@@ -1,5 +1,5 @@
 import TID300Ellipse from "../../utilities/TID300/Ellipse";
-import MeasurementReport from "./MeasurementReport.js";
+import MeasurementReport from "./MeasurementReport";
 import type { MeasurementContentItem, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Ellipse {

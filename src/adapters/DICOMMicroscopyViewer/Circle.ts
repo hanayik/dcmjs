@@ -1,5 +1,5 @@
 import TID300Circle from "../../utilities/TID300/Circle";
-import MeasurementReport from "./MeasurementReport.js";
+import MeasurementReport from "./MeasurementReport";
 import type { MeasurementContentItem, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Circle {

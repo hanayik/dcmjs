@@ -1,5 +1,5 @@
 import TID300Polygon from "../../utilities/TID300/Polygon";
-import MeasurementReport from "./MeasurementReport.js";
+import MeasurementReport from "./MeasurementReport";
 import type { MeasurementContentItem, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Polygon {

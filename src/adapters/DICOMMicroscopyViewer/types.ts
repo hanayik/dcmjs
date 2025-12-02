@@ -4,11 +4,8 @@ export interface MeasurementContentItem {
     [key: string]: unknown;
 }
 
-export interface Point3D {
-    0: number;
-    1: number;
-    2: number;
-}
+/** 3D point as a mutable array [x, y, z] or [x, y] */
+export type Point3D = number[];
 
 export interface Scoord3d {
     graphicType: string;
@@ -18,4 +15,5 @@ export interface Scoord3d {
 export interface TID300RepresentationArguments {
     points: Point3D[] | Point3D;
     lengths: number;
+    [key: string]: unknown;
 }

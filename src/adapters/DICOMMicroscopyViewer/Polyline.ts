@@ -1,31 +1,32 @@
 import TID300Polyline from "../../utilities/TID300/Polyline";
-import MeasurementReport from "./MeasurementReport.js";
+import MeasurementReport from "./MeasurementReport";
+import type { MeasurementContentItem, Scoord3d, TID300RepresentationArguments } from "./types";
 
 class Polyline {
     constructor() {}
 
-    static getMeasurementData(measurementContent) {
+    static getMeasurementData(measurementContent: MeasurementContentItem[]): number[][][] {
         // removing duplication and Getting only the graphicData information
         const measurement = measurementContent
             .map((item) => item.GraphicData)
             .filter(
                 (
-                    (s) => (a) =>
-                        ((j) => !s.has(j) && s.add(j))(JSON.stringify(a))
+                    (s: Set<string>) => (a: number[]) =>
+                        ((j: string) => !s.has(j) && s.add(j))(JSON.stringify(a))
                 )(new Set())
             );
 
         // Chunking the array into size of three
         return measurement.map((measurement) => {
-            return measurement.reduce((all, one, i) => {
+            return measurement.reduce<number[][]>((all, one, i) => {
                 const ch = Math.floor(i / 3);
-                all[ch] = [].concat(all[ch] || [], one);
+                all[ch] = ([] as number[]).concat(all[ch] || [], one);
                 return all;
             }, []);
         });
     }
 
-    static getTID300RepresentationArguments(scoord3d) {
+    static getTID300RepresentationArguments(scoord3d: Scoord3d): TID300RepresentationArguments {
         if (scoord3d.graphicType !== "POLYLINE") {
             throw new Error("We expected a POLYLINE graphicType");
         }
@@ -35,12 +36,12 @@ class Polyline {
 
         return { points, lengths };
     }
-}
 
-Polyline.graphicType = "POLYLINE";
-Polyline.toolType = "Polyline";
-Polyline.utilityToolType = "Polyline";
-Polyline.TID300Representation = TID300Polyline;
+    static graphicType = "POLYLINE";
+    static toolType = "Polyline";
+    static utilityToolType = "Polyline";
+    static TID300Representation = TID300Polyline;
+}
 
 MeasurementReport.registerTool(Polyline);
 
