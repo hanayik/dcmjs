@@ -1,11 +1,139 @@
 import addAccessors from "../addAccessors";
+import type { ReferencedSOPSequenceItem, ContentSequenceEntry } from "../TID300/TID300Measurement";
+
+interface CodeSequence {
+    CodeValue: string;
+    CodingSchemeDesignator: string;
+    CodeMeaning: string;
+}
+
+interface PersonObserverNameItem {
+    RelationshipType: string;
+    ValueType: string;
+    ConceptNameCodeSequence: CodeSequence;
+    PersonName: string;
+}
+
+interface CodingSchemeIdentificationSequence {
+    CodingSchemeDesignator: string;
+    CodingSchemeName: string;
+    CodingSchemeVersion: string;
+    CodingSchemeResponsibleOrganization: string;
+}
+
+interface ContentTemplateSequence {
+    MappingResource: string;
+    TemplateIdentifier: string;
+}
+
+interface ImageLibraryContentItem {
+    RelationshipType: string;
+    ValueType: string;
+    ReferencedSOPSequence: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[];
+}
+
+interface ReferencedSeriesSequence {
+    SeriesInstanceUID: string;
+    ReferencedSOPSequence: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[];
+}
+
+interface CurrentRequestedProcedureEvidenceItem {
+    StudyInstanceUID: string;
+    ReferencedSeriesSequence: ReferencedSeriesSequence;
+}
+
+interface ImagingMeasurementsContainer {
+    RelationshipType: string;
+    ValueType: string;
+    ConceptNameCodeSequence: CodeSequence;
+    ContinuityOfContent: string;
+    ContentSequence: ContentSequenceEntry[];
+}
+
+interface ImageLibraryGroupContent {
+    RelationshipType: string;
+    ValueType: string;
+    ConceptNameCodeSequence: CodeSequence;
+    ContinuityOfContent: string;
+    ContentSequence: ImageLibraryContentItem[];
+}
+
+interface ImageLibraryContainer {
+    RelationshipType: string;
+    ValueType: string;
+    ConceptNameCodeSequence: CodeSequence;
+    ContinuityOfContent: string;
+    ContentSequence: ImageLibraryGroupContent;
+}
+
+type ContentSequenceItem =
+    | {
+        RelationshipType: string;
+        ValueType: string;
+        ConceptNameCodeSequence: CodeSequence | ReturnType<typeof addAccessors>;
+        ConceptCodeSequence: CodeSequence | ReturnType<typeof addAccessors>;
+        ContentSequence?: ContentSequenceItem | ReturnType<typeof addAccessors>;
+    }
+    | PersonObserverNameItem
+    | ImageLibraryContainer
+    | ImagingMeasurementsContainer;
+
+interface TID1500Content {
+    ConceptNameCodeSequence: CodeSequence;
+    ContinuityOfContent: string;
+    PerformedProcedureCodeSequence: unknown[];
+    CompletionFlag: string;
+    VerificationFlag: string;
+    ReferencedPerformedProcedureStepSequence: unknown[];
+    InstanceNumber: number;
+    CurrentRequestedProcedureEvidenceSequence: CurrentRequestedProcedureEvidenceItem[];
+    CodingSchemeIdentificationSequence: CodingSchemeIdentificationSequence;
+    ContentTemplateSequence: ContentTemplateSequence;
+    ContentSequence: ContentSequenceItem[];
+}
+
+/** Represents a TID300Measurement instance with required properties for report generation */
+interface TID300MeasurementInstance {
+    ReferencedSOPSequence: ReferencedSOPSequenceItem;
+    contentItem(): ContentSequenceEntry[];
+}
+
+/** Represents a TID1501MeasurementGroup instance */
+interface TID1501MeasurementGroupInstance {
+    TID300Measurements: TID300MeasurementInstance[];
+    contentItem(): ContentSequenceEntry[];
+}
+
+interface TIDIncludeGroupsConfig {
+    TID1501MeasurementGroups?: TID1501MeasurementGroupInstance[];
+}
+
+interface DerivationSourceDataset {
+    StudyInstanceUID: string;
+    SeriesInstanceUID: string;
+}
+
+interface SOPInstanceUIDToSeriesMap {
+    [sopInstanceUID: string]: string;
+}
+
+interface ContentItemOptions {
+    PersonName?: string;
+    sopInstanceUIDsToSeriesInstanceUIDMap?: SOPInstanceUIDToSeriesMap;
+}
 
 export default class TID1500MeasurementReport {
-    constructor(TIDIncludeGroups) {
+    TIDIncludeGroups: TIDIncludeGroupsConfig;
+    ImageLibraryContentSequence: ImageLibraryContentItem[];
+    CurrentRequestedProcedureEvidenceSequence: CurrentRequestedProcedureEvidenceItem[];
+    PersonObserverName: PersonObserverNameItem;
+    tid1500: TID1500Content;
+
+    constructor(TIDIncludeGroups: TIDIncludeGroupsConfig) {
         this.TIDIncludeGroups = TIDIncludeGroups;
 
-        const ImageLibraryContentSequence = [];
-        const CurrentRequestedProcedureEvidenceSequence = [];
+        const ImageLibraryContentSequence: ImageLibraryContentItem[] = [];
+        const CurrentRequestedProcedureEvidenceSequence: CurrentRequestedProcedureEvidenceItem[] = [];
 
         this.ImageLibraryContentSequence = ImageLibraryContentSequence;
         this.CurrentRequestedProcedureEvidenceSequence = CurrentRequestedProcedureEvidenceSequence;
@@ -113,9 +241,12 @@ export default class TID1500MeasurementReport {
         };
     }
 
-    validate() {}
+    validate(): void {}
 
-    contentItem(derivationSourceDatasetOrDatasets, options = {}) {
+    contentItem(
+        derivationSourceDatasetOrDatasets: DerivationSourceDataset | DerivationSourceDataset[],
+        options: ContentItemOptions = {}
+    ): TID1500Content {
         if (options.PersonName) {
             this.PersonObserverName.PersonName = options.PersonName;
         }
@@ -131,7 +262,10 @@ export default class TID1500MeasurementReport {
         return this.tid1500;
     }
 
-    addTID1501MeasurementGroups(derivationSourceDatasets, options = {}) {
+    addTID1501MeasurementGroups(
+        derivationSourceDatasets: DerivationSourceDataset[],
+        options: ContentItemOptions = {}
+    ): void {
         const { CurrentRequestedProcedureEvidenceSequence, ImageLibraryContentSequence } = this;
 
         const { sopInstanceUIDsToSeriesInstanceUIDMap } = options;
@@ -148,13 +282,13 @@ export default class TID1500MeasurementReport {
             return;
         }
 
-        let ContentSequence = [];
+        let ContentSequence: ContentSequenceEntry[] = [];
 
         TID1501MeasurementGroups.forEach((child) => {
             ContentSequence = ContentSequence.concat(child.contentItem());
         });
 
-        const parsedSOPInstances = [];
+        const parsedSOPInstances: string[] = [];
 
         // For each measurement that is referenced, add a link to the
         // Image Library Group and the Current Requested Procedure Evidence
@@ -163,20 +297,20 @@ export default class TID1500MeasurementReport {
             measurementGroup.TID300Measurements.forEach((measurement) => {
                 const { ReferencedSOPInstanceUID } = measurement.ReferencedSOPSequence;
 
-                if (!parsedSOPInstances.includes(ReferencedSOPInstanceUID)) {
+                if (ReferencedSOPInstanceUID && !parsedSOPInstances.includes(ReferencedSOPInstanceUID)) {
                     ImageLibraryContentSequence.push({
                         RelationshipType: "CONTAINS",
                         ValueType: "IMAGE",
                         ReferencedSOPSequence: measurement.ReferencedSOPSequence
                     });
 
-                    let derivationSourceDataset;
+                    let derivationSourceDataset: DerivationSourceDataset | undefined;
 
                     if (derivationSourceDatasets.length === 1) {
                         // If there is only one derivationSourceDataset, use it.
                         derivationSourceDataset = derivationSourceDatasets[0];
                     } else {
-                        const SeriesInstanceUID = sopInstanceUIDsToSeriesInstanceUIDMap[ReferencedSOPInstanceUID];
+                        const SeriesInstanceUID = sopInstanceUIDsToSeriesInstanceUIDMap![ReferencedSOPInstanceUID];
 
                         derivationSourceDataset = derivationSourceDatasets.find(
                             (dsd) => dsd.SeriesInstanceUID === SeriesInstanceUID
@@ -188,20 +322,22 @@ export default class TID1500MeasurementReport {
                      * it is correct that we have a full `CurrentRequestedProcedureEvidenceSequence`
                      * item per `SOPInstanceUID`.
                      */
-                    CurrentRequestedProcedureEvidenceSequence.push({
-                        StudyInstanceUID: derivationSourceDataset.StudyInstanceUID,
-                        ReferencedSeriesSequence: {
-                            SeriesInstanceUID: derivationSourceDataset.SeriesInstanceUID,
-                            ReferencedSOPSequence: measurement.ReferencedSOPSequence
-                        }
-                    });
+                    if (derivationSourceDataset) {
+                        CurrentRequestedProcedureEvidenceSequence.push({
+                            StudyInstanceUID: derivationSourceDataset.StudyInstanceUID,
+                            ReferencedSeriesSequence: {
+                                SeriesInstanceUID: derivationSourceDataset.SeriesInstanceUID,
+                                ReferencedSOPSequence: measurement.ReferencedSOPSequence
+                            }
+                        });
+                    }
 
                     parsedSOPInstances.push(ReferencedSOPInstanceUID);
                 }
             });
         });
 
-        const ImagingMeasurments = {
+        const ImagingMeasurments: ImagingMeasurementsContainer = {
             RelationshipType: "CONTAINS",
             ValueType: "CONTAINER",
             ConceptNameCodeSequence: {

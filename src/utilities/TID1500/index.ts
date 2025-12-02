@@ -1,5 +1,5 @@
-import TID1500MeasurementReport from "./TID1500MeasurementReport.js";
-import TID1501MeasurementGroup from "./TID1501MeasurementGroup.js";
+import TID1500MeasurementReport from "./TID1500MeasurementReport";
+import TID1501MeasurementGroup from "./TID1501MeasurementGroup";
 
 const TID1500 = {
     TID1500MeasurementReport,
