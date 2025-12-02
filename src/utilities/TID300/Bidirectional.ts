@@ -1,8 +1,34 @@
-import TID300Measurement from "./TID300Measurement.js";
-import unit2CodingValue from "./unit2CodingValue.js";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+import unit2CodingValue from "./unit2CodingValue";
+
+interface PointCoord {
+    x?: number;
+    y?: number;
+    z?: number;
+    0?: number;
+    1?: number;
+    2?: number;
+}
+
+interface Axis {
+    point1: PointCoord;
+    point2: PointCoord;
+}
+
+interface BidirectionalProps extends TID300MeasurementProps {
+    longAxis: Axis;
+    shortAxis: Axis;
+    longAxisLength?: number;
+    shortAxisLength?: number;
+    unit?: string;
+    use3DSpatialCoordinates?: boolean;
+    ReferencedFrameOfReferenceUID?: string;
+}
 
 export default class Bidirectional extends TID300Measurement {
-    contentItem() {
+    declare props: BidirectionalProps;
+
+    contentItem(): ContentSequenceEntry[] {
         const {
             longAxis,
             shortAxis,
