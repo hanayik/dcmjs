@@ -663,6 +663,7 @@ export type {
   ReadInfo,
   DictEntry,
   DicomDict,
+  DicomValue,
   TagHandler,
   HandlersMap,
   ParseLevelState,
