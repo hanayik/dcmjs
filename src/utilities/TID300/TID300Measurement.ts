@@ -1,13 +1,64 @@
 import { DicomMetaDictionary } from "../../DicomMetaDictionary.js";
 import addAccessors from "../addAccessors.js";
 
+interface CodeSequence {
+    CodeValue: string;
+    CodingSchemeDesignator: string;
+    CodeMeaning: string;
+}
+
+interface ContentSequenceEntry {
+    RelationshipType: string;
+    ValueType: string;
+    ConceptNameCodeSequence?: CodeSequence | ReturnType<typeof addAccessors>;
+    ConceptCodeSequence?: CodeSequence | ReturnType<typeof addAccessors>;
+    TextValue?: string;
+    UID?: string;
+    [key: string]: unknown;
+}
+
+interface ReferencedSOPSequenceItem {
+    ReferencedSOPClassUID?: string;
+    ReferencedSOPInstanceUID?: string;
+    ReferencedFrameNumber?: number | number[];
+    [key: string]: unknown;
+}
+
+interface Point2D {
+    x?: number;
+    y?: number;
+    0?: number;
+    1?: number;
+}
+
+interface Point3D extends Point2D {
+    z?: number;
+    2?: number;
+}
+
+interface FlattenPointsParams {
+    points: (Point2D | Point3D)[];
+    use3DSpatialCoordinates?: boolean;
+}
+
+interface TID300MeasurementProps {
+    ReferencedSOPSequence?: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[];
+    trackingIdentifierTextValue?: string;
+    finding?: CodeSequence;
+    findingSites?: CodeSequence[];
+    [key: string]: unknown;
+}
+
 export default class TID300Measurement {
-    constructor(props) {
+    ReferencedSOPSequence: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[] | undefined;
+    props: TID300MeasurementProps;
+
+    constructor(props: TID300MeasurementProps) {
         this.ReferencedSOPSequence = props.ReferencedSOPSequence;
         this.props = props;
     }
 
-    getMeasurement(contentSequenceEntries) {
+    getMeasurement(contentSequenceEntries: ContentSequenceEntry[]): ContentSequenceEntry[] {
         return [
             ...this.getTrackingGroups(),
             ...this.getFindingGroup(),
@@ -16,8 +67,8 @@ export default class TID300Measurement {
         ];
     }
 
-    getTrackingGroups() {
-        let { trackingIdentifierTextValue } = this.props;
+    getTrackingGroups(): ContentSequenceEntry[] {
+        const { trackingIdentifierTextValue } = this.props;
 
         return [
             {
@@ -43,8 +94,8 @@ export default class TID300Measurement {
         ];
     }
 
-    getFindingGroup() {
-        let finding = this.props.finding;
+    getFindingGroup(): ContentSequenceEntry[] {
+        const finding = this.props.finding;
 
         if (!finding) {
             return [];
@@ -70,8 +121,8 @@ export default class TID300Measurement {
         ];
     }
 
-    getFindingSiteGroups() {
-        let findingSites = this.props.findingSites || [];
+    getFindingSiteGroups(): ContentSequenceEntry[] {
+        const findingSites = this.props.findingSites || [];
 
         return findingSites.map((findingSite) => {
             const { CodeValue, CodingSchemeDesignator, CodeMeaning } = findingSite;
@@ -95,19 +146,19 @@ export default class TID300Measurement {
     /**
      * Expands an array of points stored as objects into a flattened array of points
      *
-     * @param param.points [{x: 0, y: 1}, {x: 1, y: 2}] or [{x: 0, y: 1, z: 0}, {x: 1, y: 2, z: 0}]
-     * @param param.use3DSpatialCoordinates boolean: true for 3D points and false for 2D points.
+     * @param params.points [{x: 0, y: 1}, {x: 1, y: 2}] or [{x: 0, y: 1, z: 0}, {x: 1, y: 2, z: 0}]
+     * @param params.use3DSpatialCoordinates boolean: true for 3D points and false for 2D points.
      *
-     * @return {Array} [point1x, point1y, point2x, point2y] or [point1x, point1y, point1z, point2x, point2y, point2z]
+     * @returns [point1x, point1y, point2x, point2y] or [point1x, point1y, point1z, point2x, point2y, point2z]
      */
-    flattenPoints({ points, use3DSpatialCoordinates = false }) {
-        const flattenedCoordinates = [];
+    flattenPoints({ points, use3DSpatialCoordinates = false }: FlattenPointsParams): number[] {
+        const flattenedCoordinates: number[] = [];
 
         points.forEach((point) => {
-            flattenedCoordinates.push(point[0] || point.x);
-            flattenedCoordinates.push(point[1] || point.y);
+            flattenedCoordinates.push(point[0] ?? point.x ?? 0);
+            flattenedCoordinates.push(point[1] ?? point.y ?? 0);
             if (use3DSpatialCoordinates) {
-                flattenedCoordinates.push(point[2] || point.z);
+                flattenedCoordinates.push((point as Point3D)[2] ?? (point as Point3D).z ?? 0);
             }
         });
 
