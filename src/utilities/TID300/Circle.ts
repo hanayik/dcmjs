@@ -1,8 +1,29 @@
-import TID300Measurement from "./TID300Measurement.js";
-import unit2CodingValue from "./unit2CodingValue.js";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+import unit2CodingValue from "./unit2CodingValue";
+
+interface PointCoord {
+    x?: number;
+    y?: number;
+    z?: number;
+    0?: number;
+    1?: number;
+    2?: number;
+}
+
+interface CircleProps extends TID300MeasurementProps {
+    points: PointCoord[];
+    use3DSpatialCoordinates?: boolean;
+    perimeter?: number;
+    area?: number;
+    areaUnit?: string;
+    unit?: string;
+    ReferencedFrameOfReferenceUID?: string;
+}
 
 export default class Circle extends TID300Measurement {
-    contentItem() {
+    declare props: CircleProps;
+
+    contentItem(): ContentSequenceEntry[] {
         const {
             points,
             ReferencedSOPSequence,
