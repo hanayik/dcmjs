@@ -142,3 +142,4 @@ const dicomJson = {
 };
 
 export default dicomJson;
+export type { PersonNameComponents, ValueWithAccessors };
