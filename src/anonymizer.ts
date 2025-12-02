@@ -1,8 +1,24 @@
-import { DicomMetaDictionary } from "./DicomMetaDictionary.js";
-import { Tag } from "./Tag.js";
-import { ValueRepresentation } from "./ValueRepresentation.js";
+import { DicomMetaDictionary, type DictionaryEntry } from "./DicomMetaDictionary";
+import { Tag } from "./Tag";
+import { ValueRepresentation, type DicomTag } from "./ValueRepresentation";
 
-var tagNamesToEmpty = [
+/**
+ * Dictionary mapping tag strings (8 hex digits) to replacement values.
+ * Keys are unpunctuated tag strings like "00100010", values are the replacement string.
+ */
+interface TagReplacementMap {
+    [tagString: string]: string;
+}
+
+/**
+ * Dictionary structure used for anonymization operations.
+ * Maps unpunctuated tag strings (8 hex digits) to DICOM tag objects.
+ */
+interface AnonymizationDict {
+    [tagString: string]: DicomTag;
+}
+
+const tagNamesToEmpty: readonly string[] = [
     // please override these in specificReplaceDefaults to have useful values
     "PatientID",
     "PatientName",
@@ -233,27 +249,43 @@ var tagNamesToEmpty = [
     "ResultComments",
     "DigitalSignaturesSeq",
     "DataSetTrailingPadding"
-];
+] as const;
 
-export function getTagsNameToEmpty() {
+/**
+ * Returns a copy of the list of tag names that will be emptied during anonymization.
+ * @returns Array of tag names to empty
+ */
+export function getTagsNameToEmpty(): string[] {
     return [...tagNamesToEmpty];
 }
 
-export function cleanTags(dict, tagNamesToReplace = undefined, customTagNamesToEmpty = undefined) {
-    if (tagNamesToReplace == undefined) {
+/**
+ * Cleans sensitive tags from a DICOM dictionary by emptying or replacing their values.
+ *
+ * @param dict - The DICOM dictionary to clean (maps tag strings to DicomTag objects)
+ * @param tagNamesToReplace - Optional map of tag strings to replacement values.
+ *                            Defaults to replacing PatientID and PatientName with anonymous values.
+ * @param customTagNamesToEmpty - Optional array of tag names to empty instead of the default list.
+ */
+export function cleanTags(
+    dict: AnonymizationDict,
+    tagNamesToReplace: TagReplacementMap | undefined = undefined,
+    customTagNamesToEmpty: readonly string[] | undefined = undefined
+): void {
+    if (tagNamesToReplace === undefined) {
         tagNamesToReplace = {
             "00100010": "ANON^PATIENT",
             "00100020": "ANON^ID"
         };
     }
-    var tags = customTagNamesToEmpty != undefined ? customTagNamesToEmpty : tagNamesToEmpty;
+    const tags = customTagNamesToEmpty !== undefined ? customTagNamesToEmpty : tagNamesToEmpty;
     tags.forEach(function (tag) {
-        var tagInfo = DicomMetaDictionary.nameMap[tag];
-        if (tagInfo && tagInfo.version != "PrivateTag") {
-            var tagNumber = tagInfo.tag,
-                tagString = Tag.fromPString(tagNumber).toCleanString();
+        const tagInfo: DictionaryEntry | undefined = DicomMetaDictionary.nameMap[tag];
+        if (tagInfo && tagInfo.version !== "PrivateTag") {
+            const tagNumber = tagInfo.tag;
+            const tagString = Tag.fromPString(tagNumber).toCleanString();
             if (dict[tagString]) {
-                var newValue;
+                let newValue: string[];
                 if (tagString in tagNamesToReplace) {
                     newValue = [tagNamesToReplace[tagString]];
                 } else {
