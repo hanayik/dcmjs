@@ -1,8 +1,29 @@
-import TID300Measurement from "./TID300Measurement.js";
-import unit2CodingValue from "./unit2CodingValue.js";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+import unit2CodingValue from "./unit2CodingValue";
+
+interface Point {
+    x?: number;
+    y?: number;
+    z?: number;
+    0?: number;
+    1?: number;
+    2?: number;
+}
+
+interface PolygonProps extends TID300MeasurementProps {
+    points: Point[];
+    perimeter?: number;
+    unit?: string;
+    area?: number;
+    areaUnit?: string;
+    use3DSpatialCoordinates?: boolean;
+    ReferencedFrameOfReferenceUID?: string;
+}
 
 export default class Polygon extends TID300Measurement {
-    contentItem() {
+    declare props: PolygonProps;
+
+    contentItem(): ContentSequenceEntry[] {
         const {
             points,
             perimeter,
