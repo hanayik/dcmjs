@@ -3,16 +3,22 @@ import log from "../../log.js";
 /**
  * Encodes a non-bitpacked frame which has one sample per pixel.
  *
- * @param {*} buffer
- * @param {*} numberOfFrames
- * @param {*} rows
- * @param {*} cols
+ * @param buffer - The source buffer containing pixel data
+ * @param numberOfFrames - Number of frames to encode
+ * @param rows - Number of rows per frame
+ * @param cols - Number of columns per frame
+ * @returns Array of encoded frame buffers
  */
-function encode(buffer, numberOfFrames, rows, cols) {
+function encode(
+    buffer: ArrayBufferLike,
+    numberOfFrames: number,
+    rows: number,
+    cols: number
+): ArrayBuffer[] {
     const frameLength = rows * cols;
 
     const header = createHeader();
-    const encodedFrames = [];
+    const encodedFrames: ArrayBuffer[] = [];
 
     for (let frame = 0; frame < numberOfFrames; frame++) {
         const frameOffset = frameLength * frame;
@@ -23,9 +29,15 @@ function encode(buffer, numberOfFrames, rows, cols) {
     return encodedFrames;
 }
 
-function encodeFrame(buffer, frameOffset, rows, cols, header) {
+function encodeFrame(
+    buffer: ArrayBufferLike,
+    frameOffset: number,
+    rows: number,
+    cols: number,
+    header: Uint32Array
+): ArrayBuffer {
     // Add header to frame:
-    let rleArray = [];
+    let rleArray: number[] = [];
 
     for (let r = 0; r < rows; r++) {
         const rowOffset = r * cols;
@@ -91,7 +103,7 @@ function encodeFrame(buffer, frameOffset, rows, cols, header) {
     return encodedFrameBuffer;
 }
 
-function createHeader() {
+function createHeader(): Uint32Array {
     const headerUint32 = new Uint32Array(16);
 
     headerUint32[0] = 1; // 1 Segment.
@@ -101,7 +113,7 @@ function createHeader() {
     return headerUint32;
 }
 
-function getLiteralRunLength(uint8Row, i) {
+function getLiteralRunLength(uint8Row: Uint8Array, i: number): number {
     for (let l = 0; l < uint8Row.length - i; l++) {
         if (uint8Row[i + l] === uint8Row[i + l + 1] && uint8Row[i + l + 1] === uint8Row[i + l + 2]) {
             return l;
@@ -114,7 +126,7 @@ function getLiteralRunLength(uint8Row, i) {
     return uint8Row.length - i;
 }
 
-function getReplicateRunLength(uint8Row, i) {
+function getReplicateRunLength(uint8Row: Uint8Array, i: number): number {
     const first = uint8Row[i];
     for (let l = 1; l < uint8Row.length - i; l++) {
         if (uint8Row[i + l] !== first) {
@@ -129,7 +141,7 @@ function getReplicateRunLength(uint8Row, i) {
     return uint8Row.length - i;
 }
 
-function decode(rleEncodedFrames, rows, cols) {
+function decode(rleEncodedFrames: ArrayBuffer[], rows: number, cols: number): Uint8Array {
     const pixelData = new Uint8Array(rows * cols * rleEncodedFrames.length);
     const buffer = pixelData.buffer;
     const frameLength = rows * cols;
@@ -145,7 +157,7 @@ function decode(rleEncodedFrames, rows, cols) {
     return pixelData;
 }
 
-function decodeFrame(rleEncodedFrame, pixelData) {
+function decodeFrame(rleEncodedFrame: ArrayBuffer, pixelData: Uint8Array): void {
     // Check HEADER:
     const header = new Uint32Array(rleEncodedFrame, 0, 16);
 
