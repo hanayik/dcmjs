@@ -1,10 +1,10 @@
-import TID300Measurement from "./TID300Measurement.js";
-import Point from "./Point.js";
-import Length from "./Length.js";
+import TID300Measurement from "./TID300Measurement";
+import Point from "./Point";
+import Length from "./Length";
 import CobbAngle from "./CobbAngle";
-import Bidirectional from "./Bidirectional.js";
-import Polyline from "./Polyline.js";
-import Polygon from "./Polygon.js";
+import Bidirectional from "./Bidirectional";
+import Polyline from "./Polyline";
+import Polygon from "./Polygon";
 import Ellipse from "./Ellipse";
 import Circle from "./Circle";
 import Calibration from "./Calibration";
@@ -67,17 +67,17 @@ import unit2CodingValue from "./unit2CodingValue";
 // Should specify the Angle measured in Degrees, including the units in UCUM
 //
 const TID300 = {
-    TID300Measurement,
-    Point,
-    Length,
-    CobbAngle,
-    Bidirectional,
-    Polyline,
-    Polygon,
-    Ellipse,
-    Circle,
-    Calibration,
-    unit2CodingValue
+  TID300Measurement,
+  Point,
+  Length,
+  CobbAngle,
+  Bidirectional,
+  Polyline,
+  Polygon,
+  Ellipse,
+  Circle,
+  Calibration,
+  unit2CodingValue,
 };
 
 export { TID300Measurement, Length };

@@ -40,7 +40,7 @@ const measurementMap: MeasurementMap = {
     "px\xB2": NO2_UNIT
 };
 
-interface Unit2CodingValueFunction {
+export interface Unit2CodingValueFunction {
     (units: string | undefined | null): CodingValue;
     measurementMap: MeasurementMap;
 }
