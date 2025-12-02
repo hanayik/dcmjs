@@ -1,19 +1,107 @@
 import BitArray from "../../bitArray.js";
 import Colors from "../../colors.js";
 
-// TODO: Is there a better name for this? RGBAInt?
-// Should we move it to Colors.js
-function dicomlab2RGBA(cielab) {
-    const rgba = Colors.dicomlab2RGB(cielab).map((x) => Math.round(x * 255));
-    rgba.push(255);
+/** 3D vector as [x, y, z] */
+type Vec3 = [number, number, number];
 
-    return rgba;
+/** RGBA color with values 0-255 */
+type RGBA = [number, number, number, number];
+
+/** DICOM LAB color as [L, a, b] with values scaled to 0-65535 */
+type DICOMLAB = [number, number, number];
+
+/** Plane position sequence containing ImagePositionPatient */
+interface PlanePositionSequence {
+    ImagePositionPatient: (string | number)[];
 }
 
-// TODO: Copied these functions in from VTK Math so we don't need a dependency.
-// I guess we should put them somewhere
-// https://github.com/Kitware/vtk-js/blob/master/Sources/Common/Core/Math/index.js
-function cross(x, y, out) {
+/** Segment identification within a functional group */
+interface SegmentIdentificationSequence {
+    ReferencedSegmentNumber: number;
+}
+
+/** Per-frame functional group structure */
+interface PerFrameFunctionalGroup {
+    PlanePositionSequence: PlanePositionSequence;
+    SegmentIdentificationSequence: SegmentIdentificationSequence;
+}
+
+/** Pixel measures in shared functional groups */
+interface PixelMeasuresSequence {
+    PixelSpacing: (string | number)[];
+    SpacingBetweenSlices: string | number;
+}
+
+/** Plane orientation in shared functional groups */
+interface PlaneOrientationSequence {
+    ImageOrientationPatient: (string | number)[];
+}
+
+/** Shared functional groups structure */
+interface SharedFunctionalGroups {
+    PixelMeasuresSequence: PixelMeasuresSequence;
+    PlaneOrientationSequence: PlaneOrientationSequence;
+}
+
+/** Segment definition from SegmentSequence */
+interface SegmentDefinition {
+    SegmentNumber: number;
+    RecommendedDisplayCIELabValue: DICOMLAB;
+}
+
+/** Segmentation DICOM dataset structure */
+interface SegmentationDataset {
+    SegmentSequence: SegmentDefinition | SegmentDefinition[];
+    SharedFunctionalGroupsSequence: SharedFunctionalGroups;
+    PerFrameFunctionalGroupsSequence: PerFrameFunctionalGroup[];
+    Columns: number;
+    Rows: number;
+    PixelData: ArrayLike<number>;
+}
+
+/** Geometry information for volume reconstruction */
+interface Geometry {
+    origin: number[];
+    spacing: number[];
+    dimensions: number[];
+    planeNormal: number[];
+    sliceStep: number[];
+    direction: number[];
+}
+
+/** Result segment with geometry and pixel data */
+interface SegmentResult {
+    color: RGBA;
+    functionalGroups: PerFrameFunctionalGroup[];
+    offset: number | null;
+    size: number | null;
+    pixelData: Uint8Array | null;
+    numberOfFrames?: number;
+    geometry?: Geometry;
+}
+
+/** Map of segment numbers to segment results */
+interface SegmentsMap {
+    [segmentNumber: number]: SegmentResult;
+}
+
+/**
+ * Converts DICOM LAB color to RGBA with values 0-255.
+ * @param cielab - DICOM LAB color values
+ * @returns RGBA color with values 0-255
+ */
+function dicomlab2RGBA(cielab: DICOMLAB): RGBA {
+    const rgb = Colors.dicomlab2RGB(cielab).map((x) => Math.round(x * 255));
+    return [rgb[0], rgb[1], rgb[2], 255];
+}
+
+/**
+ * Computes cross product of two 3D vectors.
+ * @param x - First vector
+ * @param y - Second vector
+ * @param out - Output vector to store result
+ */
+function cross(x: Vec3, y: Vec3, out: number[]): void {
     const Zx = x[1] * y[2] - x[2] * y[1];
     const Zy = x[2] * y[0] - x[0] * y[2];
     const Zz = x[0] * y[1] - x[1] * y[0];
@@ -22,25 +110,41 @@ function cross(x, y, out) {
     out[2] = Zz;
 }
 
-function norm(x, n = 3) {
+/**
+ * Computes the norm (magnitude) of a vector.
+ * @param x - Input vector or scalar
+ * @param n - Dimension of the vector (default 3)
+ * @returns The norm of the vector
+ */
+function norm(x: number | number[], n = 3): number {
     switch (n) {
         case 1:
-            return Math.abs(x);
-        case 2:
-            return Math.sqrt(x[0] * x[0] + x[1] * x[1]);
-        case 3:
-            return Math.sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2]);
+            return Math.abs(x as number);
+        case 2: {
+            const v2 = x as number[];
+            return Math.sqrt(v2[0] * v2[0] + v2[1] * v2[1]);
+        }
+        case 3: {
+            const v3 = x as number[];
+            return Math.sqrt(v3[0] * v3[0] + v3[1] * v3[1] + v3[2] * v3[2]);
+        }
         default: {
+            const v = x as number[];
             let sum = 0;
             for (let i = 0; i < n; i++) {
-                sum += x[i] * x[i];
+                sum += v[i] * v[i];
             }
             return Math.sqrt(sum);
         }
     }
 }
 
-function normalize(x) {
+/**
+ * Normalizes a 3D vector in place.
+ * @param x - Vector to normalize (modified in place)
+ * @returns The original magnitude of the vector
+ */
+function normalize(x: number[]): number {
     const den = norm(x);
     if (den !== 0.0) {
         x[0] /= den;
@@ -50,16 +154,37 @@ function normalize(x) {
     return den;
 }
 
-function subtract(a, b, out) {
+/**
+ * Subtracts two 3D vectors.
+ * @param a - First vector
+ * @param b - Second vector
+ * @param out - Output vector to store result
+ */
+function subtract(a: number[], b: number[], out: number[]): void {
     out[0] = a[0] - b[0];
     out[1] = a[1] - b[1];
     out[2] = a[2] - b[2];
 }
 
-// TODO: This is a useful utility on its own. We should move it somewhere?
-// dcmjs.adapters.vtk.Multiframe? dcmjs.utils?
-function geometryFromFunctionalGroups(dataset, PerFrameFunctionalGroups) {
-    const geometry = {};
+/**
+ * Extracts geometry information from DICOM functional groups.
+ * @param dataset - The segmentation dataset
+ * @param PerFrameFunctionalGroups - Array of per-frame functional groups
+ * @returns Geometry information for volume reconstruction
+ */
+function geometryFromFunctionalGroups(
+    dataset: SegmentationDataset,
+    PerFrameFunctionalGroups: PerFrameFunctionalGroup[]
+): Geometry {
+    const geometry: Geometry = {
+        origin: [],
+        spacing: [],
+        dimensions: [],
+        planeNormal: [],
+        sliceStep: [],
+        direction: []
+    };
+
     const pixelMeasures = dataset.SharedFunctionalGroupsSequence.PixelMeasuresSequence;
     const planeOrientation = dataset.SharedFunctionalGroupsSequence.PlaneOrientationSequence;
 
@@ -85,14 +210,11 @@ function geometryFromFunctionalGroups(dataset, PerFrameFunctionalGroups) {
     geometry.dimensions = [dataset.Columns, dataset.Rows, PerFrameFunctionalGroups.length].map(Number);
 
     const orientation = planeOrientation.ImageOrientationPatient.map(Number);
-    const columnStepToPatient = orientation.slice(0, 3);
-    const rowStepToPatient = orientation.slice(3, 6);
-
-    geometry.planeNormal = [];
+    const columnStepToPatient = orientation.slice(0, 3) as Vec3;
+    const rowStepToPatient = orientation.slice(3, 6) as Vec3;
 
     cross(columnStepToPatient, rowStepToPatient, geometry.planeNormal);
 
-    geometry.sliceStep = [];
     subtract(lastPosition, firstPosition, geometry.sliceStep);
     normalize(geometry.sliceStep);
     geometry.direction = columnStepToPatient.concat(rowStepToPatient).concat(geometry.sliceStep);
@@ -138,16 +260,17 @@ export default class Segmentation {
      *    actors.push(actor);
      * });
      *
-     * @param dataset
-     * @return {{}}
+     * @param dataset - The DICOM Segmentation dataset
+     * @returns Map of segment numbers to segment results with geometry and pixel data
      */
-    static generateSegments(dataset) {
-        if (dataset.SegmentSequence.constructor.name !== "Array") {
-            dataset.SegmentSequence = [dataset.SegmentSequence];
+    static generateSegments(dataset: SegmentationDataset): SegmentsMap {
+        let segmentSequence = dataset.SegmentSequence;
+        if (!Array.isArray(segmentSequence)) {
+            segmentSequence = [segmentSequence];
         }
 
-        const segments = {};
-        dataset.SegmentSequence.forEach((segment) => {
+        const segments: SegmentsMap = {};
+        segmentSequence.forEach((segment) => {
             // TODO: other interesting fields could be extracted from the segment
             // TODO: Read SegmentsOverlay field
             // http://dicom.nema.org/medical/dicom/current/output/chtml/part03/sect_C.8.20.2.html
@@ -177,7 +300,8 @@ export default class Segmentation {
         const frameSize = Math.ceil((dataset.Rows * dataset.Columns) / 8);
         let nextOffset = 0;
 
-        Object.keys(segments).forEach((segmentNumber) => {
+        Object.keys(segments).forEach((segmentNumberStr) => {
+            const segmentNumber = Number(segmentNumberStr);
             const segment = segments[segmentNumber];
 
             segment.numberOfFrames = segment.functionalGroups.length;
@@ -186,7 +310,7 @@ export default class Segmentation {
 
             nextOffset = segment.offset + segment.size;
 
-            const packedSegment = dataset.PixelData.slice(segment.offset, nextOffset);
+            const packedSegment = (dataset.PixelData as Uint8Array).slice(segment.offset, nextOffset);
 
             segment.pixelData = BitArray.unpack(packedSegment);
 
