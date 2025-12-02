@@ -1,38 +1,145 @@
 import dictionary from "./dictionary";
-import log from "./log.js";
+import log from "./log";
 import addAccessors from "./utilities/addAccessors";
-import { ValueRepresentation } from "./ValueRepresentation";
+import { ValueRepresentation, type VRType } from "./ValueRepresentation";
+
+/** Structure of a dictionary entry */
+interface DictionaryEntry {
+    tag: string;
+    vr?: VRType;
+    name?: string;
+    vm?: string;
+    version?: string;
+}
+
+/** Dictionary mapping tag strings to their entries */
+interface Dictionary {
+    [tag: string]: DictionaryEntry;
+}
+
+/** Name map mapping natural names to their dictionary entries */
+interface NameMap {
+    [name: string]: DictionaryEntry;
+}
+
+/** SOP Class name/UID mappings */
+interface SopClassNamesByUID {
+    [uid: string]: string;
+}
+
+interface SopClassUIDsByName {
+    [name: string]: string;
+}
+
+/** VR map for tracking original value representations */
+interface VRMap {
+    [name: string]: VRType;
+}
+
+/** DICOM JSON model data item (denaturalized format) */
+interface DicomJsonDataItem {
+    vr: VRType;
+    Value?: DicomJsonValue[];
+    InlineBinary?: string;
+    BulkDataURI?: string;
+}
+
+/** DICOM JSON model dataset (denaturalized format) - maps unpunctuated tags to data items */
+interface DicomJsonDataset {
+    [tag: string]: DicomJsonDataItem;
+}
+
+/** Possible value types in a naturalized dataset */
+type NaturalizedValue =
+    | string
+    | number
+    | null
+    | NaturalizedDataset
+    | NaturalizedDataset[]
+    | string[]
+    | (number | null)[]
+    | ArrayBuffer
+    | ArrayBuffer[]
+    | InlineBinaryValue
+    | BulkDataURIValue
+    | Record<string, string | undefined>[];
+
+/** Inline binary representation in naturalized form */
+interface InlineBinaryValue {
+    InlineBinary: string;
+}
+
+/** Bulk data URI representation in naturalized form */
+interface BulkDataURIValue {
+    BulkDataURI: string;
+}
+
+/** Naturalized dataset with natural property names */
+interface NaturalizedDataset {
+    _vrMap: VRMap;
+    _meta?: NaturalizedDataset;
+    [name: string]: NaturalizedValue | VRMap | NaturalizedDataset | undefined;
+}
+
+/** Value types in DICOM JSON model */
+type DicomJsonValue =
+    | string
+    | number
+    | DicomJsonDataset
+    | Record<string, string | undefined>
+    | ArrayBuffer
+    | null;
+
+/** Input value for denaturalization */
+type DenaturalizeInputValue =
+    | string
+    | number
+    | null
+    | undefined
+    | NaturalizedDataset
+    | (string | number | null | NaturalizedDataset | undefined)[];
 
 class DicomMetaDictionary {
+    customDictionary: Dictionary;
+    customNameMap: NameMap;
+
+    // Static properties (initialized after class definition)
+    static dictionary: Dictionary;
+    static nameMap: NameMap;
+    static sopClassNamesByUID: SopClassNamesByUID;
+    static sopClassUIDsByName: SopClassUIDsByName;
+
     // intakes a custom dictionary that will be used to parse/denaturalize the dataset
-    constructor(customDictionary) {
+    constructor(customDictionary: Dictionary) {
         this.customDictionary = customDictionary;
         this.customNameMap = DicomMetaDictionary._generateCustomNameMap(customDictionary);
     }
 
-    static punctuateTag(rawTag) {
+    static punctuateTag(rawTag: string): string | undefined {
         if (rawTag.indexOf(",") !== -1) {
             return rawTag;
         }
-        if (rawTag.length === 8 && rawTag === rawTag.match(/[0-9a-fA-F]*/)[0]) {
+        const matchResult = rawTag.match(/[0-9a-fA-F]*/);
+        if (rawTag.length === 8 && matchResult && rawTag === matchResult[0]) {
             const tag = rawTag.toUpperCase();
             return `(${tag.substring(0, 4)},${tag.substring(4, 8)})`;
         }
+        return undefined;
     }
 
-    static unpunctuateTag(tag) {
+    static unpunctuateTag(tag: string): string {
         if (tag.indexOf(",") === -1) {
             return tag;
         }
         return tag.substring(1, 10).replace(",", "");
     }
 
-    static parseIntFromTag(tag) {
+    static parseIntFromTag(tag: string): number {
         const integerValue = parseInt(DicomMetaDictionary.unpunctuateTag(tag), 16);
         return integerValue;
     }
 
-    static tagAsIntegerFromName(name) {
+    static tagAsIntegerFromName(name: string): number | undefined {
         const item = DicomMetaDictionary.nameMap[name];
         if (item !== undefined) {
             return DicomMetaDictionary.parseIntFromTag(item.tag);
@@ -44,25 +151,34 @@ class DicomMetaDictionary {
     // fixes some common errors in VRs
     // TODO: if this gets longer it could go in ValueRepresentation.js
     // or in a dedicated class
-    static cleanDataset(dataset) {
-        const cleanedDataset = {};
+    static cleanDataset(dataset: DicomJsonDataset): DicomJsonDataset {
+        const cleanedDataset: DicomJsonDataset = {};
         Object.keys(dataset).forEach((tag) => {
-            const data = Object.assign({}, dataset[tag]);
+            const data: DicomJsonDataItem = Object.assign({}, dataset[tag]);
             if (data.vr === "SQ") {
-                const cleanedValues = [];
-                Object.keys(data.Value).forEach((index) => {
-                    cleanedValues.push(DicomMetaDictionary.cleanDataset(data.Value[index]));
-                });
+                const cleanedValues: DicomJsonDataset[] = [];
+                if (data.Value) {
+                    Object.keys(data.Value).forEach((index) => {
+                        cleanedValues.push(
+                            DicomMetaDictionary.cleanDataset(data.Value![Number(index)] as DicomJsonDataset)
+                        );
+                    });
+                }
                 data.Value = cleanedValues;
             } else {
                 // remove null characters from strings
-                data.Value = Object.keys(data.Value).map((index) => {
-                    const item = data.Value[index];
-                    if (item.constructor.name === "String") {
-                        return item.replace(/\0/, "");
-                    }
-                    return item;
-                });
+                if (data.Value) {
+                    data.Value = Object.keys(data.Value).map((index) => {
+                        const item = data.Value![Number(index)];
+                        if (item !== null && typeof item === "object" && item.constructor.name === "String") {
+                            return (item as unknown as string).replace(/\0/, "");
+                        }
+                        if (typeof item === "string") {
+                            return item.replace(/\0/, "");
+                        }
+                        return item;
+                    });
+                }
             }
             cleanedDataset[tag] = data;
         });
@@ -72,21 +188,25 @@ class DicomMetaDictionary {
     // unlike naturalizeDataset, this only
     // changes the names of the member variables
     // but leaves the values intact
-    static namifyDataset(dataset) {
-        var namedDataset = {};
+    static namifyDataset(dataset: DicomJsonDataset): Record<string, DicomJsonDataItem> {
+        const namedDataset: Record<string, DicomJsonDataItem> = {};
         Object.keys(dataset).forEach((tag) => {
-            const data = Object.assign({}, dataset[tag]);
+            const data: DicomJsonDataItem = Object.assign({}, dataset[tag]);
             if (data.vr === "SQ") {
-                const namedValues = [];
-                Object.keys(data.Value).forEach((index) => {
-                    namedValues.push(DicomMetaDictionary.namifyDataset(data.Value[index]));
-                });
-                data.Value = namedValues;
+                const namedValues: Record<string, DicomJsonDataItem>[] = [];
+                if (data.Value) {
+                    Object.keys(data.Value).forEach((index) => {
+                        namedValues.push(
+                            DicomMetaDictionary.namifyDataset(data.Value![Number(index)] as DicomJsonDataset)
+                        );
+                    });
+                }
+                data.Value = namedValues as unknown as DicomJsonValue[];
             }
-            var punctuatedTag = DicomMetaDictionary.punctuateTag(tag);
-            var entry = DicomMetaDictionary.dictionary[punctuatedTag];
-            var name = tag;
-            if (entry) {
+            const punctuatedTag = DicomMetaDictionary.punctuateTag(tag);
+            const entry = punctuatedTag ? DicomMetaDictionary.dictionary[punctuatedTag] : undefined;
+            let name = tag;
+            if (entry && entry.name) {
                 name = entry.name;
             }
             namedDataset[name] = data;
@@ -101,18 +221,18 @@ class DicomMetaDictionary {
      *     proxy for the child values, see addAccessors for examples
      * - object member names are dictionary, not group/element tag
      */
-    static naturalizeDataset(dataset) {
+    static naturalizeDataset(dataset: DicomJsonDataset): NaturalizedDataset {
         const naturalDataset = ValueRepresentation.addTagAccessors({
-            _vrMap: {}
-        });
+            _vrMap: {} as VRMap
+        }) as NaturalizedDataset;
 
         Object.keys(dataset).forEach((tag) => {
             const data = dataset[tag];
             const punctuatedTag = DicomMetaDictionary.punctuateTag(tag);
-            const entry = DicomMetaDictionary.dictionary[punctuatedTag];
+            const entry = punctuatedTag ? DicomMetaDictionary.dictionary[punctuatedTag] : undefined;
             let naturalName = tag;
 
-            if (entry) {
+            if (entry && entry.name) {
                 naturalName = entry.name;
 
                 if (entry.vr === "ox") {
@@ -141,23 +261,29 @@ class DicomMetaDictionary {
             } else {
                 if (data.vr === "SQ") {
                     // convert sequence to list of values
-                    const naturalValues = [];
+                    const naturalValues: NaturalizedDataset[] = [];
 
                     Object.keys(data.Value).forEach((index) => {
-                        naturalValues.push(DicomMetaDictionary.naturalizeDataset(data.Value[index]));
+                        naturalValues.push(
+                            DicomMetaDictionary.naturalizeDataset(data.Value![Number(index)] as DicomJsonDataset)
+                        );
                     });
 
                     naturalDataset[naturalName] = naturalValues;
                 } else {
-                    naturalDataset[naturalName] = data.Value;
+                    naturalDataset[naturalName] = data.Value as unknown as NaturalizedValue;
                 }
 
-                if (naturalDataset[naturalName].length === 1) {
-                    const sqZero = naturalDataset[naturalName][0];
-                    if (sqZero && typeof sqZero === "object" && !sqZero.length) {
-                        naturalDataset[naturalName] = addAccessors(naturalDataset[naturalName], sqZero);
+                const currentValue = naturalDataset[naturalName];
+                if (Array.isArray(currentValue) && currentValue.length === 1) {
+                    const sqZero = currentValue[0];
+                    if (sqZero && typeof sqZero === "object" && !Array.isArray(sqZero) && !("length" in sqZero)) {
+                        naturalDataset[naturalName] = addAccessors(
+                            currentValue as object[],
+                            sqZero as object
+                        ) as unknown as NaturalizedValue;
                     } else {
-                        naturalDataset[naturalName] = sqZero;
+                        naturalDataset[naturalName] = sqZero as NaturalizedValue;
                     }
                 }
             }
@@ -166,10 +292,10 @@ class DicomMetaDictionary {
         return naturalDataset;
     }
 
-    static denaturalizeValue(naturalValue) {
-        let value = naturalValue;
-        if (!Array.isArray(value)) {
-            value = [value];
+    static denaturalizeValue(naturalValue: DenaturalizeInputValue): (string | number | DicomJsonDataset | null)[] {
+        let value: (string | number | null | NaturalizedDataset | undefined)[];
+        if (!Array.isArray(naturalValue)) {
+            value = [naturalValue];
         } else {
             const thereIsUndefinedValues = naturalValue.some((item) => item === undefined);
             if (thereIsUndefinedValues) {
@@ -177,26 +303,39 @@ class DicomMetaDictionary {
                     "There are undefined values at the array naturalValue in DicomMetaDictionary.denaturalizeValue"
                 );
             }
+            value = naturalValue;
         }
 
-        value = value.map((entry) => (entry.constructor.name === "Number" ? String(entry) : entry));
+        const result = value.map((entry) => {
+            if (entry !== null && entry !== undefined && typeof entry === "object" && "constructor" in entry && entry.constructor.name === "Number") {
+                // Handle boxed Number objects - get primitive value first
+                return String((entry as unknown as { valueOf(): number }).valueOf());
+            }
+            if (typeof entry === "number") {
+                return String(entry);
+            }
+            return entry as string | DicomJsonDataset | null;
+        });
 
-        return value;
+        return result;
     }
 
     // denaturalizes dataset using custom dictionary and nameMap
-    denaturalizeDataset(dataset) {
+    denaturalizeDataset(dataset: NaturalizedDataset): DicomJsonDataset {
         return DicomMetaDictionary.denaturalizeDataset(dataset, this.customNameMap);
     }
 
     // keep the static function to support previous calls to the class
-    static denaturalizeDataset(dataset, nameMap = DicomMetaDictionary.nameMap) {
-        var unnaturalDataset = {};
+    static denaturalizeDataset(
+        dataset: NaturalizedDataset,
+        nameMap: NameMap = DicomMetaDictionary.nameMap
+    ): DicomJsonDataset {
+        const unnaturalDataset: DicomJsonDataset = {};
         Object.keys(dataset).forEach((naturalName) => {
             // check if it's a sequence
-            var name = naturalName;
-            var entry = nameMap[name];
-            if (entry) {
+            const name = naturalName;
+            const entry = nameMap[name];
+            if (entry && entry.vr) {
                 const dataValue = dataset[naturalName];
 
                 if (dataValue === undefined) {
@@ -204,11 +343,12 @@ class DicomMetaDictionary {
                     return;
                 }
                 // process this one entry
-                const vr = dataset._vrMap?.[naturalName] ? dataset._vrMap[naturalName] : entry.vr;
+                const vrFromMap = dataset._vrMap?.[naturalName];
+                const vr: VRType = vrFromMap ? vrFromMap : entry.vr;
 
-                const dataItem = ValueRepresentation.addTagAccessors({ vr });
+                const dataItem = ValueRepresentation.addTagAccessors({ vr }) as DicomJsonDataItem;
 
-                dataItem.Value = dataset[naturalName];
+                dataItem.Value = dataset[naturalName] as DicomJsonValue[];
 
                 if (dataValue !== null) {
                     if (entry.vr === "ox") {
@@ -219,27 +359,29 @@ class DicomMetaDictionary {
                         }
                     }
 
-                    const vr = ValueRepresentation.createByTypeString(dataItem.vr);
+                    const vrInstance = ValueRepresentation.createByTypeString(dataItem.vr);
 
-                    dataItem.Value = DicomMetaDictionary.denaturalizeValue(dataItem.Value);
+                    dataItem.Value = DicomMetaDictionary.denaturalizeValue(
+                        dataItem.Value as unknown as DenaturalizeInputValue
+                    );
 
                     if (entry.vr === "SQ") {
-                        const unnaturalValues = [];
+                        const unnaturalValues: DicomJsonDataset[] = [];
                         for (let datasetIndex = 0; datasetIndex < dataItem.Value.length; datasetIndex++) {
-                            const nestedDataset = dataItem.Value[datasetIndex];
+                            const nestedDataset = dataItem.Value[datasetIndex] as unknown as NaturalizedDataset;
                             unnaturalValues.push(DicomMetaDictionary.denaturalizeDataset(nestedDataset, nameMap));
                         }
                         dataItem.Value = unnaturalValues;
                     }
 
-                    if (!vr.isBinary() && vr.maxLength) {
+                    if (!vrInstance.isBinary() && vrInstance.maxLength) {
                         dataItem.Value = dataItem.Value.map((value) => {
-                            let maxLength = vr.maxLength;
-                            if (vr.rangeMatchingMaxLength) {
-                                maxLength = vr.rangeMatchingMaxLength;
+                            let maxLength = vrInstance.maxLength!;
+                            if (vrInstance.rangeMatchingMaxLength) {
+                                maxLength = vrInstance.rangeMatchingMaxLength;
                             }
 
-                            if (value.length > maxLength) {
+                            if (typeof value === "string" && value.length > maxLength) {
                                 log.warn(
                                     `Truncating value ${value} of ${naturalName} because it is longer than ${maxLength}`
                                 );
@@ -263,7 +405,7 @@ class DicomMetaDictionary {
         return unnaturalDataset;
     }
 
-    static uid() {
+    static uid(): string {
         let uid = "2.25." + Math.floor(1 + Math.random() * 9);
         for (let index = 0; index < 38; index++) {
             uid = uid + Math.floor(Math.random() * 10);
@@ -272,47 +414,47 @@ class DicomMetaDictionary {
     }
 
     // date and time in UTC
-    static date() {
+    static date(): string {
         const now = new Date();
         return now.toISOString().replace(/-/g, "").slice(0, 8);
     }
 
-    static time() {
+    static time(): string {
         const now = new Date();
         return now.toISOString().replace(/:/g, "").slice(11, 17);
     }
 
-    static dateTime() {
+    static dateTime(): string {
         // "2017-07-07T16:09:18.079Z" -> "20170707160918.079"
         const now = new Date();
         return now.toISOString().replace(/[:\-TZ]/g, "");
     }
 
-    static _generateNameMap() {
+    static _generateNameMap(): void {
         DicomMetaDictionary.nameMap = {};
         Object.keys(DicomMetaDictionary.dictionary).forEach((tag) => {
-            var dict = DicomMetaDictionary.dictionary[tag];
-            if (dict.version !== "PrivateTag") {
+            const dict = DicomMetaDictionary.dictionary[tag];
+            if (dict.version !== "PrivateTag" && dict.name) {
                 DicomMetaDictionary.nameMap[dict.name] = dict;
             }
         });
     }
 
-    static _generateCustomNameMap(dictionary) {
-        const nameMap = {};
+    static _generateCustomNameMap(dictionary: Dictionary): NameMap {
+        const nameMap: NameMap = {};
         Object.keys(dictionary).forEach((tag) => {
             const dict = dictionary[tag];
-            if (dict.version !== "PrivateTag") {
+            if (dict.version !== "PrivateTag" && dict.name) {
                 nameMap[dict.name] = dict;
             }
         });
         return nameMap;
     }
 
-    static _generateUIDMap() {
+    static _generateUIDMap(): void {
         DicomMetaDictionary.sopClassUIDsByName = {};
         Object.keys(DicomMetaDictionary.sopClassNamesByUID).forEach((uid) => {
-            var name = DicomMetaDictionary.sopClassNamesByUID[uid];
+            const name = DicomMetaDictionary.sopClassNamesByUID[uid];
             DicomMetaDictionary.sopClassUIDsByName[name] = uid;
         });
     }
@@ -353,9 +495,23 @@ DicomMetaDictionary.sopClassNamesByUID = {
     "1.2.840.10008.5.1.4.1.1.77.1.5.4": "OphthalmicTomographyImage"
 };
 
-DicomMetaDictionary.dictionary = dictionary;
+DicomMetaDictionary.dictionary = dictionary as Dictionary;
 
 DicomMetaDictionary._generateNameMap();
 DicomMetaDictionary._generateUIDMap();
 
 export { DicomMetaDictionary };
+export type {
+    DictionaryEntry,
+    Dictionary,
+    NameMap,
+    VRMap,
+    DicomJsonDataItem,
+    DicomJsonDataset,
+    NaturalizedDataset,
+    NaturalizedValue,
+    InlineBinaryValue,
+    BulkDataURIValue,
+    SopClassNamesByUID,
+    SopClassUIDsByName
+};
