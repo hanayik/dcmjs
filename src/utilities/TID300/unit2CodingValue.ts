@@ -1,20 +1,27 @@
 import log from "../../log.js";
 
-const MM_UNIT = {
+interface CodingValue {
+    CodeValue: string;
+    CodingSchemeDesignator: string;
+    CodingSchemeVersion: string;
+    CodeMeaning: string;
+}
+
+const MM_UNIT: CodingValue = {
     CodeValue: "mm",
     CodingSchemeDesignator: "UCUM",
     CodingSchemeVersion: "1.4",
     CodeMeaning: "millimeter"
 };
 
-const MM2_UNIT = {
+const MM2_UNIT: CodingValue = {
     CodeValue: "mm2",
     CodingSchemeDesignator: "UCUM",
     CodingSchemeVersion: "1.4",
     CodeMeaning: "SquareMilliMeter"
 };
 
-const NO_UNIT = {
+const NO_UNIT: CodingValue = {
     CodeValue: "1",
     CodingSchemeDesignator: "UCUM",
     CodingSchemeVersion: "1.4",
@@ -23,7 +30,9 @@ const NO_UNIT = {
 
 const NO2_UNIT = NO_UNIT;
 
-const measurementMap = {
+type MeasurementMap = Record<string, CodingValue>;
+
+const measurementMap: MeasurementMap = {
     px: NO_UNIT,
     mm: MM_UNIT,
     mm2: MM2_UNIT,
@@ -31,11 +40,16 @@ const measurementMap = {
     "px\xB2": NO2_UNIT
 };
 
+interface Unit2CodingValueFunction {
+    (units: string | undefined | null): CodingValue;
+    measurementMap: MeasurementMap;
+}
+
 /** Converts the given unit into the
  * specified coding values.
  * Has .measurementMap on the function specifying global units for measurements.
  */
-const unit2CodingValue = (units) => {
+const unit2CodingValue: Unit2CodingValueFunction = ((units: string | undefined | null): CodingValue => {
     if (!units) return NO_UNIT;
     const space = units.indexOf(" ");
     const baseUnit = space === -1 ? units : units.substring(0, space);
@@ -45,7 +59,7 @@ const unit2CodingValue = (units) => {
         return MM_UNIT;
     }
     return codingUnit;
-};
+}) as Unit2CodingValueFunction;
 
 unit2CodingValue.measurementMap = measurementMap;
 
