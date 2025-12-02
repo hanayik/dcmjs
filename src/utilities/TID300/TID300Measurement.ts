@@ -7,21 +7,28 @@ interface CodeSequence {
     CodeMeaning: string;
 }
 
-interface ContentSequenceEntry {
+export interface ReferencedSOPSequenceItem {
+    ReferencedSOPClassUID?: string;
+    ReferencedSOPInstanceUID?: string;
+    ReferencedFrameNumber?: number | number[];
+}
+
+export interface ContentSequenceEntry {
     RelationshipType: string;
     ValueType: string;
     ConceptNameCodeSequence?: CodeSequence | ReturnType<typeof addAccessors>;
     ConceptCodeSequence?: CodeSequence | ReturnType<typeof addAccessors>;
     TextValue?: string;
     UID?: string;
-    [key: string]: unknown;
-}
-
-interface ReferencedSOPSequenceItem {
-    ReferencedSOPClassUID?: string;
-    ReferencedSOPInstanceUID?: string;
-    ReferencedFrameNumber?: number | number[];
-    [key: string]: unknown;
+    MeasuredValueSequence?: {
+        MeasurementUnitsCodeSequence: unknown;
+        NumericValue: number | undefined;
+    };
+    ContentSequence?: ContentSequenceEntry | undefined;
+    GraphicType?: string;
+    GraphicData?: number[];
+    ReferencedFrameOfReferenceUID?: string;
+    ReferencedSOPSequence?: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[];
 }
 
 interface Point2D {
@@ -41,12 +48,11 @@ interface FlattenPointsParams {
     use3DSpatialCoordinates?: boolean;
 }
 
-interface TID300MeasurementProps {
+export interface TID300MeasurementProps {
     ReferencedSOPSequence?: ReferencedSOPSequenceItem | ReferencedSOPSequenceItem[];
     trackingIdentifierTextValue?: string;
     finding?: CodeSequence;
     findingSites?: CodeSequence[];
-    [key: string]: unknown;
 }
 
 export default class TID300Measurement {

@@ -1,4 +1,4 @@
-type ProxiedArray<T extends object> = T[] & T & { __isProxy?: boolean };
+type ProxiedArray<T extends object> = T[] & T;
 
 const handler: ProxyHandler<object[]> = {
     /**
@@ -8,15 +8,15 @@ const handler: ProxyHandler<object[]> = {
      */
     get: (target: object[], prop: string | symbol): unknown => {
         if (prop === "__isProxy") return true;
-        if (prop in target) return (target as Record<string | symbol, unknown>)[prop];
+        if (prop in target) return (target as unknown as Record<string | symbol, unknown>)[prop];
         return (target[0] as Record<string | symbol, unknown>)[prop];
     },
 
     set: (obj: object[], prop: string | symbol, value: unknown): boolean => {
         if (typeof prop === "string" && !isNaN(Number(prop))) {
-            (obj as Record<string | symbol, unknown>)[prop] = value;
+            (obj as unknown as Record<string | symbol, unknown>)[prop] = value;
         } else if (prop in obj) {
-            (obj as Record<string | symbol, unknown>)[prop] = value;
+            (obj as unknown as Record<string | symbol, unknown>)[prop] = value;
         } else {
             (obj[0] as Record<string | symbol, unknown>)[prop] = value;
         }
@@ -49,7 +49,7 @@ const addAccessors = <T extends object>(
     dest: T | T[] | ProxiedArray<T>,
     sqZero?: T
 ): T | T[] | ProxiedArray<T> => {
-    if ((dest as ProxiedArray<T>).__isProxy) return dest;
+    if (typeof dest === "object" && dest !== null && "__isProxy" in dest && dest.__isProxy) return dest;
     let itemZero = sqZero;
     if (itemZero === undefined) {
         if (typeof dest !== "object") return dest;
