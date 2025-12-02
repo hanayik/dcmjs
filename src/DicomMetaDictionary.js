@@ -28,7 +28,7 @@ class DicomMetaDictionary {
     }
 
     static parseIntFromTag(tag) {
-        const integerValue = parseInt(`0x${DicomMetaDictionary.unpunctuateTag(tag)}`, 10);
+        const integerValue = parseInt(DicomMetaDictionary.unpunctuateTag(tag), 16);
         return integerValue;
     }
 

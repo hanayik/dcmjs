@@ -1450,24 +1450,26 @@ describe("Save original non-standard VR and check dataset after denaturalized", 
     }
     DicomMetaDictionary._generateNameMap();
 
-    const dataset = dcmjs.data.DicomMetaDictionary.naturalizeDataset(dicomTagsWithNonStandardVr.dict);
+    it("preserves non-standard VR in _vrMap and restores it after denaturalization", () => {
+        const dataset = dcmjs.data.DicomMetaDictionary.naturalizeDataset(dicomTagsWithNonStandardVr.dict);
 
-    expect(Object.keys(dataset._vrMap)).toContain("PatientComments");
-    expect(dataset._vrMap.PatientComments).not.toEqual(DicomMetaDictionary.nameMap.PatientComments.vr);
-    expect(dataset._vrMap.PatientComments).toEqual("LO");
+        expect(Object.keys(dataset._vrMap)).toContain("PatientComments");
+        expect(dataset._vrMap.PatientComments).not.toEqual(DicomMetaDictionary.nameMap.PatientComments.vr);
+        expect(dataset._vrMap.PatientComments).toEqual("LO");
 
-    dataset.VOILUTSequence.forEach((sequenceItem) => {
-        expect(sequenceItem._vrMap).toBeDefined();
-        expect(Object.keys(sequenceItem._vrMap).length).toBe(1);
-        expect(sequenceItem._vrMap.LUTData).toBe("OW"); // saved origin vr in _vrMap (by standard in addedCustomDictionaryNameMap is US)
-    });
+        dataset.VOILUTSequence.forEach((sequenceItem) => {
+            expect(sequenceItem._vrMap).toBeDefined();
+            expect(Object.keys(sequenceItem._vrMap).length).toBe(1);
+            expect(sequenceItem._vrMap.LUTData).toBe("OW"); // saved origin vr in _vrMap (by standard in addedCustomDictionaryNameMap is US)
+        });
 
-    const denaturalizedDataset = dcmjs.data.DicomMetaDictionary.denaturalizeDataset(dataset);
+        const denaturalizedDataset = dcmjs.data.DicomMetaDictionary.denaturalizeDataset(dataset);
 
-    expect(denaturalizedDataset["00104000"].vr).toBe("LO");
+        expect(denaturalizedDataset["00104000"].vr).toBe("LO");
 
-    denaturalizedDataset["00283010"].Value.forEach((sequenceItem) => {
-        expect(sequenceItem["00283006"].vr).toBe("OW");
+        denaturalizedDataset["00283010"].Value.forEach((sequenceItem) => {
+            expect(sequenceItem["00283006"].vr).toBe("OW");
+        });
     });
 });
 
