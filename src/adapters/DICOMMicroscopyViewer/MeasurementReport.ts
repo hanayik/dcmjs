@@ -288,7 +288,7 @@ export default class MeasurementReport {
         graphicType: string;
         toolType: string;
         utilityToolType: string;
-        TID300Representation: new (args: unknown) => TID300Instance;
+        TID300Representation: new (args: Record<string, unknown>) => TID300Instance;
         getMeasurementData(measurementContent: MeasurementContentItem[]): number[][] | number[][][];
         getTID300RepresentationArguments(scoord3d: Scoord3d): TID300RepresentationArguments;
     }): void {
