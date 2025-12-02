@@ -10,10 +10,10 @@ export { flipMatrix2D };
 /**
  * flipMatrix2D.h - Flips a 2D matrix in the horizontal direction.
  *
- * @param  {Ndarry} matrix The matrix to flip.
- * @return {Ndarry}   The flipped matrix.
+ * @param matrix - The matrix to flip.
+ * @returns The flipped matrix.
  */
-function h(matrix: NdArray) {
+function h(matrix: NdArray<Uint8Array>): NdArray<Uint8Array> {
     const [rows, cols] = matrix.shape;
 
     const result = ndarray(new Uint8Array(rows * cols), [rows, cols]);
@@ -28,12 +28,12 @@ function h(matrix: NdArray) {
 }
 
 /**
- * flipMatrix2D.h - Flips a 2D matrix in the vertical direction.
+ * flipMatrix2D.v - Flips a 2D matrix in the vertical direction.
  *
- * @param  {Ndarry} matrix The matrix to flip.
- * @return {Ndarry}   The flipped matrix.
+ * @param matrix - The matrix to flip.
+ * @returns The flipped matrix.
  */
-function v(matrix: NdArray) {
+function v(matrix: NdArray<Uint8Array>): NdArray<Uint8Array> {
     const [rows, cols] = matrix.shape;
 
     const result = ndarray(new Uint8Array(rows * cols), [rows, cols]);
