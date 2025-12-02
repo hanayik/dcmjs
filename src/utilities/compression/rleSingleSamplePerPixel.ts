@@ -9,12 +9,7 @@ import log from "../../log.js";
  * @param cols - Number of columns per frame
  * @returns Array of encoded frame buffers
  */
-function encode(
-    buffer: ArrayBufferLike,
-    numberOfFrames: number,
-    rows: number,
-    cols: number
-): ArrayBuffer[] {
+function encode(buffer: ArrayBufferLike, numberOfFrames: number, rows: number, cols: number): ArrayBuffer[] {
     const frameLength = rows * cols;
 
     const header = createHeader();

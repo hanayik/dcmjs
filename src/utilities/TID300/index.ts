@@ -67,17 +67,17 @@ import unit2CodingValue from "./unit2CodingValue";
 // Should specify the Angle measured in Degrees, including the units in UCUM
 //
 const TID300 = {
-  TID300Measurement,
-  Point,
-  Length,
-  CobbAngle,
-  Bidirectional,
-  Polyline,
-  Polygon,
-  Ellipse,
-  Circle,
-  Calibration,
-  unit2CodingValue,
+    TID300Measurement,
+    Point,
+    Length,
+    CobbAngle,
+    Bidirectional,
+    Polyline,
+    Polygon,
+    Ellipse,
+    Circle,
+    Calibration,
+    unit2CodingValue
 };
 
 export { TID300Measurement, Length };

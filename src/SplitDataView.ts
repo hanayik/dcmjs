@@ -75,14 +75,9 @@ export default class SplitDataView {
      * @param buffer - The buffer or typed array to add
      * @param options - Options for adding the buffer
      */
-    addBuffer(
-        buffer: ArrayBufferLike | ArrayBufferView,
-        options: AddBufferOptions | null = null
-    ): void {
+    addBuffer(buffer: ArrayBufferLike | ArrayBufferView, options: AddBufferOptions | null = null): void {
         const arrayBuffer: ArrayBufferLike =
-            buffer instanceof ArrayBuffer || buffer instanceof SharedArrayBuffer
-                ? buffer
-                : buffer.buffer;
+            buffer instanceof ArrayBuffer || buffer instanceof SharedArrayBuffer ? buffer : buffer.buffer;
         const start = options?.start || 0;
         const end = options?.end || arrayBuffer.byteLength;
         const transfer = options?.transfer;
@@ -90,12 +85,8 @@ export default class SplitDataView {
             return;
         }
         const addBuffer = transfer ? arrayBuffer : arrayBuffer.slice(start, end);
-        const lastOffset = this.offsets.length
-            ? this.offsets[this.offsets.length - 1]
-            : 0;
-        const lastLength = this.buffers.length
-            ? this.buffers[this.buffers.length - 1]?.byteLength ?? 0
-            : 0;
+        const lastOffset = this.offsets.length ? this.offsets[this.offsets.length - 1] : 0;
+        const lastLength = this.buffers.length ? (this.buffers[this.buffers.length - 1]?.byteLength ?? 0) : 0;
         this.buffers.push(addBuffer);
         this.views.push(new DataView(addBuffer));
         this.offsets.push(lastOffset + lastLength);
@@ -119,9 +110,7 @@ export default class SplitDataView {
         }
         let index = this.findStart(start);
         if (index === undefined) {
-            throw new Error(
-                `Start ${start} out of range of 0...${this.byteLength}`
-            );
+            throw new Error(`Start ${start} out of range of 0...${this.byteLength}`);
         }
         let buffer = this.buffers[index];
         if (!buffer) {
@@ -141,14 +130,8 @@ export default class SplitDataView {
             offset = this.offsets[index];
 
             const bufStart = start + offsetStart - offset;
-            const addLength = Math.min(
-                end - start - offsetStart,
-                length - bufStart
-            );
-            createBuffer.set(
-                new Uint8Array(buffer, bufStart, addLength),
-                offsetStart
-            );
+            const addLength = Math.min(end - start - offsetStart, length - bufStart);
+            createBuffer.set(new Uint8Array(buffer, bufStart, addLength), offsetStart);
             offsetStart += addLength;
             index++;
         }
@@ -157,10 +140,7 @@ export default class SplitDataView {
 
     findStart(start: number = 0): number | undefined {
         for (let index = 0; index < this.buffers.length; index++) {
-            if (
-                start >= this.offsets[index] &&
-                start < this.offsets[index] + this.buffers[index].byteLength
-            ) {
+            if (start >= this.offsets[index] && start < this.offsets[index] + this.buffers[index].byteLength) {
                 return index;
             }
         }
@@ -199,9 +179,7 @@ export default class SplitDataView {
         let index = this.findStart(start);
         let offset = 0;
         const dataBuffer: ArrayBufferLike =
-            data instanceof ArrayBuffer || data instanceof SharedArrayBuffer
-                ? data
-                : data.buffer;
+            data instanceof ArrayBuffer || data instanceof SharedArrayBuffer ? data : data.buffer;
         while (offset < dataBuffer.byteLength) {
             const buffer = this.buffers[index!];
             if (!buffer) {
@@ -209,10 +187,7 @@ export default class SplitDataView {
             }
             const bufferOffset = this.offsets[index!];
             const startWrite = start + offset - bufferOffset;
-            const writeLen = Math.min(
-                buffer.byteLength - startWrite,
-                dataBuffer.byteLength - offset
-            );
+            const writeLen = Math.min(buffer.byteLength - startWrite, dataBuffer.byteLength - offset);
             const byteBuffer = new Uint8Array(buffer, startWrite, writeLen);
             const setData = new Uint8Array(dataBuffer, offset, writeLen);
             byteBuffer.set(setData);

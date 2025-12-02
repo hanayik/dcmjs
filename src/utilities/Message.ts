@@ -5,11 +5,7 @@
  * @param limit - maximum number of array items that should be extracted (defaults to length of array)
  * @returns converted string
  */
-function uint8ArrayToString(
-    arr: Uint8Array,
-    offset?: number,
-    limit?: number
-): string {
+function uint8ArrayToString(arr: Uint8Array, offset?: number, limit?: number): string {
     const effectiveOffset = offset || 0;
     const effectiveLimit = limit || arr.length - effectiveOffset;
     let str = "";
@@ -55,11 +51,7 @@ function identifyBoundary(header: string): string | undefined {
  * @param offset - offset in message content from where search should start
  * @returns whether message contains token at offset
  */
-function containsToken(
-    message: Uint8Array,
-    token: Uint8Array,
-    offset: number = 0
-): boolean {
+function containsToken(message: Uint8Array, token: Uint8Array, offset: number = 0): boolean {
     if (offset + token.length > message.length) {
         return false;
     }
@@ -81,12 +73,7 @@ function containsToken(
  * @param maxSearchLength - maximum length to search
  * @returns index of token if found, -1 otherwise
  */
-function findToken(
-    message: Uint8Array,
-    token: Uint8Array,
-    offset: number = 0,
-    maxSearchLength?: number
-): number {
+function findToken(message: Uint8Array, token: Uint8Array, offset: number = 0, maxSearchLength?: number): number {
     let searchLength = message.length;
     if (maxSearchLength) {
         searchLength = Math.min(offset + maxSearchLength, message.length);
@@ -227,12 +214,7 @@ function multipartDecode(response: ArrayBuffer): ArrayBuffer[] {
         components.push(data);
 
         // find the end of the boundary
-        const boundaryEnd = findToken(
-            message,
-            separator,
-            boundaryIndex + 1,
-            maxSearchLength
-        );
+        const boundaryEnd = findToken(message, separator, boundaryIndex + 1, maxSearchLength);
         if (boundaryEnd === -1) break;
         // Move the offset to the end of the identified boundary
         offset = boundaryEnd + separator.length;
@@ -252,20 +234,7 @@ function guid(): string {
             .toString(16)
             .substring(1);
     }
-    return (
-        s4() +
-        s4() +
-        "-" +
-        s4() +
-        "-" +
-        s4() +
-        "-" +
-        s4() +
-        "-" +
-        s4() +
-        s4() +
-        s4()
-    );
+    return s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4();
 }
 
 interface MessageUtilities {

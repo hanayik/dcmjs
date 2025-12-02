@@ -163,7 +163,11 @@ class Tag {
 
         // VR subclasses have different writeBytes signatures - use polymorphic call
         const vrWithWriteBytes = vr as unknown as {
-            writeBytes(stream: WriteBufferStream, value: DicomValue, ...args: (TransferSyntax | boolean | WriteOptions | undefined)[]): number;
+            writeBytes(
+                stream: WriteBufferStream,
+                value: DicomValue,
+                ...args: (TransferSyntax | boolean | WriteOptions | undefined)[]
+            ): number;
         };
 
         if (vrType === "OW" || vrType === "OB" || vrType === "UN") {

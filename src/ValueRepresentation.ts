@@ -1,11 +1,5 @@
 import { BufferStream, ReadBufferStream, WriteBufferStream } from "./BufferStream";
-import {
-    PADDING_NULL,
-    PADDING_SPACE,
-    PN_COMPONENT_DELIMITER,
-    UNDEFINED_LENGTH,
-    VM_DELIMITER
-} from "./constants/dicom";
+import { PADDING_NULL, PADDING_SPACE, PN_COMPONENT_DELIMITER, UNDEFINED_LENGTH, VM_DELIMITER } from "./constants/dicom";
 import { DicomMetaDictionary } from "./DicomMetaDictionary.js";
 import { log, validationLog } from "./log";
 import dicomJson, { type PersonNameComponents } from "./utilities/dicomJson";
@@ -61,7 +55,12 @@ interface TagConstructor {
 /** Interface for DicomMessage class (to avoid circular imports) */
 interface DicomMessageInterface {
     _read(stream: ReadBufferStream, syntax: TransferSyntax): DicomDataset;
-    write(dataset: DicomDataset, stream: WriteBufferStream, syntax: TransferSyntax, writeOptions?: WriteOptions): number;
+    write(
+        dataset: DicomDataset,
+        stream: WriteBufferStream,
+        syntax: TransferSyntax,
+        writeOptions?: WriteOptions
+    ): number;
     isEncapsulated(syntax: TransferSyntax): boolean;
 }
 
@@ -124,13 +123,21 @@ const tagProxyHandler: ProxyHandler<DicomTag> = {
         let vrType: ValueRepresentation | undefined;
         const propStr = String(prop);
 
-        if (["values", "Value"].includes(propStr) && target.vr && ValueRepresentation.hasValueAccessors(target.vr as VRType)) {
+        if (
+            ["values", "Value"].includes(propStr) &&
+            target.vr &&
+            ValueRepresentation.hasValueAccessors(target.vr as VRType)
+        ) {
             vrType = ValueRepresentation.createByTypeString(target.vr as VRType);
         } else if (
             propStr in (DicomMetaDictionary as unknown as { nameMap: NameMap }).nameMap &&
-            ValueRepresentation.hasValueAccessors((DicomMetaDictionary as unknown as { nameMap: NameMap }).nameMap[propStr].vr)
+            ValueRepresentation.hasValueAccessors(
+                (DicomMetaDictionary as unknown as { nameMap: NameMap }).nameMap[propStr].vr
+            )
         ) {
-            vrType = ValueRepresentation.createByTypeString((DicomMetaDictionary as unknown as { nameMap: NameMap }).nameMap[propStr].vr);
+            vrType = ValueRepresentation.createByTypeString(
+                (DicomMetaDictionary as unknown as { nameMap: NameMap }).nameMap[propStr].vr
+            );
         } else {
             (target as Record<string | symbol, unknown>)[prop] = value;
             return true;
@@ -248,7 +255,7 @@ class ValueRepresentation {
     static addTagAccessors<T extends DicomTag>(tag: T): T {
         const vrValue = tag.vr;
         let vrType: VRType | undefined;
-        if (typeof vrValue === 'object' && vrValue !== null) {
+        if (typeof vrValue === "object" && vrValue !== null) {
             vrType = (vrValue as { type?: VRType }).type;
         } else {
             vrType = vrValue;
@@ -296,7 +303,12 @@ class ValueRepresentation {
         return values;
     }
 
-    read(stream: ReadBufferStream, length: number, syntax: TransferSyntax, readOptions: ReadOptions = { forceStoreRaw: false }): ReadResult<DicomValue> {
+    read(
+        stream: ReadBufferStream,
+        length: number,
+        syntax: TransferSyntax,
+        readOptions: ReadOptions = { forceStoreRaw: false }
+    ): ReadResult<DicomValue> {
         if (this.fixed && this.maxLength) {
             if (!length)
                 return {
@@ -359,7 +371,9 @@ class ValueRepresentation {
         } else {
             const written: number[] = [];
             const valueArgs = values;
-            const func = (stream as unknown as Record<string, (...args: (string | number | null)[]) => number>)["write" + type];
+            const func = (stream as unknown as Record<string, (...args: (string | number | null)[]) => number>)[
+                "write" + type
+            ];
             if (Array.isArray(valueArgs[0])) {
                 if ((valueArgs[0] as unknown[]).length < 1) {
                     written.push(0);
@@ -368,7 +382,9 @@ class ValueRepresentation {
                         if (this.allowMultiple() && k > 0) {
                             stream.writeUint8(VM_DELIMITER);
                         }
-                        const singularArgs = [v as string | number | null].concat((valueArgs.slice(1) as (string | number | null)[]));
+                        const singularArgs = [v as string | number | null].concat(
+                            valueArgs.slice(1) as (string | number | null)[]
+                        );
                         const byteCount = func.apply(stream, singularArgs);
                         written.push(byteCount);
                     });
@@ -380,7 +396,12 @@ class ValueRepresentation {
         }
     }
 
-    protected _writeBytes(stream: WriteBufferStream, value: DicomValue, lengths: number[], writeOptions: WriteOptions = { allowInvalidVRLength: false }): number {
+    protected _writeBytes(
+        stream: WriteBufferStream,
+        value: DicomValue,
+        lengths: number[],
+        writeOptions: WriteOptions = { allowInvalidVRLength: false }
+    ): number {
         const { allowInvalidVRLength } = writeOptions;
         let valid = true;
         const valarr = Array.isArray(value) ? value : [value];
@@ -405,9 +426,10 @@ class ValueRepresentation {
             }
 
             if (!valid) {
-                const valueStr = typeof checkValue === "object" && checkValue !== null
-                    ? JSON.stringify(checkValue)
-                    : String(checkValue);
+                const valueStr =
+                    typeof checkValue === "object" && checkValue !== null
+                        ? JSON.stringify(checkValue)
+                        : String(checkValue);
                 const errmsg = `Value exceeds max length, vr: ${this.type}, value: ${valueStr}, length: ${displaylen}`;
                 if (isString) log.info(errmsg);
                 else throw new Error(errmsg);
@@ -502,7 +524,13 @@ class BinaryRepresentation extends ValueRepresentation {
         this._storeRaw = false;
     }
 
-    writeBytes(stream: WriteBufferStream, value: BinaryData[] | null | undefined, _syntax: TransferSyntax, isEncapsulated: boolean, writeOptions: WriteOptions = {}): number {
+    writeBytes(
+        stream: WriteBufferStream,
+        value: BinaryData[] | null | undefined,
+        _syntax: TransferSyntax,
+        isEncapsulated: boolean,
+        writeOptions: WriteOptions = {}
+    ): number {
         let i: number;
         let binaryStream: WriteBufferStream;
         const { fragmentMultiframe = true } = writeOptions;
@@ -773,7 +801,7 @@ class DateValue extends AsciiStringRepresentation {
     }
 
     override checkLength(value: string): boolean {
-        if (typeof value === "string" || Object.prototype.toString.call(value) === '[object String]') {
+        if (typeof value === "string" || Object.prototype.toString.call(value) === "[object String]") {
             const isRangeQuery = value.includes("-");
             return value.length <= (isRangeQuery ? this.rangeMatchingMaxLength : this.maxLength!);
         }
@@ -845,8 +873,14 @@ class DecimalString extends NumericStringRepresentation {
         return str;
     }
 
-    override writeBytes(stream: WriteBufferStream, value: number | string | (number | string)[] | null, writeOptions?: WriteOptions): number {
-        const val = Array.isArray(value) ? value.map((ds) => this.convertToString(ds as number | string | null)) : [this.convertToString(value)];
+    override writeBytes(
+        stream: WriteBufferStream,
+        value: number | string | (number | string)[] | null,
+        writeOptions?: WriteOptions
+    ): number {
+        const val = Array.isArray(value)
+            ? value.map((ds) => this.convertToString(ds as number | string | null))
+            : [this.convertToString(value)];
         // Call parent class writeBytes (AsciiStringRepresentation)
         return AsciiStringRepresentation.prototype.writeBytes.call(this, stream, val, writeOptions);
     }
@@ -863,7 +897,7 @@ class DateTime extends AsciiStringRepresentation {
     }
 
     override checkLength(value: string): boolean {
-        if (typeof value === "string" || Object.prototype.toString.call(value) === '[object String]') {
+        if (typeof value === "string" || Object.prototype.toString.call(value) === "[object String]") {
             const isRangeQuery = value.includes("-");
             return value.length <= (isRangeQuery ? this.rangeMatchingMaxLength : this.maxLength!);
         }
@@ -940,8 +974,14 @@ class IntegerString extends NumericStringRepresentation {
         return value === null ? "" : String(value);
     }
 
-    override writeBytes(stream: WriteBufferStream, value: number | string | (number | string)[] | null, writeOptions?: WriteOptions): number {
-        const val = Array.isArray(value) ? value.map((is) => this.convertToString(is as number | string | null)) : [this.convertToString(value)];
+    override writeBytes(
+        stream: WriteBufferStream,
+        value: number | string | (number | string)[] | null,
+        writeOptions?: WriteOptions
+    ): number {
+        const val = Array.isArray(value)
+            ? value.map((is) => this.convertToString(is as number | string | null))
+            : [this.convertToString(value)];
         // Call parent class writeBytes (AsciiStringRepresentation)
         return AsciiStringRepresentation.prototype.writeBytes.call(this, stream, val, writeOptions);
     }
@@ -1019,10 +1059,12 @@ class PersonName extends EncodedStringRepresentation {
             // "Ideographic", "Phonetic".
             // http://dicom.nema.org/medical/dicom/current/output/chtml/part18/sect_F.2.2.html
             for (const pnValue of value) {
-                const components = Object.keys(pnValue).map((key) => (pnValue as Record<string, string | undefined>)[key]);
+                const components = Object.keys(pnValue).map(
+                    (key) => (pnValue as Record<string, string | undefined>)[key]
+                );
                 if (!PersonName.checkComponentLengths(components)) return false;
             }
-        } else if (typeof value === "string" || Object.prototype.toString.call(value) === '[object String]') {
+        } else if (typeof value === "string" || Object.prototype.toString.call(value) === "[object String]") {
             // In DICOM Part10, components are encoded as a string,
             // where components ("Alphabetic", "Ideographic", "Phonetic")
             // are separated by the "=" delimeter.
@@ -1045,7 +1087,8 @@ class PersonName extends EncodedStringRepresentation {
     }
 
     override applyFormatting(value: DicomValue): PersonNameComponents | PersonNameComponents[] {
-        const parsePersonName = (valueStr: string): PersonNameComponents | PersonNameComponents[] => dicomJson.pnConvertToJsonObject(valueStr);
+        const parsePersonName = (valueStr: string): PersonNameComponents | PersonNameComponents[] =>
+            dicomJson.pnConvertToJsonObject(valueStr);
 
         if (Array.isArray(value)) {
             return (value as string[]).map((valueStr) => parsePersonName(valueStr) as PersonNameComponents);
@@ -1056,7 +1099,9 @@ class PersonName extends EncodedStringRepresentation {
 
     override writeBytes(stream: WriteBufferStream, value: PersonNameValue, writeOptions?: WriteOptions): number {
         // Convert PersonName to string before writing
-        const stringValue = dicomJson.pnObjectToString(value as string | PersonNameComponents | PersonNameComponents[] | undefined);
+        const stringValue = dicomJson.pnObjectToString(
+            value as string | PersonNameComponents | PersonNameComponents[] | undefined
+        );
         // Call parent class writeBytes (EncodedStringRepresentation)
         return EncodedStringRepresentation.prototype.writeBytes.call(this, stream, stringValue, writeOptions);
     }
@@ -1202,7 +1247,12 @@ class SequenceOfItems extends ValueRepresentation {
         }
     }
 
-    writeBytes(stream: WriteBufferStream, value: DicomDataset[] | null | undefined, syntax: TransferSyntax, writeOptions?: WriteOptions): number {
+    writeBytes(
+        stream: WriteBufferStream,
+        value: DicomDataset[] | null | undefined,
+        syntax: TransferSyntax,
+        writeOptions?: WriteOptions
+    ): number {
         let written = 0;
 
         if (value) {
@@ -1283,7 +1333,7 @@ class TimeValue extends AsciiStringRepresentation {
     }
 
     override checkLength(value: string): boolean {
-        if (typeof value === "string" || Object.prototype.toString.call(value) === '[object String]') {
+        if (typeof value === "string" || Object.prototype.toString.call(value) === "[object String]") {
             const isRangeQuery = value.includes("-");
             return value.length <= (isRangeQuery ? this.rangeMatchingMaxLength : this.maxLength!);
         }
@@ -1433,7 +1483,12 @@ class ParsedUnknownValue extends BinaryRepresentation {
         this._storeRaw = true;
     }
 
-    override read(stream: ReadBufferStream, length: number, syntax: TransferSyntax, readOptions?: ReadOptions): ReadResult<DicomValue> {
+    override read(
+        stream: ReadBufferStream,
+        length: number,
+        syntax: TransferSyntax,
+        readOptions?: ReadOptions
+    ): ReadResult<DicomValue> {
         const arrayBuffer = this.readBytes(stream, length)[0] as ArrayBuffer;
         const streamFromBuffer = new ReadBufferStream(arrayBuffer, true);
         const vr = ValueRepresentation.createByTypeString(this.type);

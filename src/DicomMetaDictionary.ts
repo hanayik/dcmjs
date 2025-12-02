@@ -82,13 +82,7 @@ interface NaturalizedDataset {
 }
 
 /** Value types in DICOM JSON model */
-type DicomJsonValue =
-    | string
-    | number
-    | DicomJsonDataset
-    | Record<string, string | undefined>
-    | ArrayBuffer
-    | null;
+type DicomJsonValue = string | number | DicomJsonDataset | Record<string, string | undefined> | ArrayBuffer | null;
 
 /** Input value for denaturalization */
 type DenaturalizeInputValue =
@@ -307,7 +301,13 @@ class DicomMetaDictionary {
         }
 
         const result = value.map((entry) => {
-            if (entry !== null && entry !== undefined && typeof entry === "object" && "constructor" in entry && entry.constructor.name === "Number") {
+            if (
+                entry !== null &&
+                entry !== undefined &&
+                typeof entry === "object" &&
+                "constructor" in entry &&
+                entry.constructor.name === "Number"
+            ) {
                 // Handle boxed Number objects - get primitive value first
                 return String((entry as unknown as { valueOf(): number }).valueOf());
             }

@@ -18,12 +18,7 @@ interface DicomTagEntry {
 
 /** Interface for DicomMessage class methods needed by DicomDict */
 interface DicomMessageClass {
-    write(
-        dataset: DicomDataset,
-        stream: WriteBufferStream,
-        syntax: string,
-        writeOptions?: WriteOptions
-    ): number;
+    write(dataset: DicomDataset, stream: WriteBufferStream, syntax: string, writeOptions?: WriteOptions): number;
     writeTagObject(
         stream: WriteBufferStream,
         tagString: string,

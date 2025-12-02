@@ -45,10 +45,7 @@ const handler: ProxyHandler<object[]> = {
  * assert src[0].c === 'outerChange'
  * assert src.b === 'innerChange'
  */
-const addAccessors = <T extends object>(
-    dest: T | T[] | ProxiedArray<T>,
-    sqZero?: T
-): T | T[] | ProxiedArray<T> => {
+const addAccessors = <T extends object>(dest: T | T[] | ProxiedArray<T>, sqZero?: T): T | T[] | ProxiedArray<T> => {
     if (typeof dest === "object" && dest !== null && "__isProxy" in dest && dest.__isProxy) return dest;
     let itemZero = sqZero;
     if (itemZero === undefined) {

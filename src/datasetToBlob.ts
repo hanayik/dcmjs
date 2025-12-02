@@ -1,9 +1,5 @@
 import { DicomDict } from "./DicomDict.js";
-import {
-    DicomMetaDictionary,
-    type NaturalizedDataset,
-    type VRMap
-} from "./DicomMetaDictionary.js";
+import { DicomMetaDictionary, type NaturalizedDataset, type VRMap } from "./DicomMetaDictionary.js";
 
 /**
  * Represents a potential DICOM JSON value holder.
@@ -34,8 +30,7 @@ function datasetToDict(dataset: NaturalizedDataset): DicomDict {
         MediaStorageSOPInstanceUID: dataset.SOPInstanceUID,
         ImplementationVersionName: "dcmjs-0.0",
         TransferSyntaxUID,
-        ImplementationClassUID:
-            "2.25.80302813137786398554742050926734630921603366648225212145404",
+        ImplementationClassUID: "2.25.80302813137786398554742050926734630921603366648225212145404",
         FileMetaInformationVersion: fileMetaInformationVersionArray.buffer
     };
 

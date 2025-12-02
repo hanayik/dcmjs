@@ -68,12 +68,12 @@ interface ImageLibraryContainer {
 
 type ContentSequenceItem =
     | {
-        RelationshipType: string;
-        ValueType: string;
-        ConceptNameCodeSequence: CodeSequence | ReturnType<typeof addAccessors>;
-        ConceptCodeSequence: CodeSequence | ReturnType<typeof addAccessors>;
-        ContentSequence?: ContentSequenceItem | ReturnType<typeof addAccessors>;
-    }
+          RelationshipType: string;
+          ValueType: string;
+          ConceptNameCodeSequence: CodeSequence | ReturnType<typeof addAccessors>;
+          ConceptCodeSequence: CodeSequence | ReturnType<typeof addAccessors>;
+          ContentSequence?: ContentSequenceItem | ReturnType<typeof addAccessors>;
+      }
     | PersonObserverNameItem
     | ImageLibraryContainer
     | ImagingMeasurementsContainer;

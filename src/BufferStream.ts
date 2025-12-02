@@ -69,17 +69,11 @@ class BufferStream {
         this.isLittleEndian = isLittle;
     }
 
-    slice(
-        start: number = this.startOffset,
-        end: number = this.endOffset ?? this.size
-    ): ArrayBufferLike | undefined {
+    slice(start: number = this.startOffset, end: number = this.endOffset ?? this.size): ArrayBufferLike | undefined {
         return this.view.slice(start, end);
     }
 
-    getBuffer(
-        start: number = 0,
-        end: number = this.size
-    ): Uint8Array | ArrayBufferLike | undefined {
+    getBuffer(start: number = 0, end: number = this.size): Uint8Array | ArrayBufferLike | undefined {
         if (this.noCopy) {
             const sliced = this.slice(start, end);
             return sliced ? new Uint8Array(sliced) : undefined;
@@ -486,11 +480,7 @@ class DeflatedReadBufferStream extends ReadBufferStream {
     constructor(stream: DeflatedStreamInput, options?: ReadBufferStreamOptions) {
         const buffer = stream.getBuffer(stream.offset, stream.size);
         const inflatedBuffer = pako.inflateRaw(buffer as Uint8Array);
-        super(
-            inflatedBuffer.buffer,
-            stream.littleEndian ?? stream.isLittleEndian,
-            options
-        );
+        super(inflatedBuffer.buffer, stream.littleEndian ?? stream.isLittleEndian, options);
     }
 }
 

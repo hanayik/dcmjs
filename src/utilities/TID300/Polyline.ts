@@ -1,4 +1,8 @@
-import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps, type PointCoord } from "./TID300Measurement";
+import TID300Measurement, {
+    type ContentSequenceEntry,
+    type TID300MeasurementProps,
+    type PointCoord
+} from "./TID300Measurement";
 import unit2CodingValue from "./unit2CodingValue";
 
 interface PolylineProps extends TID300MeasurementProps {

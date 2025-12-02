@@ -1,4 +1,8 @@
-import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps, type PointCoord } from "./TID300Measurement";
+import TID300Measurement, {
+    type ContentSequenceEntry,
+    type TID300MeasurementProps,
+    type PointCoord
+} from "./TID300Measurement";
 
 interface PointProps extends TID300MeasurementProps {
     points: PointCoord[];

@@ -1,12 +1,7 @@
 import log from "./log.js";
 
 /** Supported DICOMweb endpoint types */
-type EndpointType =
-    | "wado"
-    | "patients"
-    | "studies"
-    | "series"
-    | "instances";
+type EndpointType = "wado" | "patients" | "studies" | "series" | "instances";
 
 /** Response types for different endpoints */
 type ResponseType = "arraybuffer" | "json";
@@ -92,9 +87,7 @@ class DICOMWEB {
         const services: Partial<Record<EndpointType, string>> = {
             wado: ""
         };
-        return Object.keys(services).indexOf(endpoint) != -1
-            ? (services[endpoint] as string)
-            : "rs/";
+        return Object.keys(services).indexOf(endpoint) != -1 ? (services[endpoint] as string) : "rs/";
     }
 
     static randomEntry<T>(array: T[]): T {
@@ -147,9 +140,7 @@ class DICOMWEB {
     }
 
     studies(patientID: string): Promise<DICOMStudy[]> {
-        return this.request("studies", { PatientID: patientID }) as Promise<
-            DICOMStudy[]
-        >;
+        return this.request("studies", { PatientID: patientID }) as Promise<DICOMStudy[]>;
     }
 
     series(studyInstanceUID: string): Promise<DICOMSeries[]> {
@@ -158,21 +149,14 @@ class DICOMWEB {
         }) as Promise<DICOMSeries[]>;
     }
 
-    instances(
-        studyInstanceUID: string,
-        seriesInstanceUID: string
-    ): Promise<DICOMInstance[]> {
+    instances(studyInstanceUID: string, seriesInstanceUID: string): Promise<DICOMInstance[]> {
         return this.request("instances", {
             StudyInstanceUID: studyInstanceUID,
             SeriesInstanceUID: seriesInstanceUID
         }) as Promise<DICOMInstance[]>;
     }
 
-    instance(
-        studyInstanceUID: string,
-        seriesInstanceUID: string,
-        sopInstanceUID: string
-    ): Promise<ArrayBuffer> {
+    instance(studyInstanceUID: string, seriesInstanceUID: string, sopInstanceUID: string): Promise<ArrayBuffer> {
         return this.request("wado", {
             requestType: "WADO",
             studyUID: studyInstanceUID,
@@ -183,8 +167,7 @@ class DICOMWEB {
     }
 
     tests(): void {
-        const testingServerURL =
-            "http://quantome.org:4242/dcm4chee-arc/aets/DCM4CHEE";
+        const testingServerURL = "http://quantome.org:4242/dcm4chee-arc/aets/DCM4CHEE";
         const testOptions: DICOMWEBOptions = { rootURL: testingServerURL };
 
         void new DICOMWEB(testOptions).patients().then((responses) => {
