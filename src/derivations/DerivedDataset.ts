@@ -1,8 +1,46 @@
-import { DicomMetaDictionary } from "../DicomMetaDictionary.js";
+import { DicomMetaDictionary, type NaturalizedDataset, type VRMap } from "../DicomMetaDictionary";
+
+/** Options for creating a derived dataset */
+export interface DerivedDatasetOptions {
+    Manufacturer?: string;
+    ManufacturerModelName?: string;
+    SeriesDescription?: string;
+    SeriesNumber?: string;
+    SoftwareVersions?: string;
+    DeviceSerialNumber?: string;
+    SeriesDate?: string;
+    SeriesTime?: string;
+    ContentDate?: string;
+    ContentTime?: string;
+    SOPInstanceUID?: string;
+    SeriesInstanceUID?: string;
+    ClinicalTrialTimePointID?: string;
+    ClinicalTrialCoordinatingCenterName?: string;
+    ClinicalTrialSeriesID?: string;
+    ImageComments?: string;
+    ContentQualification?: string;
+    ContentLabel?: string;
+    ContentDescription?: string;
+    ContentCreatorName?: string;
+    includeSliceSpacing?: boolean;
+    [key: string]: string | boolean | undefined;
+}
+
+/** Dataset structure with VR map and metadata */
+export interface DerivedDatasetData {
+    _vrMap: VRMap;
+    _meta?: NaturalizedDataset;
+    [key: string]: unknown;
+}
 
 export default class DerivedDataset {
-    constructor(datasets, options = {}) {
-        this.options = JSON.parse(JSON.stringify(options));
+    options: DerivedDatasetOptions;
+    referencedDatasets: NaturalizedDataset[];
+    referencedDataset: NaturalizedDataset;
+    dataset: DerivedDatasetData;
+
+    constructor(datasets: NaturalizedDataset[], options: DerivedDatasetOptions = {}) {
+        this.options = JSON.parse(JSON.stringify(options)) as DerivedDatasetOptions;
         const o = this.options;
 
         o.Manufacturer = options.Manufacturer || "Unspecified";
@@ -40,28 +78,28 @@ export default class DerivedDataset {
         this.derive();
     }
 
-    assignToDataset(data) {
+    assignToDataset(data: Record<string, unknown>): void {
         Object.keys(data).forEach((key) => {
             this.dataset[key] = data[key];
             return;
         });
     }
 
-    assignFromReference(tags) {
+    assignFromReference(tags: string[]): void {
         tags.forEach((tag) => {
-            this.dataset[tag] = this.referencedDataset[tag] || "";
+            this.dataset[tag] = (this.referencedDataset as Record<string, unknown>)[tag] || "";
             return;
         });
     }
 
-    assignFromOptions(tags) {
+    assignFromOptions(tags: string[]): void {
         tags.forEach((tag) => {
             this.dataset[tag] = this.options[tag] || "";
             return;
         });
     }
 
-    derive() {
+    derive(): void {
         // common for all instances in study
         this.assignFromReference([
             "AccessionNumber",
@@ -96,8 +134,8 @@ export default class DerivedDataset {
         ]);
     }
 
-    static copyDataset(dataset) {
+    static copyDataset<T>(dataset: T): T {
         // copies everything but the buffers
-        return JSON.parse(JSON.stringify(dataset));
+        return JSON.parse(JSON.stringify(dataset)) as T;
     }
 }

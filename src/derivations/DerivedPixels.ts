@@ -1,7 +1,39 @@
-import DerivedDataset from "./DerivedDataset";
+import DerivedDataset, { type DerivedDatasetOptions, type DerivedDatasetData } from "./DerivedDataset";
+import type { NaturalizedDataset } from "../DicomMetaDictionary";
+
+/** Extended interface for pixel-based datasets */
+export interface PixelDatasetData extends DerivedDatasetData {
+    ImageType?: string[];
+    LossyImageCompression?: string;
+    InstanceNumber?: string;
+    SOPClassUID?: string;
+    Modality?: string;
+    FrameOfReferenceUID?: string;
+    PositionReferenceIndicator?: string;
+    NumberOfFrames?: string | number;
+    Rows?: string | number;
+    Columns?: string | number;
+    SamplesPerPixel?: string;
+    PhotometricInterpretation?: string;
+    BitsStored?: string;
+    HighBit?: string;
+    ContentLabel?: string;
+    ContentDescription?: string;
+    ContentCreatorName?: string;
+    SharedFunctionalGroupsSequence?: Record<string, unknown>;
+    PerFrameFunctionalGroupsSequence?: Record<string, unknown>[] | Record<string, unknown>;
+    PixelData?: ArrayBuffer;
+}
 
 export default class DerivedPixels extends DerivedDataset {
-    constructor(datasets, options = {}) {
+    declare dataset: PixelDatasetData;
+    declare referencedDataset: NaturalizedDataset & {
+        SharedFunctionalGroupsSequence?: Record<string, unknown>;
+        PerFrameFunctionalGroupsSequence?: Record<string, unknown>[] | Record<string, unknown>;
+        PixelData?: ArrayBuffer;
+    };
+
+    constructor(datasets: NaturalizedDataset[], options: DerivedDatasetOptions = {}) {
         super(datasets, options);
         const o = this.options;
 
@@ -12,7 +44,7 @@ export default class DerivedPixels extends DerivedDataset {
 
     // this assumes a normalized multiframe input and will create
     // a multiframe derived image
-    derive() {
+    derive(): void {
         super.derive();
 
         this.assignToDataset({
@@ -53,6 +85,8 @@ export default class DerivedPixels extends DerivedDataset {
         }
 
         // make an array of zeros for the pixels
-        this.dataset.PixelData = new ArrayBuffer(this.referencedDataset.PixelData.byteLength);
+        if (this.referencedDataset.PixelData) {
+            this.dataset.PixelData = new ArrayBuffer(this.referencedDataset.PixelData.byteLength);
+        }
     }
 }

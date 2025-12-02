@@ -1,11 +1,13 @@
 import DerivedPixels from "./DerivedPixels";
+import type { DerivedDatasetOptions } from "./DerivedDataset";
+import type { NaturalizedDataset } from "../DicomMetaDictionary";
 
 export default class DerivedImage extends DerivedPixels {
-    constructor(datasets, options = {}) {
+    constructor(datasets: NaturalizedDataset[], options: DerivedDatasetOptions = {}) {
         super(datasets, options);
     }
 
-    derive() {
+    derive(): void {
         super.derive();
         this.assignFromReference([
             "WindowCenter",
