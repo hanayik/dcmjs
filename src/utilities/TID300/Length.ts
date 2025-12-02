@@ -1,8 +1,28 @@
-import TID300Measurement from "./TID300Measurement.js";
-import unit2CodingValue from "./unit2CodingValue.js";
+import TID300Measurement, { type ContentSequenceEntry, type TID300MeasurementProps } from "./TID300Measurement";
+import unit2CodingValue from "./unit2CodingValue";
+
+interface PointCoord {
+    x?: number;
+    y?: number;
+    z?: number;
+    0?: number;
+    1?: number;
+    2?: number;
+}
+
+interface LengthProps extends TID300MeasurementProps {
+    point1: PointCoord;
+    point2: PointCoord;
+    unit?: string;
+    use3DSpatialCoordinates?: boolean;
+    distance?: number;
+    ReferencedFrameOfReferenceUID?: string;
+}
 
 export default class Length extends TID300Measurement {
-    contentItem() {
+    declare props: LengthProps;
+
+    contentItem(): ContentSequenceEntry[] {
         const {
             point1,
             point2,
