@@ -1,3 +1,4 @@
+/* eslint-disable no-loss-of-precision */
 //
 // Handle DICOM and CIELAB colors
 // based on:
@@ -12,21 +13,33 @@
 //
 //
 
+/** RGB color as [R, G, B] with values 0-1 per component */
+type RGB = [number, number, number];
+
+/** CIEXYZ color as [X, Y, Z] */
+type XYZ = [number, number, number];
+
+/** CIELAB color as [L, a, b] where L is 0-100, a and b are -128 to 127 */
+type LAB = [number, number, number];
+
+/** DICOM LAB color as [L, a, b] with values scaled to 0-65535 */
+type DICOMLAB = [number, number, number];
+
 class Colors {
-    static d65WhitePointXYZ() {
+    static d65WhitePointXYZ(): XYZ {
         // white points of D65 light point (CIELAB standard white point)
         return [0.950456, 1.0, 1.088754];
     }
 
-    static dicomlab2RGB(dicomlab) {
+    static dicomlab2RGB(dicomlab: DICOMLAB): RGB {
         return Colors.lab2RGB(Colors.dicomlab2LAB(dicomlab));
     }
 
-    static rgb2DICOMLAB(rgb) {
+    static rgb2DICOMLAB(rgb: RGB): DICOMLAB {
         return Colors.lab2DICOMLAB(Colors.rgb2LAB(rgb));
     }
 
-    static dicomlab2LAB(dicomlab) {
+    static dicomlab2LAB(dicomlab: DICOMLAB): LAB {
         return [
             (dicomlab[0] * 100.0) / 65535.0, // results in 0 <= L <= 100
             (dicomlab[1] * 255.0) / 65535.0 - 128, // results in -128 <= a <= 127
@@ -34,7 +47,7 @@ class Colors {
         ];
     }
 
-    static lab2DICOMLAB(lab) {
+    static lab2DICOMLAB(lab: LAB): DICOMLAB {
         return [
             (lab[0] * 65535.0) / 100.0, // results in 0 <= L <= 65535
             ((lab[1] + 128) * 65535.0) / 255.0, // results in 0 <= a <= 65535
@@ -42,11 +55,11 @@ class Colors {
         ];
     }
 
-    static rgb2LAB(rgb) {
+    static rgb2LAB(rgb: RGB): LAB {
         return Colors.xyz2LAB(Colors.rgb2XYZ(rgb));
     }
 
-    static gammaCorrection(n) {
+    static gammaCorrection(n: number): number {
         if (n <= 0.0031306684425005883) {
             return 12.92 * n;
         } else {
@@ -54,7 +67,7 @@ class Colors {
         }
     }
 
-    static invGammaCorrection(n) {
+    static invGammaCorrection(n: number): number {
         if (n <= 0.0404482362771076) {
             return n / 12.92;
         } else {
@@ -62,7 +75,7 @@ class Colors {
         }
     }
 
-    static rgb2XYZ(rgb) {
+    static rgb2XYZ(rgb: RGB): XYZ {
         const R = Colors.invGammaCorrection(rgb[0]);
         const G = Colors.invGammaCorrection(rgb[1]);
         const B = Colors.invGammaCorrection(rgb[2]);
@@ -73,7 +86,7 @@ class Colors {
         ];
     }
 
-    static xyz2LAB(xyz) {
+    static xyz2LAB(xyz: XYZ): LAB {
         const whitePoint = Colors.d65WhitePointXYZ();
         let X = xyz[0] / whitePoint[0];
         let Y = xyz[1] / whitePoint[1];
@@ -84,11 +97,11 @@ class Colors {
         return [116 * Y - 16, 500 * (X - Y), 200 * (Y - Z)];
     }
 
-    static lab2RGB(lab) {
+    static lab2RGB(lab: LAB): RGB {
         return Colors.xyz2RGB(Colors.lab2XYZ(lab));
     }
 
-    static lab2XYZ(lab) {
+    static lab2XYZ(lab: LAB): XYZ {
         const L = (lab[0] + 16) / 116;
         const a = L + lab[1] / 500;
         const b = L - lab[2] / 200;
@@ -100,7 +113,7 @@ class Colors {
         ];
     }
 
-    static xyz2RGB(xyz) {
+    static xyz2RGB(xyz: XYZ): RGB {
         let R1 = 3.2406 * xyz[0] - 1.5372 * xyz[1] - 0.4986 * xyz[2];
         let G1 = -0.9689 * xyz[0] + 1.8758 * xyz[1] + 0.0415 * xyz[2];
         let B1 = 0.0557 * xyz[0] - 0.204 * xyz[1] + 1.057 * xyz[2];
@@ -118,7 +131,7 @@ class Colors {
         return [Colors.gammaCorrection(R1), Colors.gammaCorrection(G1), Colors.gammaCorrection(B1)];
     }
 
-    static labf(n) {
+    static labf(n: number): number {
         if (n >= 8.85645167903563082e-3) {
             return n ** 0.333333333333333;
         } else {
@@ -126,7 +139,7 @@ class Colors {
         }
     }
 
-    static labfInv(n) {
+    static labfInv(n: number): number {
         if (n >= 0.206896551724137931) {
             return n * n * n;
         } else {
