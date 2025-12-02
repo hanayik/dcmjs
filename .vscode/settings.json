@@ -1,11 +1,10 @@
 {
-  
-  "editor.defaultFormatter": "biomejs.biome",
-  "[javascript]": {
-    "editor.tabSize": 4,
-    "editor.formatOnSave": true
-  },
-  "[json]": {
-    "editor.defaultFormatter": "biomejs.biome"
-  },
+    "editor.defaultFormatter": "biomejs.biome",
+    "[javascript]": {
+        "editor.tabSize": 4,
+        "editor.formatOnSave": true
+    },
+    "[json]": {
+        "editor.defaultFormatter": "biomejs.biome"
+    }
 }
