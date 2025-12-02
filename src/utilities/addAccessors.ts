@@ -1,22 +1,24 @@
-const handler = {
+type ProxiedArray<T extends object> = T[] & T & { __isProxy?: boolean };
+
+const handler: ProxyHandler<object[]> = {
     /**
      * Get a proxied value from the array or property value
      * Note that the property value get works even if you update the underlying object.
      * Also, return true of proxy.__isProxy in order to distinguish proxies and not double proxy them.
      */
-    get: (target, prop) => {
+    get: (target: object[], prop: string | symbol): unknown => {
         if (prop === "__isProxy") return true;
-        if (prop in target) return target[prop];
-        return target[0][prop];
+        if (prop in target) return (target as Record<string | symbol, unknown>)[prop];
+        return (target[0] as Record<string | symbol, unknown>)[prop];
     },
 
-    set: (obj, prop, value) => {
-        if (typeof prop === "number") {
-            obj[prop] = value;
+    set: (obj: object[], prop: string | symbol, value: unknown): boolean => {
+        if (typeof prop === "string" && !isNaN(Number(prop))) {
+            (obj as Record<string | symbol, unknown>)[prop] = value;
         } else if (prop in obj) {
-            obj[prop] = value;
+            (obj as Record<string | symbol, unknown>)[prop] = value;
         } else {
-            obj[0][prop] = value;
+            (obj[0] as Record<string | symbol, unknown>)[prop] = value;
         }
         return true;
     }
@@ -43,8 +45,11 @@ const handler = {
  * assert src[0].c === 'outerChange'
  * assert src.b === 'innerChange'
  */
-const addAccessors = (dest, sqZero) => {
-    if (dest.__isProxy) return dest;
+const addAccessors = <T extends object>(
+    dest: T | T[] | ProxiedArray<T>,
+    sqZero?: T
+): T | T[] | ProxiedArray<T> => {
+    if ((dest as ProxiedArray<T>).__isProxy) return dest;
     let itemZero = sqZero;
     if (itemZero === undefined) {
         if (typeof dest !== "object") return dest;
@@ -55,9 +60,9 @@ const addAccessors = (dest, sqZero) => {
     if (Array.isArray(dest)) {
         dest.length = 0;
         dest.push(itemZero);
-        return new Proxy(dest, handler);
+        return new Proxy(dest, handler) as ProxiedArray<T>;
     } else {
-        return new Proxy([itemZero], handler);
+        return new Proxy([itemZero], handler) as ProxiedArray<T>;
     }
 };
 
